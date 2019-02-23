@@ -243,6 +243,8 @@ public class City : Ownable, Influencable
         }
         foreach(Village village in Owner.Villages) {
             Yields village_yields = village.Yields;
+            village_yields.Add(Owner.EmpireModifiers.Village_Yield_Bonus);
+            village_yields.Multiply_By_Percentages(Owner.EmpireModifiers.Percentage_Village_Yield_Bonus);
             village_yields.Divide_By_Number(Owner.Cities.Count);
             if (update_statistics) {
                 Statistics.Add("Villages", village_yields);
@@ -594,6 +596,11 @@ public class City : Ownable, Influencable
         get {
             return Population - Worked_Hexes.Count;
         }
+    }
+
+    public void Start_Turn()
+    {
+        update_yields = true;
     }
 
     public void End_Turn()
@@ -1089,7 +1096,7 @@ public class City : Ownable, Influencable
     {
         get {
             Dictionary<Influencable, float> cities_and_villages = new Dictionary<Influencable, float>();
-            foreach (Player p in Main.Instance.Players) {
+            foreach (Player p in Main.Instance.All_Players) {
                 foreach(City c in p.Cities) {
                     if (c.Hex.Is_Explored_By(Owner) && c.Id != Id) {
                         cities_and_villages.Add(c, Calculate_Influence(this, c));
@@ -1099,16 +1106,6 @@ public class City : Ownable, Influencable
                     if (v.Hex.Is_Explored_By(Owner)) {
                         cities_and_villages.Add(v, Calculate_Influence(this, v));
                     }
-                }
-            }
-            foreach (City c in Main.Instance.Neutral_Player.Cities) {
-                if (c.Hex.Is_Explored_By(Owner) && c.Id != Id) {
-                    cities_and_villages.Add(c, Calculate_Influence(this, c));
-                }
-            }
-            foreach (Village v in Main.Instance.Neutral_Player.Villages) {
-                if (v.Hex.Is_Explored_By(Owner)) {
-                    cities_and_villages.Add(v, Calculate_Influence(this, v));
                 }
             }
             return cities_and_villages;
@@ -1139,6 +1136,11 @@ public class City : Ownable, Influencable
     {
         float influence = city.Yields.Culture;
         float distance = city.Hex.Distance(target.Hex);
+        if(target is Village) {
+            foreach(Building building in city.Buildings) {
+                influence += building.Village_Cultural_Influence;
+            }
+        }
         if(distance > city.Cultural_Influence_Range) {
             influence *= Mathf.Pow(1.0f - CULTURAL_INFLUENCE_DECAY_PER_HEX, distance - city.Cultural_Influence_Range);
         }

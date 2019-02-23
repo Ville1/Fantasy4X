@@ -83,9 +83,6 @@ public class Player {
 
     public void Start_Turn()
     {
-        foreach (WorldMapEntity entity in WorldMapEntitys) {
-            entity.Start_Turn();
-        }
 
         foreach(Notification notification in notification_queue) {
             NotificationManager.Instance.Add_Notification(notification);
@@ -106,12 +103,20 @@ public class Player {
                 }
             }
         }
+
+        foreach (WorldMapEntity entity in WorldMapEntitys) {
+            entity.Start_Turn();
+        }
+
+        foreach(City city in Cities) {
+            city.Start_Turn();
+        }
     }
 
     public float Income
     {
         get {
-            float income = Faction.Passive_Income + EmpireModifiers.Passive_Income;
+            float income = EmpireModifiers.Passive_Income;
             foreach(City city in Cities) {
                 income += city.Yields.Cash;
             }
@@ -218,7 +223,10 @@ public class Player {
     public EmpireModifiers EmpireModifiers
     {
         get {
-            EmpireModifiers modifiers = new EmpireModifiers();
+            EmpireModifiers modifiers = new EmpireModifiers() {
+                Percentage_Village_Yield_Bonus = new Yields(100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f)
+            };
+            modifiers.Add(Faction.EmpireModifiers);
             foreach(Technology technology in Researched_Technologies) {
                 modifiers.Add(technology.EmpireModifiers);
             }

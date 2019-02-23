@@ -34,11 +34,12 @@ public class Building {
     public float Building_Upkeep_Reduction { get; set; }
     public float Garrison_Upkeep_Reduction { get; set; }
     public float Cultural_Influence_Range { get; set; }
+    public float Village_Cultural_Influence { get; set; }
 
     private float upkeep;
     private bool paused;
     private Yields percentage_yield_bonuses;
-
+    
     public Building(Building prototype, City city)
     {
         Name = prototype.Name;
@@ -71,6 +72,7 @@ public class Building {
         Building_Upkeep_Reduction = prototype.Building_Upkeep_Reduction;
         Garrison_Upkeep_Reduction = prototype.Garrison_Upkeep_Reduction;
         Cultural_Influence_Range = prototype.Cultural_Influence_Range;
+        Village_Cultural_Influence = prototype.Village_Cultural_Influence;
     }
 
     public Building(string name, string texture, int production_required, int cost, float upkeep, Yields yields, float happiness, float health, float order,
@@ -102,6 +104,7 @@ public class Building {
         Building_Upkeep_Reduction = 0.0f;
         Garrison_Upkeep_Reduction = 0.0f;
         Cultural_Influence_Range = 0.0f;
+        Village_Cultural_Influence = 0.0f;
     }
 
     public Yields Yields
@@ -231,6 +234,12 @@ public class Building {
             }
             if (Garrison_Upkeep_Reduction != 0.0f) {
                 tooltip.Append(Environment.NewLine).Append("Garrison upkeep reduction: ").Append(Mathf.RoundToInt(100.0f * Garrison_Upkeep_Reduction)).Append("%");
+            }
+            if (Cultural_Influence_Range != 0.0f) {
+                tooltip.Append(Environment.NewLine).Append("Cultural influence range: ").Append(Math.Round(Cultural_Influence_Range, 1).ToString("0.0"));
+            }
+            if (Village_Cultural_Influence != 0.0f) {
+                tooltip.Append(Environment.NewLine).Append("Village cultural influence: ").Append(Math.Round(Village_Cultural_Influence, 1).ToString("0.0"));
             }
             return tooltip.ToString();
         }

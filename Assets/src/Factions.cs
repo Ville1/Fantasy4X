@@ -39,12 +39,15 @@ public class Factions {
          * 
          */
 
-        all.Add(new Faction("Kingdom", 150, 3.0f, 1, new Dictionary<City.CitySize, Yields>() {
+        all.Add(new Faction("Kingdom", 150, 1, new Dictionary<City.CitySize, Yields>() {
             { City.CitySize.Town, new Yields(2, 1, 2, 1, 1, 0, 0) },
             { City.CitySize.City, new Yields(1, 2, 3, 2, 1, 0, 0) },
             { City.CitySize.Metropolis, new Yields(0, 2, 5, 3, 2, 0, 0) }
         }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f,
-        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "default_unit", 10)));
+        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "default_unit", 10), new EmpireModifiers() {
+            Passive_Income = 3.0f,
+            Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+        }));
         Faction Kingdom = all[0];
 
 
@@ -113,7 +116,10 @@ public class Factions {
         Technology Economics = new Technology("Economics", 175, new List<AI.Tag>() { AI.Tag.Cash });
         Bureaucracy.Link(Economics, 3);
         Technology Mercantilism = new Technology("Mercantilism", 315, new List<AI.Tag>());
-        Mercantilism.EmpireModifiers = new EmpireModifiers() { Passive_Income = 1.0f };
+        Mercantilism.EmpireModifiers = new EmpireModifiers() {
+            Passive_Income = 1.0f,
+            Village_Yield_Bonus = new Yields(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+        };
         Economics.Link(Mercantilism, 3);
 
         Technology Law_and_Order = new Technology("Law and Order", 140, new List<AI.Tag>() { AI.Tag.Order });
@@ -143,6 +149,9 @@ public class Factions {
         Sanitation.Link(Health_Care, 3);
 
         Technology Highways = new Technology("Highways", 165, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Cash });
+        Highways.EmpireModifiers = new EmpireModifiers() {
+            Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f)
+        };
         Engineering.Link(Highways, 3);
         Technology Diplomatic_Missions = new Technology("Diplomatic Missions", 300, new List<AI.Tag>() { AI.Tag.Culture });
         Highways.Link(Diplomatic_Missions, 3);
@@ -234,9 +243,13 @@ public class Factions {
         ));
 
 
-        Kingdom.Buildings.Add(new Building("Monument", "placeholder", 50, 100, 1.0f, new Yields(0, 0, 0, 0, 1, 0, 0), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null));
+        Kingdom.Buildings.Add(new Building("Royal Statue", "placeholder", 50, 100, 1.0f, new Yields(0, 0, 0, 0, 1, 0, 0), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
+            Village_Cultural_Influence = 1.0f
+        });
         Kingdom.Buildings.Add(new Building("Workshop", "placeholder", 130, 85, 1.0f, new Yields(0, 2, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null));
-        Kingdom.Buildings.Add(new Building("Tavern", "placeholder", 100, 75, 2.0f, new Yields(-1, 0, 1, 0, 1, 0, 0), 2.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, true, null, null));
+        Kingdom.Buildings.Add(new Building("Tavern", "placeholder", 100, 75, 2.0f, new Yields(-1, 0, 1, 0, 1, 0, 0), 2.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
+            Cultural_Influence_Range = 1.0f
+        });
         Kingdom.Buildings.Add(new Building("Market Square", "placeholder", 85, 40, 1.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
             Percentage_Yield_Bonuses = new Yields(10, 0, 10, 0, 0, 0, 0)
         });
@@ -244,7 +257,7 @@ public class Factions {
             Tags = new Dictionary<AI.Tag, float>() { { AI.Tag.Military, 5.0f } }
         });
         Kingdom.Buildings.Add(new Building("Chapel", "placeholder", 160, 120, 1.0f, new Yields(0, 0, 0, 0, 0, 0, 1), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Public_Services, null));
-        Kingdom.Buildings.Add(new Building("Library", "placeholder", 145, 90, 2.0f, new Yields(0, 0, 0, 1, 0, 0, 0), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Public_Services, null) {
+        Kingdom.Buildings.Add(new Building("Library", "placeholder", 145, 90, 2.0f, new Yields(0, 0, 0, 2, 1, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Public_Services, null) {
             Percentage_Yield_Bonuses = new Yields(0, 0, 0, 10, 0, 0, 0)
         });
         Kingdom.Buildings.Add(new Building("Mint", "placeholder", 145, 80, 1.0f, new Yields(0, 0, 3, 0, 0, 0, 0), 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Alloys,
@@ -291,7 +304,7 @@ public class Factions {
                 b.Yield_Delta = new Yields(0.0f, 0.0f, bonus_cash, 0.0f, 0.0f, 0.0f, 0.0f);
             }
         ) { Tags = new Dictionary<AI.Tag, float> { { AI.Tag.Cash, 5.0f } } });
-        Kingdom.Buildings.Add(new Building("Weapon Smithy", "placeholder", 190, 200, 2.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, -1.0f, 0.0f, 0.1f, 0.0f, 0.0f, true, Combined_Arms, null) {
+        Kingdom.Buildings.Add(new Building("Weapon Smithy", "placeholder", 190, 200, 2.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, -1.0f, 0.0f, 0.1f, 0.0f, 0.0f, false, Combined_Arms, null) {
             Garrison_Upkeep_Reduction = 0.1f
         });
         Kingdom.Buildings.Add(new Building("Stable", "placeholder", 140, 85, 1.0f, new Yields(-1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, Professional_Army, null) {
@@ -303,7 +316,10 @@ public class Factions {
                 float bonus_cash = b.City.Yields.Culture * 0.50f;
                 b.Yield_Delta = new Yields(0.0f, 0.0f, bonus_cash, 0.0f, 0.0f, 0.0f, 0.0f);
             }
-        ) { Tags = new Dictionary<AI.Tag, float> { { AI.Tag.Cash, 5.0f } } });
+        ) {
+            Tags = new Dictionary<AI.Tag, float> { { AI.Tag.Cash, 5.0f } },
+            Cultural_Influence_Range = 2.0f
+        });
         Kingdom.Buildings.Add(new Building("Bank", "placeholder", 270, 290, 3.0f, new Yields(0, 0, 2, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Economics, null) {
             Percentage_Yield_Bonuses = new Yields(0, 0, 25, 0, 0, 0, 0)
         });
@@ -318,8 +334,8 @@ public class Factions {
         Kingdom.Buildings.Add(new Building("Sever System", "placeholder", 375, 200, 3.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, Sanitation, null) {
             Base_Health_From_Pops_Delta = 0.05f
         });
-        Kingdom.Buildings.Add(new Building("Military Academy", "placeholder", 330, 350, 4.0f, new Yields(0, 0, 0, 1, 1, 0, 0), 0.0f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f, true, Military_Science, null));
-        Kingdom.Buildings.Add(new Building("Hospital", "placeholder", 375, 470, 5.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Health_Care, null) {
+        Kingdom.Buildings.Add(new Building("Military Academy", "placeholder", 330, 350, 4.0f, new Yields(0, 0, 0, 1, 1, 0, 0), 0.0f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f, false, Military_Science, null));
+        Kingdom.Buildings.Add(new Building("Hospital", "placeholder", 375, 470, 5.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, Health_Care, null) {
             Pop_Growth_Additive_Bonus = 0.25f,
             Pop_Growth_Multiplier_Bonus = 0.25f
         });
@@ -328,7 +344,8 @@ public class Factions {
             Building_Upkeep_Reduction = 0.1f
         });
         Kingdom.Buildings.Add(new Building("Chancery", "placeholder", 360, 500, 3.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Diplomatic_Missions, null) {
-            Percentage_Yield_Bonuses = new Yields(0, 0, 0, 0, 25, 0, 0)
+            Percentage_Yield_Bonuses = new Yields(0, 0, 0, 0, 25, 0, 0),
+            Cultural_Influence_Range = 5.0f
         });
 
         Kingdom.Units.Add(new Worker("Peasant", 2.0f, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
@@ -413,12 +430,12 @@ public class Factions {
 
 
 
-        neutral_cities = new Faction("Neutral Cities", 1000, 0.0f, 1, new Dictionary<City.CitySize, Yields>() {
+        neutral_cities = new Faction("Neutral Cities", 1000, 1, new Dictionary<City.CitySize, Yields>() {
                 { City.CitySize.Town, new Yields(2, 1, 2, 1, 1, 0, 0) },
                 { City.CitySize.City, new Yields(1, 2, 3, 2, 1, 0, 0) },
                 { City.CitySize.Metropolis, new Yields(0, 2, 5, 3, 2, 0, 0) }
             }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f,
-            new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "default_unit", 100));
+            new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "default_unit", 100), new EmpireModifiers());
 
         neutral_cities.Units.Add(new Unit("Town Guard", Unit.UnitType.Infantry, "town_guard", 2.0f, 200, 200, 0.25f, 2, null, null,
             2.0f, true, 10.0f, 100.0f, 100.0f,

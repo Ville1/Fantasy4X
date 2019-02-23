@@ -7,13 +7,17 @@ public class EmpireModifiers {
     public float Building_Constuction_Speed_Bonus { get; set; }
     public float Improvement_Constuction_Speed_Bonus { get; set; }
     public float Passive_Income { get; set; }
-
+    public Yields Village_Yield_Bonus { get; set; }
+    public Yields Percentage_Village_Yield_Bonus { get; set; }
+    
     public EmpireModifiers()
     {
         Unit_Training_Speed_Bonus = 0.0f;
         Building_Constuction_Speed_Bonus = 0.0f;
         Improvement_Constuction_Speed_Bonus = 0.0f;
         Passive_Income = 0.0f;
+        Village_Yield_Bonus = new Yields();
+        Percentage_Village_Yield_Bonus = new Yields();
     }
 
     public void Add(EmpireModifiers modifiers)
@@ -22,12 +26,15 @@ public class EmpireModifiers {
         Building_Constuction_Speed_Bonus += modifiers.Building_Constuction_Speed_Bonus;
         Improvement_Constuction_Speed_Bonus += modifiers.Improvement_Constuction_Speed_Bonus;
         Passive_Income += modifiers.Passive_Income;
+        Village_Yield_Bonus.Add(modifiers.Village_Yield_Bonus);
+        Percentage_Village_Yield_Bonus.Add(modifiers.Percentage_Village_Yield_Bonus);
     }
 
     public bool Empty
     {
         get {
-            return Unit_Training_Speed_Bonus == 0.0f && Building_Constuction_Speed_Bonus == 0.0f && Improvement_Constuction_Speed_Bonus == 0.0f && Passive_Income == 0.0f;
+            return Unit_Training_Speed_Bonus == 0.0f && Building_Constuction_Speed_Bonus == 0.0f && Improvement_Constuction_Speed_Bonus == 0.0f && Passive_Income == 0.0f
+                && Village_Yield_Bonus.Empty && Percentage_Village_Yield_Bonus.Empty;
         }
     }
 
@@ -47,6 +54,12 @@ public class EmpireModifiers {
             }
             if (Passive_Income != 0.0f) {
                 tooltip.Append(Environment.NewLine).Append("Base income: +").Append(Math.Round(Passive_Income, 1).ToString("0.0"));
+            }
+            if (!Village_Yield_Bonus.Empty) {
+                tooltip.Append(Environment.NewLine).Append("Village yields: ").Append(Village_Yield_Bonus);
+            }
+            if (!Percentage_Village_Yield_Bonus.Empty) {
+                tooltip.Append(Environment.NewLine).Append("Village yield bonuses: ").Append(Percentage_Village_Yield_Bonus.Generate_String(true));
             }
             return tooltip.ToString();
         }
