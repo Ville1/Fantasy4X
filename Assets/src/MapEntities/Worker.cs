@@ -1,0 +1,216 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UnityEngine;
+
+public class Worker : WorldMapEntity, Trainable
+{
+    private static readonly string IMPROVEMENT_READY_SOUND_EFFECT = "building_ready_sfx";
+
+    public List<Improvement> Buildable_Improvements { get; private set; }
+
+    public int Cost { get; private set; }
+    public int Production_Required { get; private set; }
+    public Improvement Improvement_Under_Construction { get; private set; }
+    public float Improvement_Progress { get; private set; }
+    public List<string> Working_Animation { get; private set; }
+    public float Working_Animation_FPS { get; private set; }
+    public Technology Technology_Required { get; private set; }
+    public float Work_Speed { get; private set; }
+
+    public Worker(WorldMapHex hex, Worker prototype, Player owner) : base(hex, prototype, owner, true)
+    {
+        Buildable_Improvements = new List<Improvement>();
+        foreach(Improvement improvement in prototype.Buildable_Improvements) {
+            Buildable_Improvements.Add(improvement);
+        }
+        Work_Speed = prototype.Work_Speed;
+        Cost = prototype.Cost;
+        Upkeep = prototype.Upkeep;
+        Production_Required = prototype.Production_Required;
+        Technology_Required = prototype.Technology_Required;
+        Working_Animation = Helper.Copy_List(prototype.Working_Animation);
+        Working_Animation_FPS = prototype.Working_Animation_FPS;
+        Update_Actions_List();
+    }
+
+    /// <summary>
+    /// Prototype constructor
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="max_movement"></param>
+    /// <param name="los"></param>
+    /// <param name="texture"></param>
+    public Worker(string name, float max_movement, int los, string texture, List<string> working_animation, float working_animation_fps,
+        List<Improvement> buildable_improvements, float work_speed, int cost, int production_required, float upkeep, Technology technology_required) :
+            base(name, max_movement, los, texture)
+    {
+        Buildable_Improvements = buildable_improvements;
+        Work_Speed = work_speed;
+        Cost = cost;
+        Upkeep = upkeep;
+        Production_Required = production_required;
+        Working_Animation = working_animation;
+        Working_Animation_FPS = working_animation_fps;
+        Technology_Required = technology_required;
+    }
+
+    public void Start_Construction(Improvement improvement)
+    {
+        if (!improvement.Can_Be_Build_On.Contains(Hex.Terrain)) {
+            return;
+        }
+        Improvement_Progress = 0.0f;
+        Improvement_Under_Construction = improvement;
+        Current_Movement = 0.0f;
+        Start_Animation(Working_Animation, Working_Animation_FPS);
+    }
+
+    public override void End_Turn()
+    {
+        base.End_Turn();
+        Update_Actions_List();
+        if(Improvement_Under_Construction != null) {
+            City city = null;
+            foreach(City c in Hex.In_Work_Range_Of) {
+                if (c.Is_Owned_By(Owner)) {
+                    city = c;
+                    break;
+                }
+            }
+            Improvement_Progress += Work_Speed * Current_Improvement_Build_Speed_Multiplier;
+            if(Improvement_Progress >= Improvement_Under_Construction.Build_Time) {
+                Owner.Queue_Notification(new Notification("Improvement completed: " + Improvement_Under_Construction.Name, Improvement_Under_Construction.Texture, SpriteManager.SpriteType.Improvement, IMPROVEMENT_READY_SOUND_EFFECT, delegate() {
+                    BottomGUIManager.Instance.Current_Entity = this;
+                    CameraManager.Instance.Set_Camera_Location(Hex);
+                }));
+                if(Hex.Improvement != null) {
+                    Hex.Improvement.Delete();
+                }
+                Hex.Improvement = new Improvement(Hex, Improvement_Under_Construction);
+                if(Hex.Improvement.Extracts_Minerals && Hex.Can_Spawn_Minerals) {
+                    Hex.Prospect(Owner);
+                }
+                Stop_Building();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Try moving to a new hex
+    /// </summary>
+    /// <param name="new_hex"></param>
+    /// <param name="ignore_movement_restrictions"></param>
+    /// <returns></returns>
+    public override bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true)
+    {
+        if(Improvement_Under_Construction != null) {
+            Stop_Building();
+        }
+        return base.Move(new_hex, ignore_movement_restrictions, update_los);
+    }
+
+    public void Stop_Building()
+    {
+        Improvement_Progress = 0;
+        Improvement_Under_Construction = null;
+        Stop_Animation();
+    }
+
+    public void Update_Actions_List()
+    {
+        Actions.Clear();
+        foreach (Improvement improvement in Buildable_Improvements) {
+            if(improvement.Technology_Required != null && !Owner.Researched_Technologies.Any(x => improvement.Technology_Required.Name == x.Name)) {
+                continue;
+            }
+            Actions.Add(new Action(string.Format("Build {0}", improvement.Name), improvement.Texture, improvement.Get_Tooltip(this), SpriteManager.SpriteType.Improvement,
+                delegate (WorldMapEntity entity) {
+                    Improvement i = improvement;
+                    return i.Can_Be_Build_On.Contains(entity.Hex.Terrain) && (!i.Requires_Nearby_City || entity.Hex.In_Work_Range_Of.Count != 0);
+                },
+                delegate (WorldMapEntity entity) {
+                    Improvement i = improvement;
+                    (entity as Worker).Start_Construction(i);
+                })
+            );
+        }
+    }
+
+    /// <summary>
+    /// Checks hex and technology requirements
+    /// </summary>
+    /// <param name="hex"></param>
+    /// <returns></returns>
+    public List<Improvement> Get_Buildable_Improvements(WorldMapHex hex)
+    {
+        List<Improvement> list = new List<Improvement>();
+        foreach (Improvement improvement in Buildable_Improvements) {
+            if ((improvement.Technology_Required != null && !Owner.Researched_Technologies.Any(x => improvement.Technology_Required.Name == x.Name)) ||
+                !improvement.Can_Be_Build_On.Contains(hex.Terrain) || (improvement.Requires_Nearby_City && hex.In_Work_Range_Of.Count == 0)) {
+                continue;
+            }
+            list.Add(improvement);
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Checks hex and technology requirements
+    /// </summary>
+    public List<Improvement> Currently_Buildable_Improvements
+    {
+        get {
+            return Get_Buildable_Improvements(Hex);
+        }
+    }
+
+    public int Turns_Left
+    {
+        get {
+            if(Improvement_Under_Construction == null) {
+                return -1;
+            }
+            return Mathf.CeilToInt((Improvement_Under_Construction.Build_Time - Improvement_Progress) / (Work_Speed * Current_Improvement_Build_Speed_Multiplier));
+        }
+    }
+
+    public int Construction_Time_Estimate(Improvement improvement)
+    {
+        return Mathf.CeilToInt(improvement.Build_Time / (Work_Speed * Current_Improvement_Build_Speed_Multiplier));
+    }
+
+    private float Current_Improvement_Build_Speed_Multiplier
+    {
+        get {
+            City city = null;
+            foreach (City c in Hex.In_Work_Range_Of) {
+                if (c.Is_Owned_By(Owner)) {
+                    city = c;
+                    break;
+                }
+            }
+            if(city != null) {
+                return 1.0f + city.Total_Improvement_Construction_Speed_Bonus;
+            }
+            return 1.0f + Owner.EmpireModifiers.Improvement_Constuction_Speed_Bonus;
+        }
+    }
+
+    public string Tooltip
+    {
+        get {
+            StringBuilder tooltip = new StringBuilder();
+            tooltip.Append(Name);
+            tooltip.Append(Environment.NewLine).Append("Upkeep: ").Append(Math.Round(Upkeep, 2).ToString("0.00"));
+            tooltip.Append(Environment.NewLine).Append("Work Speed: ").Append(Math.Round(Work_Speed, 1).ToString("0.0"));
+            tooltip.Append(Environment.NewLine).Append("Movement: ").Append(Mathf.RoundToInt(Max_Movement));
+            tooltip.Append(Environment.NewLine).Append("Improvements:");
+            foreach(Improvement improvement in Buildable_Improvements) {
+                tooltip.Append(Environment.NewLine).Append("- ").Append(improvement.Name);
+            }
+            return tooltip.ToString();
+        }
+    }
+}

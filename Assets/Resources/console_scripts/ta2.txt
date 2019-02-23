@@ -1,0 +1,1 @@
+spawn_army 1 Scout:2,Levy_Spearman:3,Levy_Archer:3,Kettlehat:1

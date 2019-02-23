@@ -1,0 +1,8 @@
+{
+    "Sound_Effect_Volume": 1.0,
+    "Mute_Sound_Effects": false,
+    "Music_Volume": 1.0,
+    "Mute_Music": true,
+    "AI_Action_Delay": 1.0,
+    "AI_Follow_Moves": true
+}
