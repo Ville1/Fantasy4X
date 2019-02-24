@@ -86,4 +86,16 @@ public class Village : Ownable, Influencable
             return yields;
         }
     }
+
+    public bool Connected_With_Road
+    {
+        get {
+            foreach(WorldMapHex adjacent_hex in Hex.Get_Adjancent_Hexes()) {
+                if(adjacent_hex.Road != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }

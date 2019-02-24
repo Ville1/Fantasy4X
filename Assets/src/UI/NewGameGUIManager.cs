@@ -8,8 +8,8 @@ public class NewGameGUIManager : MonoBehaviour {
     private static readonly int DEFAULT_MAX_ROUNDS = 1000;
     private static readonly int MAX_PLAYERS = 6;
     private static readonly float PLAYER_ROW_HEIGHT = 30.0f;
-    private static readonly int DEFAULT_WIDTH = 20;
-    private static readonly int DEFAULT_HEIGHT = 20;
+    private static readonly int DEFAULT_WIDTH = 30;
+    private static readonly int DEFAULT_HEIGHT = 30;
     private static readonly int DEFAULT_NEUTRAL_CITIES = 5;
     private static readonly int DEFAULT_MAX_VILLAGES = 10;
 

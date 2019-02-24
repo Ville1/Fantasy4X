@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
@@ -24,9 +25,13 @@ public class Map
     private bool visible;
     private Dictionary<int, string> seed;
     private int seed_max;
+    private List<WorldMapHex> edge_hexes;
 
     public Map(int width, int height, float mineral_spawn_rate)
     {
+        CustomLogger.Instance.Debug("Generating Map");
+        Stopwatch stopwatch_total = Stopwatch.StartNew();
+
         Width = width;
         Height = height;
         Mineral_Spawn_Rate = mineral_spawn_rate;
@@ -36,9 +41,11 @@ public class Map
         Villages = new List<Village>();
 
         hexes = new List<List<WorldMapHex>>();
+        edge_hexes = new List<WorldMapHex>();
         visible = true;
 
         //Generate
+        Stopwatch stopwatch = Stopwatch.StartNew();
         for (int x = 0; x < width; x++) {
             hexes.Add(new List<WorldMapHex>());
             for (int y = 0; y < height; y++) {
@@ -56,7 +63,10 @@ public class Map
                     hexes[x].Add(null);
                 }
             }
+
         }
+        CustomLogger.Instance.Debug(string.Format("Map seeded in: {0} ms", stopwatch.ElapsedMilliseconds));
+        stopwatch = Stopwatch.StartNew();
 
         //Spread terrain
         Dictionary<string, Dictionary<string, float[]>> spread = new Dictionary<string, Dictionary<string, float[]>>();
@@ -107,6 +117,17 @@ public class Map
                 }
             }
         }
+        CustomLogger.Instance.Debug(string.Format("Terrain spread in: {0} ms", stopwatch.ElapsedMilliseconds));
+        stopwatch = Stopwatch.StartNew();
+
+        //List edges
+        foreach (WorldMapHex hex in All_Hexes) {
+            if (hex.Is_At_Map_Edge(this)) {
+                edge_hexes.Add(hex);
+            }
+        }
+        CustomLogger.Instance.Debug(string.Format("Edges listed in: {0} ms", stopwatch.ElapsedMilliseconds));
+        stopwatch = Stopwatch.StartNew();
 
         //Alter terrain
         Dictionary<string, List<TerrainAlterationData>> alter = new Dictionary<string, List<TerrainAlterationData>>();
@@ -214,6 +235,8 @@ public class Map
                 }
             }
         }
+        CustomLogger.Instance.Debug(string.Format("Terrain altered in: {0} ms", stopwatch.ElapsedMilliseconds));
+        stopwatch = Stopwatch.StartNew();
 
         //Spawn minerals
         for (int x = 0; x < width; x++) {
@@ -223,6 +246,8 @@ public class Map
                 }
             }
         }
+        CustomLogger.Instance.Debug(string.Format("Minerals spawned in: {0} ms", stopwatch.ElapsedMilliseconds));
+        CustomLogger.Instance.Debug(string.Format("Map generated in: {0} ms", stopwatch_total.ElapsedMilliseconds));
 
         //Map_Mode = WorldMapHex.InfoText.Coordinates;
     }
@@ -275,6 +300,10 @@ public class Map
 
     public void Spawn_Cities_Villages_And_Roads(int neutral_cities, int max_villages)
     {
+        CustomLogger.Instance.Debug("Spawing cities, villages and roads");
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        Stopwatch stopwatch_total = Stopwatch.StartNew();
+
         List<WorldMapHex> all_hexes = All_Hexes;
         float no_cities_radius_center_min = 0.20f * ((Width + Height) / 2.0f);
         float no_cities_radius_center_max = 0.40f * ((Width + Height) / 2.0f);
@@ -323,6 +352,9 @@ public class Map
                 }
             }
         }
+        CustomLogger.Instance.Debug(string.Format("Capitals spawned in: {0} ms", stopwatch.ElapsedMilliseconds));
+        stopwatch = Stopwatch.StartNew();
+
         //Neutral cities
         bool failed_to_spawn = false;
         for(int i = 0; i < neutral_cities; i++) {
@@ -374,6 +406,8 @@ public class Map
                 break;
             }
         }
+        CustomLogger.Instance.Debug(string.Format("Neutral cities spawned in: {0} ms", stopwatch.ElapsedMilliseconds));
+        stopwatch = Stopwatch.StartNew();
 
         //Villages
         int village_iterations = 1000 + (max_villages * 100);
@@ -425,51 +459,76 @@ public class Map
             Main.Instance.Neutral_Player.Villages.Add(village);
             Villages.Add(village);
         }
+        CustomLogger.Instance.Debug(string.Format("Villages spawned in: {0} ms", stopwatch.ElapsedMilliseconds));
+        stopwatch = Stopwatch.StartNew();
 
         //Roads
-        float optimal_road_distance = 10.0f;
-        float road_change_decay_per_hex = 0.075f;
-        float road_change_increase_per_hex = 0.05f;
-        float base_road_change = 75.0f;
         List<WorldMapHex> road_hexes = new List<WorldMapHex>();
-        Road default_road = HexPrototypes.Instance.Get_Road("gravel road");
-        Dictionary<City, float> cities_and_distances = new Dictionary<City, float>();
-        Dictionary<City, List<WorldMapHex>> cities_and_paths = new Dictionary<City, List<WorldMapHex>>();
-        foreach (City city in Cities) {
-            cities_and_distances.Clear();
-            cities_and_paths.Clear();
-            foreach(City city_2 in Cities) {
-                List<WorldMapHex> path = Path(city.Hex, city_2.Hex, null);
-                if(path.Count == 0) {
-                    continue;
-                }
-                cities_and_distances.Add(city_2, path.Count);//TODO: Use movement point usage for distance?
-                cities_and_paths.Add(city_2, path);
-            }
-            if (cities_and_distances.Count == 0) {
+        List<WorldMapHex> edge_connections = new List<WorldMapHex>();
+        int edge_connection_count = RNG.Instance.Next(3 * ((Width + Height) / 80), 6 * ((Width + Height) / 40));
+        while (edge_connections.Count < edge_connection_count) {
+            WorldMapHex connection = edge_hexes[RNG.Instance.Next(0, edge_hexes.Count - 1)];
+            if (edge_connections.Contains(connection)) {
                 continue;
             }
-            foreach(KeyValuePair<City, float> city_and_distance in cities_and_distances) {
-                float change = base_road_change;
-                if(city_and_distance.Value < optimal_road_distance) {
-                    change = (100.0f - ((100.0f - change) * Mathf.Pow(1.0f - road_change_increase_per_hex, optimal_road_distance - city_and_distance.Value)));
-                } else if(city_and_distance.Value > optimal_road_distance) {
-                    change *= Mathf.Pow(1.0f - road_change_decay_per_hex, city_and_distance.Value - optimal_road_distance);
-                }
-                if(RNG.Instance.Next(0, 100) <= Mathf.RoundToInt(change)) {
-                    foreach(WorldMapHex hex in cities_and_paths[city_and_distance.Key]) {
-                        if(hex.Road != null || hex.City != null || hex.Village != null) {
-                            continue;
-                        }
-                        hex.Road = new Road(hex, default_road);
-                        road_hexes.Add(hex);
-                    }
-                }
-            }
+            edge_connections.Add(connection);
+        }
+        foreach (City city in Cities) {
+            Spawn_Roads(city.Hex, Cities.Select(x => x.Hex).ToList(), 10.0f, 75.0f, 0.075f, 0.05f, HexPrototypes.Instance.Get_Road("gravel road"), ref road_hexes);
+            Spawn_Roads(city.Hex, Villages.Where(x => !x.Connected_With_Road).Select(x => x.Hex).ToList(), 10.0f, 25.0f, 0.25f, 0.025f, HexPrototypes.Instance.Get_Road("gravel road"), ref road_hexes);
+            Spawn_Roads(city.Hex, Villages.Where(x => x.Connected_With_Road).Select(x => x.Hex).ToList(), 5.0f, 5.0f, 0.35f, 0.025f, HexPrototypes.Instance.Get_Road("gravel road"), ref road_hexes);
+            Spawn_Roads(city.Hex, edge_connections, 7.0f, 75.0f, 0.075f, 0.05f, HexPrototypes.Instance.Get_Road("gravel road"), ref road_hexes);
+        }
+        foreach(Village village in Villages) {
+            Spawn_Roads(village.Hex, Villages.Select(x => x.Hex).ToList(), 7.0f, 5.0f, 0.25f, 0.025f, HexPrototypes.Instance.Get_Road("gravel road"), ref road_hexes);
+            Spawn_Roads(village.Hex, edge_connections, 5.0f, 75.0f, 0.075f, 0.05f, HexPrototypes.Instance.Get_Road("gravel road"), ref road_hexes);
+        }
+        foreach (WorldMapHex road_hex in road_hexes) {
+            road_hex.Road.Update_Graphics();
         }
 
-        foreach(WorldMapHex road_hex in road_hexes) {
-            road_hex.Road.Update_Graphics();
+        CustomLogger.Instance.Debug(string.Format("Roads spawned in: {0} ms", stopwatch.ElapsedMilliseconds));
+        CustomLogger.Instance.Debug(string.Format("Cities, villages and roads spawned in: {0} ms", stopwatch_total.ElapsedMilliseconds));
+    }
+
+    private void Spawn_Roads(WorldMapHex hex, List<WorldMapHex> possible_connetions, float optimal_distance, float base_change, float change_decay_per_hex,
+        float change_increase_per_hex, Road road_prototype, ref List<WorldMapHex> road_hexes)
+    {
+        Dictionary<WorldMapHex, float> distances = new Dictionary<WorldMapHex, float>();
+        Dictionary<WorldMapHex, List<WorldMapHex>> paths = new Dictionary<WorldMapHex, List<WorldMapHex>>();
+
+        foreach (WorldMapHex connection_hex in possible_connetions) {
+            List<WorldMapHex> path = Path(hex, connection_hex, null, false, false, true);
+            if (path.Count == 0) {
+                continue;
+            }
+            distances.Add(connection_hex, path.Count);//TODO: Use movement point usage for distance?
+            paths.Add(connection_hex, path);
+        }
+        if (distances.Count == 0) {
+            return;
+        }
+        foreach (KeyValuePair<WorldMapHex, float> distance in distances) {
+            float change = base_change;
+            if (distance.Value < optimal_distance) {
+                change = (100.0f - ((100.0f - change) * Mathf.Pow(1.0f - change_increase_per_hex, optimal_distance - distance.Value)));
+            } else if (distance.Value > optimal_distance) {
+                change *= Mathf.Pow(1.0f - change_decay_per_hex, distance.Value - optimal_distance);
+            }
+            if (RNG.Instance.Next(0, 100) <= Mathf.RoundToInt(change)) {
+                foreach (WorldMapHex path_hex in paths[distance.Key]) {
+                    if (path_hex.Road != null || path_hex.City != null || path_hex.Village != null) {
+                        continue;
+                    }
+                    path_hex.Road = new Road(path_hex, road_prototype);
+                    road_hexes.Add(path_hex);
+                }
+                if(distance.Key.City == null && distance.Key.Village == null) {
+                    //Map edge connection
+                    distance.Key.Road = new Road(distance.Key, road_prototype);
+                    road_hexes.Add(distance.Key);
+                }
+            }
         }
     }
 
@@ -540,11 +599,14 @@ public class Map
         return nodes;
     }
 
-    public List<PathfindingNode> Get_PathfindingNodes()
+    public List<PathfindingNode> Get_PathfindingNodes(bool road_spawning = false)
     {
         List<PathfindingNode> nodes = new List<PathfindingNode>();
         foreach (WorldMapHex hex in All_Hexes) {
             nodes.Add(hex.PathfindingNode);
+            if(road_spawning && hex.Road != null) {
+                nodes[nodes.Count - 1].Cost *= 0.5f;
+            }
         }
         return nodes;
     }
@@ -648,11 +710,11 @@ public class Map
         return line;
     }
 
-    public List<WorldMapHex> Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false)
+    public List<WorldMapHex> Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false, bool road_spawning = false)
     {
         List<PathfindingNode> node_path = entity != null ?
             Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(entity)) :
-            Pathfinding.Path(Get_PathfindingNodes(), hex_1.PathfindingNode, hex_2.PathfindingNode);
+            Pathfinding.Path(Get_PathfindingNodes(road_spawning), hex_1.PathfindingNode, hex_2.PathfindingNode);
         if(node_path.Count == 0) {
             return new List<WorldMapHex>();
         }

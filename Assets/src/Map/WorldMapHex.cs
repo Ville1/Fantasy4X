@@ -479,6 +479,16 @@ public class WorldMapHex : Hex {
         }
     }
 
+    public bool Is_At_Map_Edge(Map map)
+    {
+        foreach (Coordinates c in Coordinates.Get_Adjanced_Coordinates().Select(x => x.Value).ToArray()) {
+            if (map.Get_Hex_At(c) == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     new public void Delete()
     {
         if(Road != null) {
