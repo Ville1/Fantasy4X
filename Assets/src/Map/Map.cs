@@ -224,7 +224,6 @@ public class Map
             }
         }
 
-
         //Map_Mode = WorldMapHex.InfoText.Coordinates;
     }
 
@@ -274,7 +273,7 @@ public class Map
         seed.Add(seed_max, prototype);
     }
 
-    public void Spawn_Cities_And_Villages(int neutral_cities, int max_villages)
+    public void Spawn_Cities_Villages_And_Roads(int neutral_cities, int max_villages)
     {
         List<WorldMapHex> all_hexes = All_Hexes;
         float no_cities_radius_center_min = 0.20f * ((Width + Height) / 2.0f);
@@ -426,6 +425,52 @@ public class Map
             Main.Instance.Neutral_Player.Villages.Add(village);
             Villages.Add(village);
         }
+
+        //Roads
+        float optimal_road_distance = 10.0f;
+        float road_change_decay_per_hex = 0.075f;
+        float road_change_increase_per_hex = 0.05f;
+        float base_road_change = 75.0f;
+        List<WorldMapHex> road_hexes = new List<WorldMapHex>();
+        Road default_road = HexPrototypes.Instance.Get_Road("gravel road");
+        Dictionary<City, float> cities_and_distances = new Dictionary<City, float>();
+        Dictionary<City, List<WorldMapHex>> cities_and_paths = new Dictionary<City, List<WorldMapHex>>();
+        foreach (City city in Cities) {
+            cities_and_distances.Clear();
+            cities_and_paths.Clear();
+            foreach(City city_2 in Cities) {
+                List<WorldMapHex> path = Path(city.Hex, city_2.Hex, null);
+                if(path.Count == 0) {
+                    continue;
+                }
+                cities_and_distances.Add(city_2, path.Count);//TODO: Use movement point usage for distance?
+                cities_and_paths.Add(city_2, path);
+            }
+            if (cities_and_distances.Count == 0) {
+                continue;
+            }
+            foreach(KeyValuePair<City, float> city_and_distance in cities_and_distances) {
+                float change = base_road_change;
+                if(city_and_distance.Value < optimal_road_distance) {
+                    change = (100.0f - ((100.0f - change) * Mathf.Pow(1.0f - road_change_increase_per_hex, optimal_road_distance - city_and_distance.Value)));
+                } else if(city_and_distance.Value > optimal_road_distance) {
+                    change *= Mathf.Pow(1.0f - road_change_decay_per_hex, city_and_distance.Value - optimal_road_distance);
+                }
+                if(RNG.Instance.Next(0, 100) <= Mathf.RoundToInt(change)) {
+                    foreach(WorldMapHex hex in cities_and_paths[city_and_distance.Key]) {
+                        if(hex.Road != null || hex.City != null || hex.Village != null) {
+                            continue;
+                        }
+                        hex.Road = new Road(hex, default_road);
+                        road_hexes.Add(hex);
+                    }
+                }
+            }
+        }
+
+        foreach(WorldMapHex road_hex in road_hexes) {
+            road_hex.Road.Update_Graphics();
+        }
     }
 
     private List<WorldMapHex> All_Hexes
@@ -491,6 +536,15 @@ public class Map
                 node.Cost = 10.0f;
             }
             nodes.Add(node);
+        }
+        return nodes;
+    }
+
+    public List<PathfindingNode> Get_PathfindingNodes()
+    {
+        List<PathfindingNode> nodes = new List<PathfindingNode>();
+        foreach (WorldMapHex hex in All_Hexes) {
+            nodes.Add(hex.PathfindingNode);
         }
         return nodes;
     }
@@ -596,8 +650,9 @@ public class Map
 
     public List<WorldMapHex> Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false)
     {
-        List<PathfindingNode> node_path = Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity),
-            hex_2.Get_Specific_PathfindingNode(entity));
+        List<PathfindingNode> node_path = entity != null ?
+            Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(entity)) :
+            Pathfinding.Path(Get_PathfindingNodes(), hex_1.PathfindingNode, hex_2.PathfindingNode);
         if(node_path.Count == 0) {
             return new List<WorldMapHex>();
         }

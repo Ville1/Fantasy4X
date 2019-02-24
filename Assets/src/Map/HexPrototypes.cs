@@ -4,6 +4,7 @@ public class HexPrototypes {
     private static HexPrototypes instance;
     private Dictionary<string, WorldMapHex> world_map_hex_prototypes;
     private Dictionary<string, CombatMapHex> combat_map_hex_prototypes;
+    private Dictionary<string, Road> road_prototypes;
 
     private HexPrototypes()
     {
@@ -36,6 +37,9 @@ public class HexPrototypes {
         combat_map_hex_prototypes.Add("trees", new CombatMapHex("Trees", "cm_hex_forest", 2.0f, 0.0f, 0, 1, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Forest }));
         combat_map_hex_prototypes.Add("houses", new CombatMapHex("Houses", "cm_hex_houses", 2.0f, 0.0f, 0, 1, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
         combat_map_hex_prototypes.Add("street", new CombatMapHex("Street", "cm_hex_paving", 1.0f, 0.0f, 0, 0, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
+
+        road_prototypes = new Dictionary<string, Road>();
+        road_prototypes.Add("gravel road", new Road("Gravel Road", "road_ne", "road_e", 0.1f));
     }
 
     public static HexPrototypes Instance
@@ -84,5 +88,14 @@ public class HexPrototypes {
             return null;
         }
         return combat_map_hex_prototypes[name];
+    }
+
+    public Road Get_Road(string name)
+    {
+        if (!road_prototypes.ContainsKey(name)) {
+            CustomLogger.Instance.Error("Road prototype does not exist: " + name);
+            return null;
+        }
+        return road_prototypes[name];
     }
 }

@@ -94,7 +94,7 @@ public class Main : MonoBehaviour {
         player_index = 0;
         Round = 0;
         Max_Rounds = max_rounds;
-        World.Instance.Map.Spawn_Cities_And_Villages(neutral_cities, max_villages);
+        World.Instance.Map.Spawn_Cities_Villages_And_Roads(neutral_cities, max_villages);
         EffectManager.Instance.Update_Target_Map();
         Turn_Start_Update_GUI();
         World.Instance.Map.Update_LoS();

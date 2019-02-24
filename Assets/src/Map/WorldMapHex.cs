@@ -14,7 +14,6 @@ public class WorldMapHex : Hex {
     public string Terrain { get; set; }
     public Yields Base_Yields { get; set; }
     public string Texture { get; private set; }
-    public float Movement_Cost { get; private set; }
     public int Elevation { get; private set; }
     public int Height { get; private set; }
     public WorldMapEntity Entity { get; set; }
@@ -32,6 +31,7 @@ public class WorldMapHex : Hex {
     public List<City> In_Work_Range_Of { get; private set; }
     public Village Worked_By_Village { get; set; }
     public List<Tag> Tags { get; private set; }
+    public Road Road { get; set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -39,6 +39,7 @@ public class WorldMapHex : Hex {
     private List<Player> explored_by;
     private Player owner;
     private List<Player> prospected_by;
+    private float movement_cost;
 
     public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent)
     {
@@ -92,6 +93,19 @@ public class WorldMapHex : Hex {
             Tags.Add(tag);
         }
         SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
+    }
+    
+    public float Movement_Cost
+    {
+        get {
+            if(Road == null) {
+                return movement_cost;
+            }
+            return movement_cost * (1.0f - Road.Movement_Cost_Reduction);
+        }
+        set {
+            movement_cost = value;
+        }
     }
 
     public Yields Yields
@@ -298,6 +312,9 @@ public class WorldMapHex : Hex {
                     if(Improvement != null) {
                         Improvement.GameObject.SetActive(true);
                     }
+                    if(Road != null) {
+                        Road.Active = true;
+                    }
                     break;
                 case LoS_Status.Explored:
                     SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
@@ -312,6 +329,9 @@ public class WorldMapHex : Hex {
                     if (Improvement != null) {
                         Improvement.GameObject.SetActive(false);
                     }
+                    if (Road != null) {
+                        Road.Active = true;
+                    }
                     break;
                 case LoS_Status.Unexplored:
                     SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(not_explored_texture, SpriteManager.SpriteType.Terrain);
@@ -324,6 +344,9 @@ public class WorldMapHex : Hex {
                     }
                     if (Improvement != null) {
                         Improvement.GameObject.SetActive(false);
+                    }
+                    if (Road != null) {
+                        Road.Active = false;
                     }
                     break;
             }
@@ -453,6 +476,13 @@ public class WorldMapHex : Hex {
     {
         if (!prospected_by.Contains(player)) {
             prospected_by.Add(player);
+        }
+    }
+
+    new public void Delete()
+    {
+        if(Road != null) {
+            Road.Destroy();
         }
     }
 }

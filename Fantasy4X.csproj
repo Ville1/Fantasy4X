@@ -111,6 +111,7 @@
     <Compile Include="Assets\src\Map\Influencable.cs" />
     <Compile Include="Assets\src\Map\Map.cs" />
     <Compile Include="Assets\src\Map\Mineral.cs" />
+    <Compile Include="Assets\src\Map\Road.cs" />
     <Compile Include="Assets\src\Map\Village.cs" />
     <Compile Include="Assets\src\Map\WorldMapHex.cs" />
     <Compile Include="Assets\src\Map\Yields.cs" />

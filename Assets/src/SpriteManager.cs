@@ -48,22 +48,22 @@ public class SpriteManager
 
         foreach (Sprite texture in Resources.LoadAll<Sprite>("images/units")) {
             sprites.Add(prefixes[SpriteType.Unit] + "_" + texture.name, texture);
-            CustomLogger.Instance.Debug("UI sprite loaded: " + texture.name);
+            CustomLogger.Instance.Debug("Unit sprite loaded: " + texture.name);
         }
 
         foreach (Sprite texture in Resources.LoadAll<Sprite>("images/units/animations")) {
             sprites.Add(prefixes[SpriteType.Unit_Animation] + "_" + texture.name, texture);
-            CustomLogger.Instance.Debug("UI sprite loaded: " + texture.name);
+            CustomLogger.Instance.Debug("Animation sprite loaded: " + texture.name);
         }
 
         foreach (Sprite texture in Resources.LoadAll<Sprite>("images/improvements")) {
             sprites.Add(prefixes[SpriteType.Improvement] + "_" + texture.name, texture);
-            CustomLogger.Instance.Debug("UI sprite loaded: " + texture.name);
+            CustomLogger.Instance.Debug("Improvement sprite loaded: " + texture.name);
         }
 
         foreach (Sprite texture in Resources.LoadAll<Sprite>("images/buildings")) {
             sprites.Add(prefixes[SpriteType.Building] + "_" + texture.name, texture);
-            CustomLogger.Instance.Debug("UI sprite loaded: " + texture.name);
+            CustomLogger.Instance.Debug("Building sprite loaded: " + texture.name);
         }
 
         CustomLogger.Instance.Debug("All sprites loaded");
