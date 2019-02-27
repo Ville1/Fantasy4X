@@ -32,6 +32,8 @@ public class WorldMapHex : Hex {
     public Village Worked_By_Village { get; set; }
     public List<Tag> Tags { get; private set; }
     public Road Road { get; set; }
+    public bool Is_Map_Edge_Road_Connection { get; set; }
+    public bool Is_Water { get; set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -63,7 +65,7 @@ public class WorldMapHex : Hex {
         Terrain = terrain;
         Texture = texture;
         Base_Yields = new Yields(yields);
-        Movement_Cost = movement_cost;
+        Base_Movement_Cost = movement_cost;
         Elevation = elevation;
         Height = height;
         Base_Happiness = happiness;
@@ -74,6 +76,7 @@ public class WorldMapHex : Hex {
         foreach (Tag tag in tags) {
             Tags.Add(tag);
         }
+        Is_Water = false;
     }
 
     public void Change_To(WorldMapHex prototype)
@@ -81,13 +84,14 @@ public class WorldMapHex : Hex {
         Terrain = prototype.Terrain;
         Texture = prototype.Texture;
         Base_Yields = new Yields(prototype.Base_Yields);
-        Movement_Cost = prototype.Movement_Cost;
+        Base_Movement_Cost = prototype.Base_Movement_Cost;
         Elevation = prototype.Elevation;
         Height = prototype.Height;
         Base_Happiness = prototype.Base_Happiness;
         Base_Health = prototype.Base_Health;
         Base_Order = prototype.Base_Order;
         Can_Spawn_Minerals = prototype.Can_Spawn_Minerals;
+        Is_Water = prototype.Is_Water;
         Tags = new List<Tag>();
         foreach (Tag tag in prototype.Tags) {
             Tags.Add(tag);
@@ -98,14 +102,52 @@ public class WorldMapHex : Hex {
     public float Movement_Cost
     {
         get {
+            if (Is_Water) {
+                return -1.0f;
+            }
             if(Road == null) {
                 return movement_cost;
             }
             return movement_cost * (1.0f - Road.Movement_Cost_Reduction);
         }
-        set {
+        private set {
             movement_cost = value;
         }
+    }
+
+    public bool Has_Harbor
+    {
+        get {
+            return (City != null && City.Is_Coastal) || (Village != null && Village.Is_Coastal);
+        }
+    }
+
+    public float Water_Movement_Cost
+    {
+        get {
+            //TODO: Can coastal citys and villages be pathed through?
+            if (!Is_Water && !Has_Harbor) {
+                return -1.0f;
+            }
+            return movement_cost;
+        }
+    }
+
+    public float Base_Movement_Cost
+    {
+        get {
+            return movement_cost;
+        }
+        private set {
+            movement_cost = value;
+        }
+    }
+
+    public float Get_Movement_Cost(Map.MovementType type)
+    {
+        if (type == Map.MovementType.Water || (type == Map.MovementType.Amphibious && Is_Water))
+            return Water_Movement_Cost;
+        return Movement_Cost;
     }
 
     public Yields Yields
@@ -270,22 +312,36 @@ public class WorldMapHex : Hex {
     public bool Passable
     {
         get {
-            return Movement_Cost > 0.0f;
+            return Movement_Cost > 0.0f && !Is_Water;
         }
+    }
+
+    public bool Passable_For(WorldMapEntity entity)
+    {
+        return Base_Movement_Cost > 0.0f && (Has_Harbor || entity.Movement_Type == Map.MovementType.Amphibious || (entity.Movement_Type == Map.MovementType.Land && !Is_Water) ||
+            (entity.Movement_Type == Map.MovementType.Water && Is_Water));
     }
 
     public override PathfindingNode PathfindingNode
     {
         get {
             //TODO: ?passing through units?
-            return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, Entity == null ? Movement_Cost : -1.0f);
+            return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, Movement_Cost);
+        }
+    }
+
+    public PathfindingNode Water_PathfindingNode
+    {
+        get {
+            //TODO: ?passing through units?
+            return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, Water_Movement_Cost);
         }
     }
 
     public PathfindingNode Get_Specific_PathfindingNode(WorldMapEntity entity, WorldMapHex ignore_entity_hex = null)
     {
         bool blocked = ((entity.Is_Civilian && Civilian != null) || (!entity.Is_Civilian && Entity != null) && this != ignore_entity_hex);
-        return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, !blocked ? Movement_Cost : -1.0f);
+        return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, !blocked ? Get_Movement_Cost(entity.Movement_Type) : -1.0f);
     }
 
     public LoS_Status Current_LoS
@@ -453,7 +509,7 @@ public class WorldMapHex : Hex {
             owner = value;
             base.Owner = value;
             if(owner != null && Improvement == null && City == null && Village == null) {
-                Improvement = new Improvement(this, Improvement.Default);
+                Improvement = new Improvement(this, Is_Water ? Improvement.Default_Water : Improvement.Default);
             } else if(owner == null && Improvement != null && Improvement.Is_Default) {
                 Improvement.Delete();
                 Improvement = null;
@@ -487,6 +543,19 @@ public class WorldMapHex : Hex {
             }
         }
         return false;
+    }
+
+    public TradePartner Trade_Partner
+    {
+        get {
+            if(City != null) {
+                return City;
+            }
+            if(Village != null) {
+                return Village;
+            }
+            return null;
+        }
     }
 
     new public void Delete()

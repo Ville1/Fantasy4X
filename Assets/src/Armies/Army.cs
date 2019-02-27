@@ -77,7 +77,7 @@ public class Army : WorldMapEntity {
                         return;
                     }
                     //Check if hex is passable
-                    if (!selected_hex.Passable) {
+                    if (!selected_hex.Passable_For(this)) {
                         MessageManager.Instance.Show_Message("Select hex is impassable");
                         return;
                     }
@@ -145,7 +145,7 @@ public class Army : WorldMapEntity {
         );
     }
 
-    public Army(string name, string texture, int max_size) : base(name, -1, -1, texture)
+    public Army(string name, string texture, int max_size) : base(name, -1, Map.MovementType.Land, -1, texture)
     {
         Max_Size = max_size;
     }
@@ -415,7 +415,7 @@ public class Army : WorldMapEntity {
         Map.Direction direction = Hex.Coordinates.Direction(coordinates).Value;
         coordinates.Shift(direction);
         WorldMapHex opposite = World.Instance.Map.Get_Hex_At(coordinates);
-        if (opposite != null && opposite.Entity == null && opposite.Passable) {
+        if (opposite != null && opposite.Entity == null && opposite.Passable_For(entity)) {
             return entity.Move(opposite, true, false);
         }
         for (int i = 1; i < 3; i++) {
@@ -423,14 +423,14 @@ public class Army : WorldMapEntity {
             Coordinates c = new Coordinates(entity.Hex.Coordinates);
             c.Shift(rotated_direction);
             WorldMapHex hex = World.Instance.Map.Get_Hex_At(c);
-            if (hex != null && hex.Entity == null && hex.Passable) {
+            if (hex != null && hex.Entity == null && hex.Passable_For(entity)) {
                 return entity.Move(hex, true, false);
             }
             rotated_direction = Helper.Rotate(direction, -i);
             c = new Coordinates(entity.Hex.Coordinates);
             c.Shift(rotated_direction);
             hex = World.Instance.Map.Get_Hex_At(c);
-            if (hex != null && hex.Entity == null && hex.Passable) {
+            if (hex != null && hex.Entity == null && hex.Passable_For(entity)) {
                 return entity.Move(hex, true, false);
             }
         }

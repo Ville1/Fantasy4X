@@ -23,6 +23,7 @@ public class WorldMapEntity : Ownable {
     public List<WorldMapHex> Stored_Path { get; set; }
     public int Stored_Path_Index { get; set; }
     public Flag Flag { get; private set; }
+    public Map.MovementType Movement_Type { get; private set; }
 
     private float animation_frame_time_left;
     protected bool wait_turn;
@@ -50,6 +51,7 @@ public class WorldMapEntity : Ownable {
         Name = prototype.Name;
         Max_Movement = prototype.Max_Movement;
         Current_Movement = Max_Movement;
+        Movement_Type = prototype.Movement_Type;
         Texture = prototype.Texture;
         LoS = prototype.LoS;
         Is_Civilian = civilian;
@@ -76,11 +78,14 @@ public class WorldMapEntity : Ownable {
     /// </summary>
     /// <param name="name"></param>
     /// <param name="max_movement"></param>
+    /// <param name="movement_type"></param>
     /// <param name="los"></param>
-    public WorldMapEntity(string name, float max_movement, int los, string texture)
+    /// <param name="texture"></param>
+    public WorldMapEntity(string name, float max_movement, Map.MovementType movement_type, int los, string texture)
     {
         Name = name;
         Max_Movement = max_movement;
+        Movement_Type = movement_type;
         LoS = los;
         Texture = texture;
     }
@@ -141,7 +146,7 @@ public class WorldMapEntity : Ownable {
     /// <returns></returns>
     public virtual bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true)
     {
-        if(!new_hex.Passable || (!Is_Civilian && new_hex.Entity != null) || (Is_Civilian && new_hex.Civilian != null)) {
+        if(!new_hex.Passable_For(this) || (!Is_Civilian && new_hex.Entity != null) || (Is_Civilian && new_hex.Civilian != null)) {
             return false;
         }
         if(!ignore_movement_restrictions && (!Hex.Is_Adjancent_To(new_hex) || Current_Movement <= 0.0f)) {
@@ -162,7 +167,7 @@ public class WorldMapEntity : Ownable {
         Wait_Turn = false;
         Sleep = false;
         if (!ignore_movement_restrictions) {
-            Current_Movement -= new_hex.Movement_Cost;
+            Current_Movement -= new_hex.Get_Movement_Cost(Movement_Type);
         }
         GameObject.SetActive(Hex.Visible_To_Viewing_Player);
         Flag.Move(Hex);

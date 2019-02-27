@@ -18,6 +18,7 @@ public class Worker : WorldMapEntity, Trainable
     public float Working_Animation_FPS { get; private set; }
     public Technology Technology_Required { get; private set; }
     public float Work_Speed { get; private set; }
+    public bool Requires_Coast { get { return Movement_Type == Map.MovementType.Water; } }
 
     public Worker(WorldMapHex hex, Worker prototype, Player owner) : base(hex, prototype, owner, true)
     {
@@ -42,9 +43,9 @@ public class Worker : WorldMapEntity, Trainable
     /// <param name="max_movement"></param>
     /// <param name="los"></param>
     /// <param name="texture"></param>
-    public Worker(string name, float max_movement, int los, string texture, List<string> working_animation, float working_animation_fps,
+    public Worker(string name, float max_movement, Map.MovementType movement, int los, string texture, List<string> working_animation, float working_animation_fps,
         List<Improvement> buildable_improvements, float work_speed, int cost, int production_required, float upkeep, Technology technology_required) :
-            base(name, max_movement, los, texture)
+            base(name, max_movement, movement, los, texture)
     {
         Buildable_Improvements = buildable_improvements;
         Work_Speed = work_speed;
@@ -206,6 +207,11 @@ public class Worker : WorldMapEntity, Trainable
             tooltip.Append(Environment.NewLine).Append("Upkeep: ").Append(Math.Round(Upkeep, 2).ToString("0.00"));
             tooltip.Append(Environment.NewLine).Append("Work Speed: ").Append(Math.Round(Work_Speed, 1).ToString("0.0"));
             tooltip.Append(Environment.NewLine).Append("Movement: ").Append(Mathf.RoundToInt(Max_Movement));
+            if(Movement_Type == Map.MovementType.Water) {
+                tooltip.Append(Environment.NewLine).Append("Water unit");
+            } else if (Movement_Type == Map.MovementType.Amphibious) {
+                tooltip.Append(Environment.NewLine).Append("Amphibious unit").Append(Mathf.RoundToInt(Max_Movement));
+            }
             tooltip.Append(Environment.NewLine).Append("Improvements:");
             foreach(Improvement improvement in Buildable_Improvements) {
                 tooltip.Append(Environment.NewLine).Append("- ").Append(improvement.Name);

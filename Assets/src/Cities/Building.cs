@@ -35,6 +35,7 @@ public class Building {
     public float Garrison_Upkeep_Reduction { get; set; }
     public float Cultural_Influence_Range { get; set; }
     public float Village_Cultural_Influence { get; set; }
+    public float Trade_Value { get; set; }
 
     private float upkeep;
     private bool paused;
@@ -73,6 +74,7 @@ public class Building {
         Garrison_Upkeep_Reduction = prototype.Garrison_Upkeep_Reduction;
         Cultural_Influence_Range = prototype.Cultural_Influence_Range;
         Village_Cultural_Influence = prototype.Village_Cultural_Influence;
+        Trade_Value = prototype.Trade_Value;
     }
 
     public Building(string name, string texture, int production_required, int cost, float upkeep, Yields yields, float happiness, float health, float order,
@@ -105,6 +107,7 @@ public class Building {
         Garrison_Upkeep_Reduction = 0.0f;
         Cultural_Influence_Range = 0.0f;
         Village_Cultural_Influence = 0.0f;
+        Trade_Value = 0.0f;
     }
 
     public Yields Yields
@@ -240,6 +243,9 @@ public class Building {
             }
             if (Village_Cultural_Influence != 0.0f) {
                 tooltip.Append(Environment.NewLine).Append("Village cultural influence: ").Append(Math.Round(Village_Cultural_Influence, 1).ToString("0.0"));
+            }
+            if (Trade_Value != 0.0f) {
+                tooltip.Append(Environment.NewLine).Append("Trade value: ").Append(Math.Round(Trade_Value, 1).ToString("0.0"));
             }
             return tooltip.ToString();
         }

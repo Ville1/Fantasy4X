@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class City : Ownable, Influencable
+public class City : Ownable, Influencable, TradePartner
 {
     public static readonly float LOW_HAPPINESS_WARNING_THRESHOLD = -1.0f;
     public static readonly string LOW_HAPPINESS_TEXTURE = "low_happiness";
@@ -54,12 +54,15 @@ public class City : Ownable, Influencable
     public string Name { get; set; }
     public Flag Flag { get; set; }
     public Dictionary<Player, float> Cultural_Influence { get; private set; }
+    public List<TradeRoute> Trade_Routes { get; private set; }
+    public bool Is_Coastal { get; private set; }
+    public Yields Last_Turn_Yields { get; private set; }
 
     private bool update_yields;
     private Yields saved_base_yields;//TODO: what was this supposed to do?
     private Yields saved_yields;
 
-    public City(WorldMapHex hex, Player owner)
+    public City(WorldMapHex hex, Player owner, WorldMapHex water_hex_for_channel)
     {
         Hex = hex;
         Hex.City = this;
@@ -77,6 +80,8 @@ public class City : Ownable, Influencable
         saved_yields = null;
         Full_LoS = true;
         Flag = new Flag(hex);
+        Trade_Routes = new List<TradeRoute>();
+        Last_Turn_Yields = new Yields(hex.Yields);
 
         Cultural_Influence = new Dictionary<Player, float>();
         Cultural_Influence.Add(owner, STARTING_CULTURE);
@@ -85,6 +90,27 @@ public class City : Ownable, Influencable
         foreach(WorldMapHex range_hex in Hex.Get_Hexes_Around(Work_Range)) {
             Hexes_In_Work_Range.Add(range_hex);
             range_hex.In_Work_Range_Of.Add(this);
+        }
+
+        //Check if is coastal
+        Is_Coastal = false;
+        foreach(WorldMapHex adjacent_hex in Hex.Get_Adjancent_Hexes()) {
+            if (adjacent_hex.Is_Water) {
+                Is_Coastal = true;
+                break;
+            }
+        }
+        //Check if can be mabe coastal
+        if (!Is_Coastal && water_hex_for_channel != null) {
+            foreach (WorldMapHex adjacent_hex in Hex.Get_Adjancent_Hexes()) {
+                foreach(WorldMapHex adjacent_hex_2 in adjacent_hex.Get_Adjancent_Hexes()) {
+                    if (adjacent_hex_2.Is_Water) {
+                        adjacent_hex.Change_To(water_hex_for_channel);
+                        Is_Coastal = true;
+                        break;
+                    }
+                }
+            }
         }
         
         Auto_Apply_Unemployed_Pops();
@@ -204,7 +230,7 @@ public class City : Ownable, Influencable
 
     public bool Can_Train(Trainable unit)
     {
-        return Owner.Cash >= unit.Cost - Unit_Refound() && Owner.Has_Unlocked(unit);
+        return Owner.Cash >= unit.Cost - Unit_Refound() && Owner.Has_Unlocked(unit) && (!unit.Requires_Coast || Is_Coastal);
     }
 
     public bool Can_Build(Building building)
@@ -242,7 +268,7 @@ public class City : Ownable, Influencable
             }
         }
         foreach(Village village in Owner.Villages) {
-            Yields village_yields = village.Yields;
+            Yields village_yields = new Yields(village.Yields);
             village_yields.Add(Owner.EmpireModifiers.Village_Yield_Bonus);
             village_yields.Multiply_By_Percentages(Owner.EmpireModifiers.Percentage_Village_Yield_Bonus);
             village_yields.Divide_By_Number(Owner.Cities.Count);
@@ -250,6 +276,21 @@ public class City : Ownable, Influencable
                 Statistics.Add("Villages", village_yields);
             }
             yields.Add(village_yields);
+        }
+        foreach(TradeRoute route in Trade_Routes) {
+            if(route.City.Id != Id) {
+                CustomLogger.Instance.Error(string.Format("City #{0} has trade route belonging to city #{1}", Id, route.City.Id));
+                continue;
+            }
+            if (!route.Active) {
+                continue;
+            }
+            Yields route_yields = new Yields(route.Yields);
+            route_yields.Multiply_By_Percentages(Owner.EmpireModifiers.Trade_Route_Yield_Bonus);
+            if (update_statistics) {
+                Statistics.Add("Trade routes", route_yields);
+            }
+            yields.Add(route_yields);
         }
         Yields percentage_bonuses = new Yields(100, 100, 100, 100, 100, 100, 100);
         foreach (Building building in Buildings) {
@@ -484,6 +525,20 @@ public class City : Ownable, Influencable
         }
     }
 
+    public float Trade_Value
+    {
+        get {
+            float trade_value = Population + (Last_Turn_Yields.Total / 10.0f);
+            foreach(Building building in Buildings) {
+                trade_value += building.Trade_Value;
+            }
+            if(trade_value < 1.0f) {
+                return 1.0f;
+            }
+            return trade_value;
+        }
+    }
+
     public void Update_Hex_Yields()
     {
         Hex.Base_Yields = new Yields(Owner.Faction.City_Yields[Size]);
@@ -606,6 +661,7 @@ public class City : Ownable, Influencable
     public void End_Turn()
     {
         //Income
+        Last_Turn_Yields = new Yields(Yields);
         update_yields = true;
         Owner.Cash += Yields.Cash;
 
@@ -1166,6 +1222,31 @@ public class City : Ownable, Influencable
         Change_Production((Building)null);
         TopGUIManager.Instance.Update_GUI();
         World.Instance.Map.Update_LoS();
+        return true;
+    }
+
+    public bool Add_Trade_Route(TradeRoute route)
+    {
+        if(route.City.Id != Id) {
+            CustomLogger.Instance.Warning(string.Format("Trying to add city #{0}'s trade route to city {1}", route.City.Id, Id));
+            return false;
+        }
+        TradeRoute replace_route = null;
+        foreach(TradeRoute existing_route in Trade_Routes) {
+            if (existing_route.Target.Hex.Coordinates.Equals(route.Target.Hex.Coordinates)) {
+                if(!existing_route.Water_Route && route.Water_Route) {
+                    //Replace land route with water route
+                    replace_route = existing_route;
+                    break;
+                } else {
+                    return false;
+                }
+            }
+        }
+        if(replace_route != null) {
+            Trade_Routes.Remove(replace_route);
+        }
+        Trade_Routes.Add(route);
         return true;
     }
 }

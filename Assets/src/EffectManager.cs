@@ -13,6 +13,7 @@ public class EffectManager {
     private Dictionary<Hex, List<FloatingTextData>> active_texts;
     private Dictionary<Hex, List<TextData>> queued_texts;
     private bool no_queuing;
+    private bool initialization_failed;
 
     public float Animation_Frame_Time = 0.15f;//s
     public float Text_Float_Height = 0.05f;//???
@@ -196,6 +197,12 @@ public class EffectManager {
     /// <param name="delta_time"></param>
     public void Update(float delta_time)
     {
+        if(active_effects == null && !initialization_failed) {
+            //TODO: This does not prevent log spam
+            CustomLogger.Instance.Error("active_effects == null");
+            initialization_failed = true;
+            return;
+        }
         //Effects
         foreach (KeyValuePair<Hex, List<EffectData>> tile_effects in active_effects) {
             List<EffectData> effects_that_have_ended = new List<EffectData>();

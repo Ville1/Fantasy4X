@@ -9,7 +9,8 @@ public class EmpireModifiers {
     public float Passive_Income { get; set; }
     public Yields Village_Yield_Bonus { get; set; }
     public Yields Percentage_Village_Yield_Bonus { get; set; }
-    
+    public Yields Trade_Route_Yield_Bonus { get; set; }
+
     public EmpireModifiers()
     {
         Unit_Training_Speed_Bonus = 0.0f;
@@ -18,6 +19,7 @@ public class EmpireModifiers {
         Passive_Income = 0.0f;
         Village_Yield_Bonus = new Yields();
         Percentage_Village_Yield_Bonus = new Yields();
+        Trade_Route_Yield_Bonus = new Yields();
     }
 
     public void Add(EmpireModifiers modifiers)
@@ -28,6 +30,7 @@ public class EmpireModifiers {
         Passive_Income += modifiers.Passive_Income;
         Village_Yield_Bonus.Add(modifiers.Village_Yield_Bonus);
         Percentage_Village_Yield_Bonus.Add(modifiers.Percentage_Village_Yield_Bonus);
+        Trade_Route_Yield_Bonus.Add(modifiers.Trade_Route_Yield_Bonus);
     }
 
     public bool Empty
@@ -60,6 +63,9 @@ public class EmpireModifiers {
             }
             if (!Percentage_Village_Yield_Bonus.Empty) {
                 tooltip.Append(Environment.NewLine).Append("Village yield bonuses: ").Append(Percentage_Village_Yield_Bonus.Generate_String(true));
+            }
+            if (!Trade_Route_Yield_Bonus.Empty) {
+                tooltip.Append(Environment.NewLine).Append("Trade route yield bonuses: ").Append(Trade_Route_Yield_Bonus.Generate_String(true));
             }
             return tooltip.ToString();
         }

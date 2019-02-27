@@ -62,7 +62,10 @@ public class Factions {
 
         Technology Combined_Arms = new Technology("Combined Arms", 85, new List<AI.Tag>() { AI.Tag.Military });
         Professional_Army.Link(Combined_Arms, 2);
-        Technology Logistics = new Technology("Logistics", 220, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Logistics = new Technology("Logistics", 220, new List<AI.Tag>() { AI.Tag.Military, AI.Tag.Food, AI.Tag.Production });
+        Logistics.EmpireModifiers = new EmpireModifiers() {
+            Trade_Route_Yield_Bonus = new Yields(10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+        };
         Combined_Arms.Link(Logistics, 3);
         
         Technology Topography = new Technology("Topography", 280, new List<AI.Tag>());
@@ -114,6 +117,9 @@ public class Factions {
         Technology Bureaucracy = new Technology("Bureaucracy", 115, new List<AI.Tag>() { AI.Tag.Cash });
         Education.Link(Bureaucracy, 4);
         Technology Economics = new Technology("Economics", 175, new List<AI.Tag>() { AI.Tag.Cash });
+        Economics.EmpireModifiers = new EmpireModifiers() {
+            Trade_Route_Yield_Bonus = new Yields(0.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+        };
         Bureaucracy.Link(Economics, 3);
         Technology Mercantilism = new Technology("Mercantilism", 315, new List<AI.Tag>());
         Mercantilism.EmpireModifiers = new EmpireModifiers() {
@@ -148,9 +154,10 @@ public class Factions {
         Technology Health_Care = new Technology("Health Care", 290, new List<AI.Tag>() { AI.Tag.Health });
         Sanitation.Link(Health_Care, 3);
 
-        Technology Highways = new Technology("Highways", 165, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Cash });
+        Technology Highways = new Technology("Highways", 165, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Cash, AI.Tag.Food, AI.Tag.Production });
         Highways.EmpireModifiers = new EmpireModifiers() {
-            Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f)
+            Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f),
+            Trade_Route_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f)
         };
         Engineering.Link(Highways, 3);
         Technology Diplomatic_Missions = new Technology("Diplomatic Missions", 300, new List<AI.Tag>() { AI.Tag.Culture });
@@ -248,10 +255,12 @@ public class Factions {
         });
         Kingdom.Buildings.Add(new Building("Workshop", "placeholder", 130, 85, 1.0f, new Yields(0, 2, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null));
         Kingdom.Buildings.Add(new Building("Tavern", "placeholder", 100, 75, 2.0f, new Yields(-1, 0, 1, 0, 1, 0, 0), 2.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
-            Cultural_Influence_Range = 1.0f
+            Cultural_Influence_Range = 1.0f,
+            Trade_Value = 0.25f
         });
         Kingdom.Buildings.Add(new Building("Market Square", "placeholder", 85, 40, 1.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
-            Percentage_Yield_Bonuses = new Yields(10, 0, 10, 0, 0, 0, 0)
+            Percentage_Yield_Bonuses = new Yields(10, 0, 10, 0, 0, 0, 0),
+            Trade_Value = 1.0f
         });
         Kingdom.Buildings.Add(new Building("Barracks", "placeholder", 130, 60, 1.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, false, Conscription, null) {
             Tags = new Dictionary<AI.Tag, float>() { { AI.Tag.Military, 5.0f } }
@@ -318,10 +327,12 @@ public class Factions {
             }
         ) {
             Tags = new Dictionary<AI.Tag, float> { { AI.Tag.Cash, 5.0f } },
-            Cultural_Influence_Range = 2.0f
+            Cultural_Influence_Range = 2.0f,
+            Trade_Value = 1.0f
         });
         Kingdom.Buildings.Add(new Building("Bank", "placeholder", 270, 290, 3.0f, new Yields(0, 0, 2, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, Economics, null) {
-            Percentage_Yield_Bonuses = new Yields(0, 0, 25, 0, 0, 0, 0)
+            Percentage_Yield_Bonuses = new Yields(0, 0, 25, 0, 0, 0, 0),
+            Trade_Value = 1.0f
         });
         Kingdom.Buildings.Add(new Building("Townhall", "placeholder", 150, 150, 1.0f, new Yields(0, 0, 0, 1, 0, 0, 0), 0.0f, 0.0f, 2.0f, 0.0f, 0.1f, 0.0f, true, Construction, null));
         Kingdom.Buildings.Add(new Building("Granary", "placeholder", 125, 110, 1.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, Construction, null) {
@@ -348,11 +359,14 @@ public class Factions {
             Cultural_Influence_Range = 5.0f
         });
 
-        Kingdom.Units.Add(new Worker("Peasant", 2.0f, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
+        Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
             { Kingdom.Improvements.First(x => x.Name == "Farm"), Kingdom.Improvements.First(x => x.Name == "Plantation"), Kingdom.Improvements.First(x => x.Name == "Hunting Lodge"),
             Kingdom.Improvements.First(x => x.Name == "Logging Camp"), Kingdom.Improvements.First(x => x.Name == "Quarry"), Kingdom.Improvements.First(x => x.Name == "Mine"),
             Kingdom.Improvements.First(x => x.Name == "Windmill"), Kingdom.Improvements.First(x => x.Name == "Lumber Mill"), Kingdom.Improvements.First(x => x.Name == "Forester's Lodge")},
             1.0f, 25, 15, 0.5f, null));
+
+        Kingdom.Units.Add(new Worker("Civilian Ship", 3.0f, Map.MovementType.Water, 2, "boat", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
+            1.0f, 50, 100, 1.0f, null));
 
         Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, Education, 10));
 

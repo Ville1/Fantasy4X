@@ -106,10 +106,14 @@ public class Road {
         West_GameObject.SetActive(false);
         North_West_GameObject.SetActive(false);
         List<Map.Direction> connections = new List<Map.Direction>();
+        bool has_edge_connection = false;
         foreach(KeyValuePair<Map.Direction, Coordinates> adjancent_coordinates in Hex.Coordinates.Get_Adjanced_Coordinates()) {
             WorldMapHex adjancent_hex = World.Instance.Map.Get_Hex_At(adjancent_coordinates.Value);
-            if(adjancent_hex == null || (adjancent_hex.Road != null || adjancent_hex.City != null || adjancent_hex.Village != null)) {
+            if((adjancent_hex == null && Hex.Is_Map_Edge_Road_Connection && !has_edge_connection) || (adjancent_hex != null && (adjancent_hex.Road != null || adjancent_hex.City != null || adjancent_hex.Village != null))) {
                 connections.Add(adjancent_coordinates.Key);
+                if (!has_edge_connection && adjancent_hex == null) {
+                    has_edge_connection = true;
+                }
             }
         }
         foreach(Map.Direction direction in connections) {

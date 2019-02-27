@@ -332,7 +332,7 @@ public class AI : IConfigListener
             }
         }
         desired_workers -= workers_in_training;
-        worker_prototype = Player.Faction.Units.First(x => x is Worker) as Worker;
+        worker_prototype = Player.Faction.Units.First(x => x is Worker && !x.Requires_Coast) as Worker;
 
         //Prospectors
         hexes_needing_prospecting.Clear();

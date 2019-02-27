@@ -88,7 +88,7 @@ public class HexPanelManager : MonoBehaviour
             Culture_Text.text = Helper.Float_To_String(hex.Yields.Culture, 1, false, false);
             Mana_Text.text = Helper.Float_To_String(hex.Yields.Mana, 1, false, false);
             Faith_Text.text = Helper.Float_To_String(hex.Yields.Faith, 1, false, false);
-            Movement_Cost_Text.text = string.Format("Movement{0}Cost: {1}", Environment.NewLine, hex.Passable ? hex.Movement_Cost.ToString("#.#") : "N/A");
+            Movement_Cost_Text.text = string.Format("Movement{0}Cost: {1}", Environment.NewLine, hex.Base_Movement_Cost.ToString("#.#"));
             Improvement_Text.text = string.Format("Improvement:{0}{1}", Environment.NewLine, hex.Improvement == null ? "None" : hex.Improvement.Name);
             Owner_Text.text = string.Format("Owner:{0}{1}", Environment.NewLine, hex.Has_Owner ? hex.Owner.Name : "None");
             if (Hex.Can_Spawn_Minerals) {

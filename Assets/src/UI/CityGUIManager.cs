@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CityGUIManager : MonoBehaviour {
+    private bool SHOW_HIDDEN_TRADE_ROUTES = true;//As question marks
+
     public static CityGUIManager Instance;
 
     private City current_city;
@@ -71,6 +74,8 @@ public class CityGUIManager : MonoBehaviour {
     public Button Buildings_Panel_Up_Button;
     public Button Buildings_Panel_Down_Button;
 
+    public GameObject Trade_Panel;
+
     public Color Cant_Be_Worked_Highlight;
     public Color Worked_Hex_Highlight;
 
@@ -81,6 +86,7 @@ public class CityGUIManager : MonoBehaviour {
     private int select_building_list_offset;
     private int select_unit_list_offset;
     private List<WorldMapHex> highlighted_hexes;
+    private List<GameObject> trade_route_gos;
 
     /// <summary>
     /// Initializiation
@@ -102,6 +108,7 @@ public class CityGUIManager : MonoBehaviour {
         Unemployed_Panel.SetActive(false);
         Buildings_Panel.SetActive(false);
         Culture_Panel.SetActive(false);
+        Trade_Panel.SetActive(false);
 
         highlighted_hexes = new List<WorldMapHex>();
     }
@@ -130,6 +137,7 @@ public class CityGUIManager : MonoBehaviour {
             Select_Building_Panel.SetActive(false);
             Unemployed_Panel.SetActive(false);
             Culture_Panel.SetActive(value);
+            Trade_Panel.SetActive(value);
             ScoresGUIManager.Instance.Active = !Active;
             //MenuManager.Instance.Active = !Active;
             if (Main.Instance.Game_Is_Running) {
@@ -388,6 +396,37 @@ public class CityGUIManager : MonoBehaviour {
             tooltip_builder.Remove(tooltip_builder.Length - 2, 1);
         }
         TooltipManager.Instance.Register_Tooltip(Culture_In_Text.gameObject, tooltip_builder.ToString(), gameObject);
+
+        //Trade routes
+        int index = 1;
+        if (trade_route_gos == null) {
+            trade_route_gos = new List<GameObject>();
+            while (true) {
+                GameObject gameObject = GameObject.Find(string.Format("{0}/Route{1}", Trade_Panel.name, index));
+                if(gameObject == null) {
+                    break;
+                }
+                trade_route_gos.Add(gameObject);
+                index++;
+            }
+        }
+        foreach(GameObject route_go in trade_route_gos) {
+            route_go.SetActive(false);
+        }
+        index = 0;
+        foreach(TradeRoute route in Current_City.Trade_Routes.Where(x => SHOW_HIDDEN_TRADE_ROUTES || !x.Hidden).OrderByDescending(x => x.Yields.Total).ToList()) {
+            if(index >= trade_route_gos.Count) {
+                CustomLogger.Instance.Warning("Not enough UI space for trade routes");
+                break;
+            }
+            GameObject route_go = trade_route_gos[index];
+            route_go.SetActive(true);
+            GameObject.Find(string.Format("{0}/{1}/PartnerText", Trade_Panel.name, route_go.name)).GetComponentInChildren<Text>().text = route.Hidden ? "???" : route.Target.Name;
+            GameObject.Find(string.Format("{0}/{1}/TotalYieldsText", Trade_Panel.name, route_go.name)).GetComponentInChildren<Text>().text =
+                route.Hidden ? "?" : (route.Active ? Math.Round(route.Yields.Total, 1).ToString("0.0") : "N/A");
+            TooltipManager.Instance.Register_Tooltip(GameObject.Find(string.Format("{0}/{1}/PartnerText", Trade_Panel.name, route_go.name)), route.Tooltip, gameObject);
+            index++;
+        }
 
         TopGUIManager.Instance.Update_GUI();
     }

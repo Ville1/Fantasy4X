@@ -22,7 +22,7 @@ public class HexPrototypes {
         world_map_hex_prototypes.Add("mushroom forest", new WorldMapHex("Mushroom Forest", "hex_mushrooms", new Yields(2.5f, 0.5f, 0, 1, 0, 1, 0), 0.0f, 0.0f, 0.0f, 2.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));
         world_map_hex_prototypes.Add("enchanted forest", new WorldMapHex("Enchanted Forest", "hex_enc_forest", new Yields(2, 0.5f, 0, 0, 0, 2, 0), 1.0f, 0.5f, 0.0f, 2.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));
         world_map_hex_prototypes.Add("haunted forest", new WorldMapHex("Haunted Forest", "hex_haunted_forest", new Yields(0, 1, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 2.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));
-        world_map_hex_prototypes.Add("water", new WorldMapHex("Water", "hex_water", new Yields(3, 0, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, -1.0f, 0, -1, false, new List<WorldMapHex.Tag>()));
+        world_map_hex_prototypes.Add("water", new WorldMapHex("Water", "hex_water", new Yields(3, 0, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 1.0f, 0, -1, false, new List<WorldMapHex.Tag>()) { Is_Water = true });
         world_map_hex_prototypes.Add("city ruins", new WorldMapHex("City Ruins", "hex_ruins", new Yields(1, 0, 0, 2, 1, 1, 1), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false, new List<WorldMapHex.Tag>()));
         world_map_hex_prototypes.Add("grave yard", new WorldMapHex("Grave Yard", "hex_grave_yard", new Yields(0, 0, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }));
 

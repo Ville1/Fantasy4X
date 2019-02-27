@@ -12,6 +12,7 @@ public class Prospector : WorldMapEntity, Trainable
     public List<string> Working_Animation { get; private set; }
     public float Working_Animation_FPS { get; private set; }
     public Technology Technology_Required { get; private set; }
+    public bool Requires_Coast { get { return false; } }
     private bool prospecting;
 
     public Prospector(WorldMapHex hex, Prospector prototype, Player owner) : base(hex, prototype, owner, true)
@@ -38,7 +39,7 @@ public class Prospector : WorldMapEntity, Trainable
     /// <param name="texture"></param>
     public Prospector(string name, float max_movement, int los, string texture, List<string> working_animation, float working_animation_fps,
         int cost, int production_required, float upkeep, Technology technology_required, int prospect_turns) :
-            base(name, max_movement, los, texture)
+            base(name, max_movement, Map.MovementType.Land, los, texture)
     {
         Cost = cost;
         Upkeep = upkeep;

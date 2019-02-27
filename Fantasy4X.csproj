@@ -88,6 +88,8 @@
     <Compile Include="Assets\src\Cities\Building.cs" />
     <Compile Include="Assets\src\Cities\City.cs" />
     <Compile Include="Assets\src\Cities\CityStatistics.cs" />
+    <Compile Include="Assets\src\Cities\TradePartner.cs" />
+    <Compile Include="Assets\src\Cities\TradeRoute.cs" />
     <Compile Include="Assets\src\Combat\CombatManager.cs" />
     <Compile Include="Assets\src\Combat\CombatMap.cs" />
     <Compile Include="Assets\src\Combat\CombatMapHex.cs" />

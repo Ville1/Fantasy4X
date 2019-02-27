@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public class Village : Ownable, Influencable
+public class Village : Ownable, Influencable, TradePartner
 {
     private static readonly float STARTING_CULTURE = 50.0f;
 
@@ -11,6 +11,7 @@ public class Village : Ownable, Influencable
     public string Name { get; private set; }
     public Dictionary<Player, float> Cultural_Influence { get; private set; }
     public Flag Flag { get; set; }
+    public bool Is_Coastal { get; private set; }
 
     public Village(WorldMapHex hex, Player owner)
     {
@@ -23,11 +24,16 @@ public class Village : Ownable, Influencable
         Hex.Owner = Owner;
         Flag = new Flag(hex);
         Cultural_Influence = new Dictionary<Player, float>() { { Owner, STARTING_CULTURE } };
+
+        Is_Coastal = false;
         foreach(WorldMapHex adjancent_hex in Hex.Get_Adjancent_Hexes()) {
             if(adjancent_hex.Worked_By_Village != null) {
                 CustomLogger.Instance.Warning(string.Format("Village #{0} overrides village #{1}'s hex assignment", Id, adjancent_hex.Worked_By_Village.Id));
             }
             adjancent_hex.Worked_By_Village = this;
+            if (adjancent_hex.Is_Water) {
+                Is_Coastal = true;
+            }
         }
     }
 
@@ -78,7 +84,7 @@ public class Village : Ownable, Influencable
     {
         get {
             Yields yields = new Yields(Hex.Yields);
-            foreach(WorldMapHex hex in Hex.Get_Hexes_Around(1)) {
+            foreach(WorldMapHex hex in Hex.Get_Adjancent_Hexes()) {
                 yields.Add(hex.Yields);
             }
             yields.Food *= 0.1f;
@@ -96,6 +102,17 @@ public class Village : Ownable, Influencable
                 }
             }
             return false;
+        }
+    }
+
+    public float Trade_Value
+    {
+        get {
+            Yields yields = new Yields(Hex.Yields);
+            foreach (WorldMapHex hex in Hex.Get_Adjancent_Hexes()) {
+                yields.Add(hex.Yields);
+            }
+            return ((yields.Total * 1.25f) + 7.0f) / 7.0f;
         }
     }
 }

@@ -6,4 +6,5 @@
     string Texture { get; }
     string Tooltip { get; }
     Technology Technology_Required { get; }
+    bool Requires_Coast { get; }
 }

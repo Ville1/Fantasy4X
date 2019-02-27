@@ -231,4 +231,11 @@ public class Improvement {
             return new Improvement("Hut", "hut", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
         }
     }
+
+    public static Improvement Default_Water
+    {
+        get {
+            return new Improvement("Boat", "boat", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
+        }
+    }
 }

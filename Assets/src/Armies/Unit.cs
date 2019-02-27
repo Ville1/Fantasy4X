@@ -86,6 +86,8 @@ public class Unit : Trainable
 
     public bool Wait_Turn { get; set; }
 
+    public bool Requires_Coast { get { return false; } }
+
     private float animation_frame_time_left;
     private bool can_run;
     private float relative_strenght;

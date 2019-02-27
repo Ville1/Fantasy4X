@@ -224,7 +224,8 @@ public class Player {
     {
         get {
             EmpireModifiers modifiers = new EmpireModifiers() {
-                Percentage_Village_Yield_Bonus = new Yields(100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f)
+                Percentage_Village_Yield_Bonus = new Yields(100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f),
+                Trade_Route_Yield_Bonus = new Yields(100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f, 100.0f)
             };
             modifiers.Add(Faction.EmpireModifiers);
             foreach(Technology technology in Researched_Technologies) {
