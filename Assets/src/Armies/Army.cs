@@ -112,6 +112,7 @@ public class Army : WorldMapEntity {
                         (selected_hex.Entity as Army).Units.Add(u);
                         Units.Remove(u);
                     }
+                    (selected_hex.Entity as Army).Update_Text();
                     if (Units.Count == 0) {
                         Delete();
                     } else {
@@ -437,7 +438,7 @@ public class Army : WorldMapEntity {
         return false;
     }
 
-    private void Update_Text()
+    public void Update_Text()
     {
         if (!text_initialized) {
             return;
@@ -446,6 +447,36 @@ public class Army : WorldMapEntity {
             TextMesh.text = Mathf.RoundToInt(Relative_Strenght).ToString();
         } else {
             TextMesh.text = string.Format("{0}k", Math.Round(Relative_Strenght / 1000.0f, 1));
+        }
+    }
+
+    public Ability.CityEffects Get_City_Effects(City city)
+    {
+        Ability.CityEffects effects = new Ability.CityEffects();
+        foreach(Unit unit in Units) {
+            foreach(Ability ability in unit.Abilities) {
+                if(ability.Get_City_Effects != null) {
+                    effects.Add(ability.Get_City_Effects(ability, city));
+                }
+            }
+        }
+        return effects;
+    }
+
+    public float Order
+    {
+        get {
+            float order = 1.0f;
+            float str = Current_Relative_Strenght;
+            //TODO: use readonly variables
+            if(str > 100.0f && str <= 500.0f) {
+                order += (str - 100.0f) / 200.0f;
+            } else if(str > 500.0f && str <= 1000.0f) {
+                order += 2.0f + ((str - 500.0f) / 400.0f);
+            } else if(str > 1000.0f) {
+                order += 3.25f;
+            }
+            return order;
         }
     }
 

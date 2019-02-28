@@ -110,7 +110,7 @@ public class AI : IConfigListener
         //TODO: This call should not be needed
         Main.Instance.Update_Flags();
 
-        if(AI_Level == Level.Inactive) {
+        if(AI_Level == Level.Inactive || Player.Is_Neutral) {
             return;
         }
 
@@ -228,7 +228,7 @@ public class AI : IConfigListener
 
     public void Act(float delta_s)
     {
-        if(AI_Level == Level.Inactive) {
+        if(AI_Level == Level.Inactive || Player.Is_Neutral) {
             Main.Instance.Next_Turn();
             return;
         }
@@ -1320,10 +1320,11 @@ public class AI : IConfigListener
                     u.Current_Campaing_Map_Movement -= main_armies[army].Army_Target.Hex.Movement_Cost;
                     main_armies[army].Army_Target.Units.Add(u);
                 }
+                WorldMapHex help_hex = main_armies[army].Army_Target.Hex;
                 army.Delete();
                 main_armies.Remove(army);
                 Log("Merge done", LogType.Military);
-                last_action_was_visible = main_armies[army].Army_Target.Hex.Visible_To_Viewing_Player;
+                last_action_was_visible = help_hex.Visible_To_Viewing_Player;
                 return;
             }
             path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, main_armies[army].Army_Target.Hex),

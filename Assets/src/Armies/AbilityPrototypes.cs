@@ -209,8 +209,75 @@ public class AbilityPrototypes {
                 return hex.Village == null ? 0.0f : 1.0f;
             }
         });
+        prototypes.Add("increases happiness", new Ability("Increases Happiness", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Happiness = ability.Potency };
+            }
+        });
+        prototypes.Add("increases health", new Ability("Increases Health", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Health = ability.Potency };
+            }
+        });
+        prototypes.Add("increases order", new Ability("Increases Order", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Order = ability.Potency };
+            }
+        });
+        prototypes.Add("decreases happiness", new Ability("Decreases Happiness", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Happiness = -ability.Potency };
+            }
+        });
+        prototypes.Add("decreases health", new Ability("Decreases Health", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Health = -ability.Potency };
+            }
+        });
+        prototypes.Add("decreases order", new Ability("Decreases Order", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Order = -ability.Potency };
+            }
+        });
+        prototypes.Add("city food", new Ability("City Food", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Yields = new Yields(ability.Potency, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
+            }
+        });
+        prototypes.Add("city production", new Ability("City Production", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Yields = new Yields(0.0f, ability.Potency, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
+            }
+        });
+        prototypes.Add("city cash", new Ability("City Cash", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Yields = new Yields(0.0f, 0.0f, ability.Potency, 0.0f, 0.0f, 0.0f, 0.0f) };
+            }
+        });
+        prototypes.Add("city science", new Ability("City Science", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Yields = new Yields(0.0f, 0.0f, 0.0f, ability.Potency, 0.0f, 0.0f, 0.0f) };
+            }
+        });
+        prototypes.Add("city culture", new Ability("City Culture", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Yields = new Yields(0.0f, 0.0f, 0.0f, 0.0f, ability.Potency, 0.0f, 0.0f) };
+            }
+        });
+        prototypes.Add("city mana", new Ability("City Mana", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Yields = new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, ability.Potency, 0.0f) };
+            }
+        });
+        prototypes.Add("city faith", new Ability("City Faith", false) {
+            Get_City_Effects = delegate (Ability ability, City city) {
+                return new Ability.CityEffects() { Yields = new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, ability.Potency) };
+            }
+        });
         //TODO: rough terrain penalty & ranged attacks
         //TODO: lance charge in urban? impassable houses?
+
+
     }
 
     public static AbilityPrototypes Instance

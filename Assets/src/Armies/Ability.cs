@@ -8,6 +8,7 @@ public class Ability {
     public delegate float Get_Relative_Strength_Multiplier_Delegate(Ability ability);
     public delegate float Get_Run_Stamina_Cost_Multiplier_Delegate(Ability ability, CombatMapHex hex);
     public delegate float Get_Upkeep_Multiplier_Delegate(Ability ability, WorldMapHex hex);
+    public delegate CityEffects Get_City_Effects_Delegate(Ability ability, City city);
 
     public string Name { get; private set; }
     public float Potency { get; set; }
@@ -32,6 +33,7 @@ public class Ability {
     /// 0.1f => +10%
     /// </summary>
     public Get_Upkeep_Multiplier_Delegate Get_Upkeep_Multiplier { get; set; }
+    public Get_City_Effects_Delegate Get_City_Effects { get; set; }
 
     public Ability(string name, float potency, bool potency_as_percent)
     {
@@ -70,6 +72,7 @@ public class Ability {
         clone.Get_Relative_Strength_Multiplier_Bonus = Get_Relative_Strength_Multiplier_Bonus;
         clone.Get_Run_Stamina_Cost_Multiplier = Get_Run_Stamina_Cost_Multiplier;
         clone.Get_Upkeep_Multiplier = Get_Upkeep_Multiplier;
+        clone.Get_City_Effects = Get_City_Effects;
         return clone;
     }
 
@@ -89,5 +92,26 @@ public class Ability {
         /// TODO: Does not work with ranged attacks
         /// </summary>
         public Dictionary<Unit.DamageType, float> New_Attack_Types { get; set; }
+    }
+
+    public class CityEffects
+    {
+        public Yields Yields { get; set; }
+        public float Happiness { get; set; }
+        public float Health { get; set; }
+        public float Order { get; set; }
+
+        public CityEffects()
+        {
+            Yields = new Yields();
+        }
+
+        public void Add(CityEffects effects)
+        {
+            Yields.Add(effects.Yields);
+            Happiness += effects.Happiness;
+            Health += effects.Health;
+            Order += effects.Order;
+        }
     }
 }

@@ -57,6 +57,7 @@ public class City : Ownable, Influencable, TradePartner
     public List<TradeRoute> Trade_Routes { get; private set; }
     public bool Is_Coastal { get; private set; }
     public Yields Last_Turn_Yields { get; private set; }
+    public Army Garrison { get { return Hex.Entity != null && Hex.Entity is Army ? Hex.Entity as Army : null; } }
 
     private bool update_yields;
     private Yields saved_base_yields;//TODO: what was this supposed to do?
@@ -81,7 +82,6 @@ public class City : Ownable, Influencable, TradePartner
         Full_LoS = true;
         Flag = new Flag(hex);
         Trade_Routes = new List<TradeRoute>();
-        Last_Turn_Yields = new Yields(hex.Yields);
 
         Cultural_Influence = new Dictionary<Player, float>();
         Cultural_Influence.Add(owner, STARTING_CULTURE);
@@ -118,6 +118,12 @@ public class City : Ownable, Influencable, TradePartner
         Id = current_id;
         Name = string.Format("City #{0}", Id);
         current_id++;
+    }
+
+    public void Start_Game()
+    {
+        update_yields = true;
+        Last_Turn_Yields = Yields;
     }
 
     public List<WorldMapHex> Get_Hexes_In_LoS()
@@ -256,6 +262,7 @@ public class City : Ownable, Influencable, TradePartner
 
     public Yields Get_Base_Yields(bool update_statistics)
     {
+        //Hexes
         Yields yields = new Yields(Hex.Yields);
         if (update_statistics) {
             Statistics.Clear_Yields();
@@ -267,6 +274,8 @@ public class City : Ownable, Influencable, TradePartner
                 Statistics.Add("Hexes", hex.Yields);
             }
         }
+
+        //Villages
         foreach(Village village in Owner.Villages) {
             Yields village_yields = new Yields(village.Yields);
             village_yields.Add(Owner.EmpireModifiers.Village_Yield_Bonus);
@@ -277,6 +286,8 @@ public class City : Ownable, Influencable, TradePartner
             }
             yields.Add(village_yields);
         }
+
+        //Trade routes
         foreach(TradeRoute route in Trade_Routes) {
             if(route.City.Id != Id) {
                 CustomLogger.Instance.Error(string.Format("City #{0} has trade route belonging to city #{1}", Id, route.City.Id));
@@ -292,6 +303,17 @@ public class City : Ownable, Influencable, TradePartner
             }
             yields.Add(route_yields);
         }
+
+        //Units
+        if(Garrison != null) {
+            Yields garrison_yields = Garrison.Get_City_Effects(this).Yields;
+            if (update_statistics) {
+                Statistics.Add("Units", garrison_yields);
+            }
+            yields.Add(garrison_yields);
+        }
+
+        //Buildings
         Yields percentage_bonuses = new Yields(100, 100, 100, 100, 100, 100, 100);
         foreach (Building building in Buildings) {
             yields.Add(building.Yields);
@@ -528,7 +550,7 @@ public class City : Ownable, Influencable, TradePartner
     public float Trade_Value
     {
         get {
-            float trade_value = Population + (Last_Turn_Yields.Total / 10.0f);
+            float trade_value = (Population + (Last_Turn_Yields.Total / 10.0f)) * 0.2f;
             foreach(Building building in Buildings) {
                 trade_value += building.Trade_Value;
             }
@@ -615,6 +637,13 @@ public class City : Ownable, Influencable, TradePartner
             }
             growth += building_additive;
             Statistics.Growth.Add("Buildings", building_additive);
+
+            //Empire modifiers
+            if(Owner.EmpireModifiers.Population_Growth_Bonus != 0.0f) {
+                float empire_multiplier = 1.0f + Owner.EmpireModifiers.Population_Growth_Bonus;
+                growth *= empire_multiplier;
+                Statistics.Growth_Percent.Add("Empire", 100.0f * (empire_multiplier - 1.0f));
+            }
 
             //Starvation
             if (Starvation) {
@@ -955,6 +984,13 @@ public class City : Ownable, Influencable, TradePartner
                 happiness += enemy_culture_delta;
             }
 
+            //Units
+            if(Garrison != null) {
+                float unit_delta = Garrison.Get_City_Effects(this).Happiness;
+                Statistics.Happiness.Add("Units", unit_delta);
+                happiness += unit_delta;
+            }
+
             //Starvation
             if (Starvation) {
                 float starvation_delta = -Population;
@@ -1018,6 +1054,13 @@ public class City : Ownable, Influencable, TradePartner
             float production_delta = Get_Base_Yields(false).Production * -0.1f;
             Statistics.Health.Add("Production", production_delta);
             health += production_delta;
+
+            //Units
+            if (Garrison != null) {
+                float unit_delta = Garrison.Get_City_Effects(this).Health;
+                Statistics.Health.Add("Units", unit_delta);
+                health += unit_delta;
+            }
 
             return health;
         }
@@ -1087,6 +1130,18 @@ public class City : Ownable, Influencable, TradePartner
                 float starvation_delta = -0.25f * Population;
                 Statistics.Order.Add("Starvation", starvation_delta);
                 order += starvation_delta;
+            }
+
+            if (Garrison != null) {
+                //Army str
+                float army_delta = Garrison.Order;
+                Statistics.Order.Add("Garrison strenght", army_delta);
+                order += army_delta;
+
+                //Unit abilities
+                float unit_delta = Garrison.Get_City_Effects(this).Order;
+                Statistics.Order.Add("Unit abilities", unit_delta);
+                order += unit_delta;
             }
 
             return order;

@@ -101,6 +101,7 @@ public class Unit : Trainable
         Max_Movement = prototype.Max_Movement;
         Current_Movement = Max_Movement;
         can_run = prototype.can_run;
+        Run_Stamina_Cost = prototype.Run_Stamina_Cost;
         Max_Campaing_Map_Movement = prototype.Max_Campaing_Map_Movement;
         Current_Campaing_Map_Movement = Max_Campaing_Map_Movement;
         Production_Required = prototype.Production_Required;
@@ -284,7 +285,6 @@ public class Unit : Trainable
         }
 
         GameObject.transform.position = Hex.GameObject.transform.position;
-        StatusBar.Update_Bars(this);
         if (!ignore_movement_restrictions) {
             MovementInfo info = Get_Movement_Info(old_hex, Hex, run, true);
             Current_Movement -= info.Movement_Cost;
@@ -312,6 +312,7 @@ public class Unit : Trainable
             }
         }
 
+        StatusBar.Update_Bars(this);
         Has_Moved_This_Turn = true;
         Last_Move_This_Turn_Was_Running = run;
 

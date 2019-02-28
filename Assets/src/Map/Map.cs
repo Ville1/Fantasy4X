@@ -680,6 +680,14 @@ public class Map
         }
     }
 
+    public void Start_Game()
+    {
+        Update_LoS();
+        foreach(City city in Cities) {
+            city.Start_Game();
+        }
+    }
+
     public void Update_LoS(WorldMapEntity entity)
     {
         foreach (WorldMapHex hex in entity.Last_Hexes_In_Los) {

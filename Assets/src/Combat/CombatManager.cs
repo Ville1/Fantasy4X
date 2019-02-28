@@ -116,6 +116,8 @@ public class CombatManager : MonoBehaviour {
         if (victory) {
             Army_1.Push_Into(hex);
         }
+        Army_1.Update_Text();
+        Army_2.Update_Text();
         BottomGUIManager.Instance.Update_Current_Entity();
     }
 

@@ -97,7 +97,7 @@ public class Main : MonoBehaviour {
         World.Instance.Map.Spawn_Cities_Villages_And_Roads(neutral_cities, max_villages);
         EffectManager.Instance.Update_Target_Map();
         Turn_Start_Update_GUI();
-        World.Instance.Map.Update_LoS();
+        World.Instance.Map.Start_Game();
         Update_Flags();
         AudioManager.Instance.Play_Music(CAMPAIGN_MAP_MUSIC);
         foreach(Player player in Players) {
@@ -117,7 +117,7 @@ public class Main : MonoBehaviour {
             village.Update_Owner();
         }
         player_index++;
-        if(player_index >= Players.Count) {
+        if(player_index >= All_Players.Count) {
             player_index = 0;
             Round++;
         }
@@ -137,14 +137,14 @@ public class Main : MonoBehaviour {
             return;
         }
 
-        Current_Player = Players[player_index];
+        Current_Player = All_Players[player_index];
         while (Current_Player.Defeated) {
             player_index++;
-            if (player_index >= Players.Count) {
+            if (player_index >= All_Players.Count) {
                 player_index = 0;
                 Round++;
             }
-            Current_Player = Players[player_index];
+            Current_Player = All_Players[player_index];
         }
         Current_Player.Start_Turn();
         if (!Other_Players_Turn) {
