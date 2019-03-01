@@ -563,5 +563,6 @@ public class WorldMapHex : Hex {
         if(Road != null) {
             Road.Destroy();
         }
+        base.Delete();
     }
 }

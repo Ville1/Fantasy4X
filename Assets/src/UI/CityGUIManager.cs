@@ -375,7 +375,7 @@ public class CityGUIManager : MonoBehaviour {
             } else if (!influence_data.Key.Is_Owned_By_Current_Player) {
                 tooltip_builder.Append(" (E)");
             }
-            tooltip_builder.Append(" +").Append(Mathf.RoundToInt(influence_data.Value)).Append(Environment.NewLine);
+            tooltip_builder.Append(" +").Append(Helper.Float_To_String(influence_data.Value, 1)).Append(Environment.NewLine);
         }
         if(tooltip_builder.Length != 0) {
             tooltip_builder.Remove(tooltip_builder.Length - 2, 1);
@@ -390,7 +390,7 @@ public class CityGUIManager : MonoBehaviour {
             } else if (!influence_data.Key.Is_Owned_By_Current_Player) {
                 tooltip_builder.Append(" (E)");
             }
-            tooltip_builder.Append(" +").Append(Mathf.RoundToInt(influence_data.Value)).Append(Environment.NewLine);
+            tooltip_builder.Append(" +").Append(Helper.Float_To_String(influence_data.Value, 1)).Append(Environment.NewLine);
         }
         if (tooltip_builder.Length != 0) {
             tooltip_builder.Remove(tooltip_builder.Length - 2, 1);

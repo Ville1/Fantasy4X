@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ public class AI : IConfigListener
 
     public enum Level { Inactive, Easy, Medium, Hard }
     public enum Tag { Food, Production, Cash, Science, Culture, Mana, Faith, Happiness, Health, Order, Military }
-    public enum LogType { General, Economy, Military }
+    public enum LogType { General, Economy, Military, Diagnostic }
 
     public bool Log_Actions { get; set; }
     public List<LogType> Logged_Action_Types { get; set; }
@@ -68,7 +69,7 @@ public class AI : IConfigListener
     public AI(Level level, Player player)
     {
         Log_Actions = false;
-        Logged_Action_Types = new List<LogType>() { LogType.General, LogType.Economy };
+        Logged_Action_Types = new List<LogType>() { LogType.General, LogType.Economy, LogType.Diagnostic };
         Show_Moves = Default_Show_Moves;
         ConfigManager.Instance.Register_Listener(this);
         
@@ -114,7 +115,8 @@ public class AI : IConfigListener
             return;
         }
 
-        Log("---- Starting turn ----", LogType.General);
+        Log(string.Format("---- {0}: starting turn ----", Player.Name), LogType.General);
+        Stopwatch stopwatch = Stopwatch.StartNew();
         act_cooldown = 0.0f;
         observed_enemy_army_strenght_on_this_turn.Clear();
         armies_seen_this_turn.Clear();
@@ -179,6 +181,7 @@ public class AI : IConfigListener
         }
 
         desired_main_army_count = (int)Mathf.Clamp((World.Instance.Map.Width * World.Instance.Map.Height) / 800, 1.0f, 3.0f);
+        Log(string.Format("Start turn: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     private void Update_Scouting()
@@ -238,6 +241,8 @@ public class AI : IConfigListener
         }
         act_cooldown += last_action_was_visible || Show_Moves ? Time_Between_Actions : 0.0f;
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
         //Show city actions
         if (Show_Moves && Follow_Moves && spectator_city_action_list.Count != 0) {
             City city = spectator_city_action_list[0][0] as City;
@@ -276,8 +281,10 @@ public class AI : IConfigListener
             }
             //TODO: add way less act cooldown if in fog of war (maybe dont "return;"?)
         }
+        
+        Log(string.Format("Act: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
 
-        Log("---- Ending turn ----", LogType.General);
+        Log(string.Format("---- {0}: ending turn ----", Player.Name), LogType.General);
         foreach(KeyValuePair<Player, float> pair in observed_enemy_army_strenght_on_this_turn) {
             if (!observed_max_enemy_army_strenght.ContainsKey(pair.Key)) {
                 observed_max_enemy_army_strenght.Add(pair.Key, pair.Value);
@@ -297,6 +304,7 @@ public class AI : IConfigListener
     {
         Log("--- Empire management ---", LogType.Economy);
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
         priorities.Clear();
         foreach (Tag tag in Enum.GetValues(typeof(Tag))) {
             priorities.Add(tag, 0.0f);
@@ -644,11 +652,15 @@ public class AI : IConfigListener
                 }
             }
         }
+
+        Log(string.Format("Manage empire: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     private void Manage_City(City city)
     {
         Log("-- Managing city #" + city.Id + " --", LogType.Economy);
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
 
         Yields base_yields = new Yields(city.Get_Base_Yields(false));
         Yields total_yields = new Yields(city.Yields);
@@ -859,6 +871,8 @@ public class AI : IConfigListener
         if (i == 0) {
             Log("Could not assign any pops", LogType.Economy);
         }
+
+        Log(string.Format("Manage city: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     private void Log(string message, LogType type)
@@ -876,8 +890,10 @@ public class AI : IConfigListener
     private void Manage_Worker(Worker worker)
     {
         Log("--- Managing worker #" + worker.Id + " ---", LogType.Economy);
-        
-        if(worker.Stored_Path != null) {
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        if (worker.Stored_Path != null) {
             WorldMapHex last_hex = worker.Stored_Path_Target;
             if (last_hex.Entity != null && !last_hex.Entity.Is_Owned_By(Player)) {
                 //TODO: In general be more careful with workers
@@ -1002,6 +1018,7 @@ public class AI : IConfigListener
         List<WorldMapHex> hexes_by_preference = hexes_and_preferences.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
         Log("Sending worker to hex: " + hexes_by_preference[0].ToString(), LogType.Economy);
         worker.Create_Stored_Path(hexes_and_paths[hexes_by_preference[0]]);
+        Log(string.Format("Manage worker: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     private float Calculate_Improvement_Preference(Improvement improvement, WorldMapHex hex, City city)
@@ -1035,7 +1052,9 @@ public class AI : IConfigListener
     {
         Log("--- Managing prospector #" + prospector.Id + " ---", LogType.Economy);
 
-        if(hexes_needing_prospecting.Count == 0) {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        if (hexes_needing_prospecting.Count == 0) {
             //Since we are deleting prospectors, this should not happen
             Log("No hexes needind prospecting", LogType.Economy);
             prospector.Wait_Turn = true;
@@ -1076,6 +1095,7 @@ public class AI : IConfigListener
         }
         last_action_was_visible = prospector.Hex.Visible_To_Viewing_Player;
         Update_Spectator_View_On_Move(prospector);
+        Log(string.Format("Manage prospector: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     private void Manage_Scout_Army(Army army)
@@ -1084,6 +1104,7 @@ public class AI : IConfigListener
 
         //TODO: if turns_since_army_was_scouted > careful turns -> rescout
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
         List<PathfindingNode> path = null;
 
         foreach (City city in undefended_enemy_cities) {
@@ -1153,6 +1174,7 @@ public class AI : IConfigListener
         Update_Scouting();
         Update_Spectator_View_On_Move(army);
         last_action_was_visible = army.Hex.Visible_To_Viewing_Player;
+        Log(string.Format("Manage scout army: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     private void Manage_Defence_Army(Army army, City city)
@@ -1163,6 +1185,9 @@ public class AI : IConfigListener
             last_action_was_visible = false;
             return;
         }
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
         Log("Moving defence army towards it's city #" + city.Id, LogType.Military);
         List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), city.Hex.Get_Specific_PathfindingNode(army));
         if (path.Count == 0) {
@@ -1177,6 +1202,7 @@ public class AI : IConfigListener
         Update_Scouting();
         Update_Spectator_View_On_Move(army);
         last_action_was_visible = army.Hex.Visible_To_Viewing_Player;
+        Log(string.Format("Manage defence army: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     private void Manage_Main_Army(Army army)
@@ -1189,8 +1215,10 @@ public class AI : IConfigListener
             //No return?
         }
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
         //Attack adjancent enemies
-        if(main_armies[army] == null || main_armies[army].Type != ArmyOrder.OrderType.Defend_City) {
+        if (main_armies[army] == null || main_armies[army].Type != ArmyOrder.OrderType.Defend_City) {
             foreach(Army enemy in army.Adjancent_Enemies) {
                 if(enemy.Get_Relative_Strenght_When_On_Hex(enemy.Hex, true, false) * (1.0f + army_attack_carefulness) <
                         army.Get_Relative_Strenght_When_On_Hex(enemy.Hex, true, true)) {
@@ -1361,6 +1389,7 @@ public class AI : IConfigListener
         Update_Scouting();
         Update_Spectator_View_On_Move(army);
         last_action_was_visible = army.Hex.Visible_To_Viewing_Player;
+        Log(string.Format("Manage main army: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
 
     /// <summary>

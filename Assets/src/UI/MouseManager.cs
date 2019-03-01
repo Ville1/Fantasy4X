@@ -123,7 +123,8 @@ public class MouseManager : MonoBehaviour
                         PathRenderer.Instance.Clear_Path();
                     } else {
                         List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(BottomGUIManager.Instance.Current_Entity),
-                            BottomGUIManager.Instance.Current_Entity.Hex.Get_Specific_PathfindingNode(BottomGUIManager.Instance.Current_Entity), (Hex_Under_Cursor as WorldMapHex).PathfindingNode);
+                            BottomGUIManager.Instance.Current_Entity.Hex.Get_Specific_PathfindingNode(BottomGUIManager.Instance.Current_Entity),
+                            (Hex_Under_Cursor as WorldMapHex).Get_Specific_PathfindingNode(BottomGUIManager.Instance.Current_Entity));
                         if(path.Count != 0) {
                             BottomGUIManager.Instance.Current_Entity.Create_Stored_Path(path);
                             while(BottomGUIManager.Instance.Current_Entity.Current_Movement > 0.0f) {

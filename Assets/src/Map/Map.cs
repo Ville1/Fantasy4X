@@ -763,7 +763,7 @@ public class Map
     {
         List<PathfindingNode> node_path = entity != null ?
             Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(entity)) :
-            (water ? Pathfinding.Path(Get_PathfindingNodes(road_spawning), hex_1.Water_PathfindingNode, hex_2.Water_PathfindingNode) :
+            (water ? Pathfinding.Path(Get_PathfindingNodes(road_spawning, true), hex_1.Water_PathfindingNode, hex_2.Water_PathfindingNode) :
             Pathfinding.Path(Get_PathfindingNodes(road_spawning), hex_1.PathfindingNode, hex_2.PathfindingNode));
         if(node_path.Count == 0) {
             return new List<WorldMapHex>();

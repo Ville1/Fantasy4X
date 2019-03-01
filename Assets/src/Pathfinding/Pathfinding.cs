@@ -20,6 +20,10 @@ public class Pathfinding
         Dictionary<PathfindingNode, float> dist = new Dictionary<PathfindingNode, float>();
         Dictionary<PathfindingNode, PathfindingNode> prev = new Dictionary<PathfindingNode, PathfindingNode>();
 
+        if (!end.Passable) {
+            return new List<PathfindingNode>();
+        }
+
         if (!all_nodes.Contains(end)) {
             all_nodes.Add(end);
         }

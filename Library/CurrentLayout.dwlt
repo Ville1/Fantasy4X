@@ -89,8 +89,8 @@ MonoBehaviour:
     y: 0
     width: 274
     height: 646
-  m_MinSize: {x: 202, y: 221}
-  m_MaxSize: {x: 4002, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 14}
   m_Panes:
   - {fileID: 14}
@@ -114,8 +114,8 @@ MonoBehaviour:
     y: 646
     width: 1400
     height: 271
-  m_MinSize: {x: 102, y: 121}
-  m_MaxSize: {x: 4002, y: 4021}
+  m_MinSize: {x: 100, y: 100}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 17}
   m_Panes:
   - {fileID: 12}
@@ -297,19 +297,19 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SearchArea: 0
     m_Folders:
-    - Assets/src/MapEntities
+    - Assets/Resources/images/units
   m_ViewMode: 1
   m_StartGridSize: 43
   m_LastFolders:
-  - Assets/src/MapEntities
+  - Assets/Resources/images/units
   m_LastFoldersGridSize: 43
   m_LastProjectPath: C:\Users\Ville\Documents\UnityProjects\Fantasy4X
   m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 167}
-    m_SelectedIDs: 50270000
-    m_LastClickedID: 10064
-    m_ExpandedIDs: 0000000058250000ae25000088260000a6260000bc270000
+    scrollPos: {x: 0, y: 203}
+    m_SelectedIDs: 8c260000
+    m_LastClickedID: 9868
+    m_ExpandedIDs: 0000000058250000ae2500008c260000aa260000c0270000ffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -337,7 +337,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 0000000058250000ae25000088260000a6260000bc270000
+    m_ExpandedIDs: 0000000058250000ae2500008c260000aa260000c0270000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -364,7 +364,7 @@ MonoBehaviour:
   m_ListAreaState:
     m_SelectedInstanceIDs: 
     m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 1
+    m_HadKeyboardFocusLastEvent: 0
     m_ExpandedInstanceIDs: 4e240000ba16dbff00000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0

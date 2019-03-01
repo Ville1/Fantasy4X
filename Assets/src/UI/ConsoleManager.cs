@@ -266,6 +266,38 @@ public class ConsoleManager : MonoBehaviour
             return string.Format("AI {0}", Main.Instance.Pause_AI ? "paused" : "unpaused");
         });
 
+        commands.Add("log_ai_actions", (string[] arguments) => {
+            if (arguments.Length != 2 && arguments.Length != 3) {
+                return "Invalid number of arguments";
+            }
+            bool b;
+            if (!bool.TryParse(arguments[1], out b)) {
+                return "Invalid argument";
+            }
+            int index = -1;
+            if (arguments.Length == 3) {
+                if (!int.TryParse(arguments[2], out index)) {
+                    return "Invalid argument";
+                } else {
+                    if (index < 0 || index >= Main.Instance.Players.Count) {
+                        return "Invalid argument";
+                    }
+                    Player p = Main.Instance.Players[index];
+                    if (p.AI == null) {
+                        return string.Format("Player {0} is not an AI", index);
+                    }
+                    p.AI.Log_Actions = b;
+                    return string.Format("Player {0}: Log_Actions = {1}", index, b);
+                }
+            }
+            foreach (Player p in Main.Instance.Players) {
+                if (p.AI != null) {
+                    p.AI.Log_Actions = b;
+                }
+            }
+            return string.Format("AI-Players: Log_Actions = {0}", b);
+        });
+
         Update_Output();
         Panel.SetActive(false);
     }

@@ -40,7 +40,7 @@ public class Factions {
          */
 
         all.Add(new Faction("Kingdom", 150, 1, new Dictionary<City.CitySize, Yields>() {
-            { City.CitySize.Town, new Yields(2, 1, 2, 1, 1, 0, 0) },
+            { City.CitySize.Town, new Yields(2, 2, 2, 1, 1, 0, 0) },
             { City.CitySize.City, new Yields(1, 2, 3, 2, 1, 0, 0) },
             { City.CitySize.Metropolis, new Yields(0, 2, 5, 3, 2, 0, 0) }
         }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f,
@@ -366,7 +366,7 @@ public class Factions {
             Kingdom.Improvements.First(x => x.Name == "Windmill"), Kingdom.Improvements.First(x => x.Name == "Lumber Mill"), Kingdom.Improvements.First(x => x.Name == "Forester's Lodge")},
             1.0f, 25, 15, 0.5f, null));
 
-        Kingdom.Units.Add(new Worker("Civilian Ship", 3.0f, Map.MovementType.Water, 2, "boat", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
+        Kingdom.Units.Add(new Worker("Civilian Ship", 3.0f, Map.MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
             1.0f, 50, 100, 1.0f, null));
 
         Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, Education, 10));

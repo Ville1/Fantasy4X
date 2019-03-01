@@ -201,7 +201,7 @@ public class BottomGUIManager : MonoBehaviour
         Current_Entity_Image.overrideSprite = SpriteManager.Instance.Get_Sprite(current_entity.Texture, SpriteManager.SpriteType.Unit);
         Current_Entity_Name_Text.text = Current_Entity.Is_Owned_By_Current_Player ? current_entity.Name : string.Format("Enemy {0}", current_entity.Name);
         Current_Entity_Name_Text.color = Current_Entity.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
-        Current_Entity_Movement_Text.text = string.Format("Movement: {0} / {1}{2}{3}", current_entity.Current_Movement, current_entity.Max_Movement, current_entity.Wait_Turn ? " (wait)" : "",
+        Current_Entity_Movement_Text.text = string.Format("Movement: {0} / {1}{2}{3}", Helper.Float_To_String(current_entity.Current_Movement, 1), current_entity.Max_Movement, current_entity.Wait_Turn ? " (wait)" : "",
             current_entity.Sleep ? " (sleep)" : "");
 
         if (Current_Entity is Worker) {
