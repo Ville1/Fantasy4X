@@ -112,7 +112,11 @@ public class Village : Ownable, Influencable, TradePartner
             foreach (WorldMapHex hex in Hex.Get_Adjancent_Hexes()) {
                 yields.Add(hex.Yields);
             }
-            return ((yields.Total * 1.25f) + 7.0f) / 7.0f;
+            float trade_value = ((yields.Total * 1.25f) + 7.0f) / 7.0f;
+            if (Is_Coastal) {
+                trade_value *= 1.1f;
+            }
+            return trade_value;
         }
     }
 }

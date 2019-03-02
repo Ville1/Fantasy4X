@@ -20,11 +20,12 @@ public class Faction {
     public float Order_From_Pops { get; private set; }
     public float Enemy_Cultural_Influence_Unhappiness_Multiplier { get; set; }
     public EmpireModifiers EmpireModifiers { get; private set; }
+    public bool Reveal_Trade_Routes { get; private set; }
 
     public Faction(string name, int starting_cash, int capital_starting_population, Dictionary<City.CitySize, Yields> city_yields,
         float pop_food_consumption, int max_food_storage_per_city, float base_happiness, float happiness_from_pops,
         float base_health, float health_from_pops, float base_order, float order_from_pops, float enemy_cultural_influence_unhappiness_multiplier,
-        Technology root_technology, Army army_prototype, EmpireModifiers modifiers)
+        bool reveal_trade_routes, Technology root_technology, Army army_prototype, EmpireModifiers modifiers)
     {
         Name = name;
         Starting_Cash = starting_cash;
@@ -42,6 +43,7 @@ public class Faction {
         Order_From_Pops = order_from_pops;
         Enemy_Cultural_Influence_Unhappiness_Multiplier = enemy_cultural_influence_unhappiness_multiplier;
         Improvements = new List<Improvement>();
+        Reveal_Trade_Routes = reveal_trade_routes;
         Root_Technology = root_technology;
         Army_Prototype = army_prototype;
         EmpireModifiers = modifiers;

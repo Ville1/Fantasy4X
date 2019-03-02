@@ -27,6 +27,7 @@ public class Map
     private Dictionary<int, string> seed;
     private int seed_max;
     private List<WorldMapHex> edge_hexes;
+    private WorldMapEntity dummy_boat;
 
     public Map(int width, int height, float mineral_spawn_rate)
     {
@@ -44,6 +45,8 @@ public class Map
         hexes = new List<List<WorldMapHex>>();
         edge_hexes = new List<WorldMapHex>();
         visible = true;
+        dummy_boat = new Worker("Dummy Boat", 3.0f, MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
+            1.0f, 50, 100, 1.0f, null);
 
         //Generate
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -493,7 +496,6 @@ public class Map
         stopwatch = Stopwatch.StartNew();
 
         //Water trade routes
-        //TODO: still bit weird
         List<TradePartner> partners = Cities.Where(x => x.Is_Coastal).Select(x => x as TradePartner).Union(
             Villages.Where(x => x.Is_Coastal).Select(x => x as TradePartner)).ToList();
         foreach (City city in Cities) {
@@ -501,11 +503,10 @@ public class Map
                 continue;
             }
             foreach(TradePartner partner in partners) {
-                List<WorldMapHex> path = Path(city.Hex, partner.Hex, null, false, false, false, true);
+                List<WorldMapHex> path = Path(city.Hex, partner.Hex, dummy_boat, false);
                 if(path.Count == 0) {
-                    break;
+                    continue;
                 }
-                CustomLogger.Instance.Debug(string.Format("Water route generated: {0} -> {1}", city.Hex.ToString(), partner.Hex.ToString()));
                 city.Add_Trade_Route(new TradeRoute(path, city, partner, true));
             }
         }
@@ -625,16 +626,12 @@ public class Map
             }
         }
     }
-
+    
     public List<PathfindingNode> Get_Specific_PathfindingNodes(WorldMapEntity entity, bool use_los = true, WorldMapHex ignore_entity_hex = null)
     {
         List<PathfindingNode> nodes = new List<PathfindingNode>();
         foreach (WorldMapHex hex in All_Hexes) {
-            PathfindingNode node = hex.Get_Specific_PathfindingNode(entity, ignore_entity_hex);
-            if(use_los && hex.Current_LoS == WorldMapHex.LoS_Status.Unexplored) {
-                node.Cost = 10.0f;
-            }
-            nodes.Add(node);
+            nodes.Add(hex.Get_Specific_PathfindingNode(entity, ignore_entity_hex, use_los));
         }
         return nodes;
     }
@@ -682,10 +679,10 @@ public class Map
 
     public void Start_Game()
     {
-        Update_LoS();
-        foreach(City city in Cities) {
+        foreach (City city in Cities) {
             city.Start_Game();
         }
+        Update_LoS();
     }
 
     public void Update_LoS(WorldMapEntity entity)
@@ -762,7 +759,7 @@ public class Map
         bool road_spawning = false, bool water = false)
     {
         List<PathfindingNode> node_path = entity != null ?
-            Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(entity)) :
+            Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity, null, use_los), hex_2.Get_Specific_PathfindingNode(entity, null, use_los)) :
             (water ? Pathfinding.Path(Get_PathfindingNodes(road_spawning, true), hex_1.Water_PathfindingNode, hex_2.Water_PathfindingNode) :
             Pathfinding.Path(Get_PathfindingNodes(road_spawning), hex_1.PathfindingNode, hex_2.PathfindingNode));
         if(node_path.Count == 0) {

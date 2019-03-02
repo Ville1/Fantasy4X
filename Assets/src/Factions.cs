@@ -43,11 +43,10 @@ public class Factions {
             { City.CitySize.Town, new Yields(2, 2, 2, 1, 1, 0, 0) },
             { City.CitySize.City, new Yields(1, 2, 3, 2, 1, 0, 0) },
             { City.CitySize.Metropolis, new Yields(0, 2, 5, 3, 2, 0, 0) }
-        }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f,
+        }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f, false,
         new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "default_unit", 10), new EmpireModifiers() {
             Passive_Income = 3.0f,
-            Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f),
-            Population_Growth_Bonus = 0.15f
+            Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f)
         }));
         Faction Kingdom = all[0];
 
@@ -449,7 +448,7 @@ public class Factions {
                 { City.CitySize.Town, new Yields(2, 1, 2, 1, 1, 0, 0) },
                 { City.CitySize.City, new Yields(1, 2, 3, 2, 1, 0, 0) },
                 { City.CitySize.Metropolis, new Yields(0, 2, 5, 3, 2, 0, 0) }
-            }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f,
+            }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f, true,
             new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "default_unit", 100), new EmpireModifiers() {
                 Passive_Income = 5.0f,
                 Population_Growth_Bonus = -0.95f

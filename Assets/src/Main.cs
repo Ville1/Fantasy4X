@@ -99,6 +99,8 @@ public class Main : MonoBehaviour {
         Turn_Start_Update_GUI();
         World.Instance.Map.Start_Game();
         Update_Flags();
+        BottomGUIManager.Instance.Current_Entity = null;
+        CameraManager.Instance.Set_Camera_Location(Current_Player.Capital.Hex);
         AudioManager.Instance.Play_Music(CAMPAIGN_MAP_MUSIC);
         foreach(Player player in Players) {
             player.Update_Score();

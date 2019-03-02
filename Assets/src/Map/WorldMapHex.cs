@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class WorldMapHex : Hex {
     private static readonly Color EXPLORED_TINT = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+    private static readonly float UNEXPLORED_MOVEMENT_COST = 10.0f;
     private static string not_explored_texture = "hex_clouds";
 
     public enum InfoText { None, Coordinates, Yields, Minerals }
@@ -337,11 +338,17 @@ public class WorldMapHex : Hex {
             return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, Water_Movement_Cost);
         }
     }
-
-    public PathfindingNode Get_Specific_PathfindingNode(WorldMapEntity entity, WorldMapHex ignore_entity_hex = null)
+    
+    public PathfindingNode Get_Specific_PathfindingNode(WorldMapEntity entity, WorldMapHex ignore_entity_hex = null, bool use_los = true)
     {
         bool blocked = ((entity.Is_Civilian && Civilian != null) || (!entity.Is_Civilian && Entity != null) && this != ignore_entity_hex);
-        return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, !blocked ? Get_Movement_Cost(entity.Movement_Type) : -1.0f);
+        return new PathfindingNode(
+            Coordinates,
+            GameObject.transform.position.x,
+            GameObject.transform.position.y,
+            (use_los && entity.Owner != null && !Is_Explored_By(entity.Owner)) ? UNEXPLORED_MOVEMENT_COST :
+            !blocked ? Get_Movement_Cost(entity.Movement_Type) : -1.0f
+        );
     }
 
     public LoS_Status Current_LoS
@@ -434,6 +441,14 @@ public class WorldMapHex : Hex {
         } else {
             In_LoS_Of_City = true;
         }
+    }
+
+    public void Set_Explored(Player player)
+    {
+        if (explored_by.Contains(player)) {
+            return;
+        }
+        explored_by.Add(player);
     }
 
     /// <summary>

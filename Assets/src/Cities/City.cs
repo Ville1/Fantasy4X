@@ -82,6 +82,7 @@ public class City : Ownable, Influencable, TradePartner
         Full_LoS = true;
         Flag = new Flag(hex);
         Trade_Routes = new List<TradeRoute>();
+        Last_Turn_Yields = new Yields();
 
         Cultural_Influence = new Dictionary<Player, float>();
         Cultural_Influence.Add(owner, STARTING_CULTURE);
@@ -124,6 +125,11 @@ public class City : Ownable, Influencable, TradePartner
     {
         update_yields = true;
         Last_Turn_Yields = Yields;
+        if (Owner.Faction.Reveal_Trade_Routes) {
+            foreach(TradeRoute route in Trade_Routes) {
+                route.Target.Hex.Set_Explored(Owner);
+            }
+        }
     }
 
     public List<WorldMapHex> Get_Hexes_In_LoS()
