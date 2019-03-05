@@ -42,6 +42,7 @@ public class MasterUIManager : MonoBehaviour {
         TechnologyPanelManager.Instance.Active = false;
         SelectTechnologyPanelManager.Instance.Active = false;
         NewGameGUIManager.Instance.Active = false;
+        SpellGUIManager.Instance.Active = false;
         MouseManager.Instance.Set_Select_Hex_Mode(false);
     }
 

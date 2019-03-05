@@ -261,7 +261,7 @@ public class CityGUIManager : MonoBehaviour {
         }
 
         //Yields
-        Food_Text.text = Helper.Float_To_String(Current_City.Yields.Food, 1);
+        Food_Text.text = Helper.Float_To_String(Current_City.Yields.Food, 1, true);
         TooltipManager.Instance.Register_Tooltip(Food_Text.gameObject, Current_City.Statistics.Food.Tooltip + Environment.NewLine + Current_City.Statistics.Food_Percent.Tooltip, gameObject);
         Production_Text.text = Helper.Float_To_String(Current_City.Yields.Production, 1, true);
         TooltipManager.Instance.Register_Tooltip(Production_Text.gameObject, Current_City.Statistics.Production.Tooltip + Environment.NewLine + Current_City.Statistics.Production_Percent.Tooltip, gameObject);

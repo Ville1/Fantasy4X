@@ -80,6 +80,7 @@ public class Unit : Trainable
     public List<Tag> Tags { get; private set; }
     public Player Owner { get { return Army != null ? Army.Owner : null; } }
     public List<StatusBar> Bars { get; private set; }
+    public float Mana_Upkeep { get; private set; }
 
     public bool Has_Moved_This_Turn { get; private set; }
     public bool Last_Move_This_Turn_Was_Running { get; private set; }
@@ -107,6 +108,7 @@ public class Unit : Trainable
         Production_Required = prototype.Production_Required;
         Cost = prototype.Cost;
         Upkeep = prototype.Upkeep;
+        Mana_Upkeep = prototype.Mana_Upkeep;
         LoS = prototype.LoS;
         Technology_Required = prototype.Technology_Required;
         Buildinds_Required = prototype.Buildinds_Required;
@@ -173,7 +175,7 @@ public class Unit : Trainable
     /// <param name="resistances"></param>
     /// <param name="morale_value"></param>
     /// <param name="discipline"></param>
-    public Unit(string name, UnitType type, string texture, float campaing_map_movement, int production_required, int cost, float upkeep, int los, Technology technology_required,
+    public Unit(string name, UnitType type, string texture, float campaing_map_movement, int production_required, int cost, float upkeep, float mana_upkeep, int los, Technology technology_required,
         List<Building> buildings_required, float movement, bool can_run, float run_stamina_cost, float morale, float stamina, float melee_attack, Dictionary<DamageType, float> melee_attack_types,
         float charge, float ranged_attack, Dictionary<DamageType, float> ranged_attack_types, int range, int ammo, float melee_defence, float ranged_defence,
         Dictionary<DamageType, float> resistances, float morale_value, float discipline, List<Ability> abilities, List<Tag> tags)
@@ -188,6 +190,7 @@ public class Unit : Trainable
         Production_Required = production_required;
         Cost = cost;
         Upkeep = upkeep;
+        Mana_Upkeep = mana_upkeep;
         LoS = los;
         Technology_Required = technology_required;
         Buildinds_Required = buildings_required;

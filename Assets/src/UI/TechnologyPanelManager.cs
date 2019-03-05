@@ -65,15 +65,14 @@ public class TechnologyPanelManager : MonoBehaviour {
             return Panel.activeSelf;
         }
         set {
-            if(Main.Instance.Other_Players_Turn) {
+            if(Main.Instance.Other_Players_Turn || Active == value) {
                 return;
+            }
+            if (value) {
+                MasterUIManager.Instance.Close_All();
             }
             Panel.SetActive(value);
             if (Active) {
-                CityGUIManager.Instance.Active = false;
-                MainMenuManager.Instance.Active = false;
-                HexPanelManager.Instance.Active = false;
-                SelectTechnologyPanelManager.Instance.Active = false;
                 position_delta = new Vector2(0.0f, 0.0f);
                 Update_Technologies();
             }

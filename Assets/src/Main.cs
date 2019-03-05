@@ -78,7 +78,8 @@ public class Main : MonoBehaviour {
         Game_Is_Running = true;
         MasterUIManager.Instance.Show_UI = true;
         GameEndedGUIManager.Instance.Active = false;
-        foreach(Player p in Players) {
+        NotificationManager.Instance.Clear_Notifications();
+        foreach (Player p in Players) {
             if(p.AI != null) {
                 p.AI.On_Delete();
             }

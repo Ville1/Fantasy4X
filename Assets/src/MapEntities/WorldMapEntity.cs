@@ -19,6 +19,7 @@ public class WorldMapEntity : Ownable {
     public int Animation_Index { get; private set; }
     public float Animation_FPS { get; private set; }
     public virtual float Upkeep { get; protected set; }
+    public virtual float Mana_Upkeep { get; protected set; }
     public bool Is_Civilian { get; private set; }
     public List<WorldMapHex> Stored_Path { get; set; }
     public int Stored_Path_Index { get; set; }
@@ -134,6 +135,7 @@ public class WorldMapEntity : Ownable {
     {
         Current_Movement = Max_Movement;
         Owner.Cash -= Upkeep;
+        Owner.Mana -= Mana_Upkeep;
         Wait_Turn = false;
     }
 

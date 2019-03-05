@@ -255,6 +255,20 @@ public class Army : WorldMapEntity {
         }
     }
 
+    public override float Mana_Upkeep
+    {
+        get {
+            float upkeep = 0.0f;
+            foreach (Unit unit in Units) {
+                upkeep += unit.Mana_Upkeep;
+            }
+            return upkeep;
+        }
+        protected set {
+            return;
+        }
+    }
+
     public bool Units_Have_Movement_Left
     {
         get {

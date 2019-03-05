@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class TopGUIManager : MonoBehaviour {
@@ -8,6 +7,7 @@ public class TopGUIManager : MonoBehaviour {
     public GameObject Panel;
     public Text Cash_Text;
     public Button Technology_Button;
+    public Button Spell_Button;
     public Text Rounds_Text;
 
     /// <summary>
@@ -50,11 +50,12 @@ public class TopGUIManager : MonoBehaviour {
         if (!Active) {
             Active = true;
         }
-        Cash_Text.text = string.Format("{0} {1}{2}", Mathf.RoundToInt(Player.Cash), Player.Income >= 0 ? "+" : "",
-            Player.Income < 10.0f ? Math.Round(Player.Income, 2) : Mathf.RoundToInt(Player.Income));
+        Cash_Text.text = string.Format("{0} {1}", Mathf.RoundToInt(Player.Cash), Helper.Float_To_String(Player.Income, 1, true));
         Technology_Button.GetComponentInChildren<Text>().text = Player.Current_Technology != null ? string.Format("{0} ({1} turn{2})",
             Player.Current_Technology.Name, Player.Current_Technology.Turns_Left_Estimate,
             Helper.Plural(Player.Current_Technology.Turns_Left_Estimate)) : "Nothing";
+        Spell_Button.GetComponentInChildren<Text>().text = string.Format("{0} ({1}) / {2}", Mathf.RoundToInt(Player.Mana), Helper.Float_To_String(Player.Mana_Income, 1, true),
+            Mathf.RoundToInt(Player.Max_Mana));
         Rounds_Text.text = string.Format("Round: {0}", Main.Instance.Round);
         TooltipManager.Instance.Register_Tooltip(Rounds_Text.gameObject, string.Format("Max: {0}", Main.Instance.Max_Rounds), gameObject);
     }
@@ -62,5 +63,10 @@ public class TopGUIManager : MonoBehaviour {
     public void Technology_Button_On_Click()
     {
         TechnologyPanelManager.Instance.Toggle();
+    }
+
+    public void Spell_Button_On_Click()
+    {
+        SpellGUIManager.Instance.Toggle();
     }
 }

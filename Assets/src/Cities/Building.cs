@@ -36,6 +36,7 @@ public class Building {
     public float Cultural_Influence_Range { get; set; }
     public float Village_Cultural_Influence { get; set; }
     public float Trade_Value { get; set; }
+    public float Max_Mana { get; set; }
 
     private float upkeep;
     private bool paused;
@@ -75,6 +76,7 @@ public class Building {
         Cultural_Influence_Range = prototype.Cultural_Influence_Range;
         Village_Cultural_Influence = prototype.Village_Cultural_Influence;
         Trade_Value = prototype.Trade_Value;
+        Max_Mana = prototype.Max_Mana;
     }
 
     public Building(string name, string texture, int production_required, int cost, float upkeep, Yields yields, float happiness, float health, float order,

@@ -58,6 +58,7 @@ public class City : Ownable, Influencable, TradePartner
     public bool Is_Coastal { get; private set; }
     public Yields Last_Turn_Yields { get; private set; }
     public Army Garrison { get { return Hex.Entity != null && Hex.Entity is Army ? Hex.Entity as Army : null; } }
+    public List<CityStatusEffect> Status_Effects { get; private set; }
 
     private bool update_yields;
     private Yields saved_base_yields;//TODO: what was this supposed to do?
@@ -83,6 +84,7 @@ public class City : Ownable, Influencable, TradePartner
         Flag = new Flag(hex);
         Trade_Routes = new List<TradeRoute>();
         Last_Turn_Yields = new Yields();
+        Status_Effects = new List<CityStatusEffect>();
 
         Cultural_Influence = new Dictionary<Player, float>();
         Cultural_Influence.Add(owner, STARTING_CULTURE);
@@ -319,8 +321,23 @@ public class City : Ownable, Influencable, TradePartner
             yields.Add(garrison_yields);
         }
 
-        //Buildings
         Yields percentage_bonuses = new Yields(100, 100, 100, 100, 100, 100, 100);
+
+        //Status effects
+        foreach (CityStatusEffect status_effect in Status_Effects) {
+            Yields status_effect_yields = new Yields(status_effect.Yield_Delta);
+            Yields status_effect_precentage_yields = new Yields(status_effect.Percentage_Yield_Delta);
+            if (update_statistics) {
+                Statistics.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
+                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect_yields);
+                Statistics.Add_Precentage(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
+                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect_precentage_yields);
+            }
+            yields.Add(status_effect_yields);
+            percentage_bonuses.Add(status_effect_precentage_yields);
+        }
+
+        //Buildings
         foreach (Building building in Buildings) {
             yields.Add(building.Yields);
             percentage_bonuses.Add(building.Percentage_Yield_Bonuses);
@@ -423,6 +440,19 @@ public class City : Ownable, Influencable, TradePartner
             reduction = Mathf.Clamp01(reduction);
             upkeep *= (1.0f - reduction);
             return upkeep;
+        }
+    }
+
+    public float Max_Mana
+    {
+        get {
+            float max_mana = 0.0f;
+            foreach(Building building in Buildings) {
+                if (!building.Paused) {
+                    max_mana += building.Max_Mana;
+                }
+            }
+            return max_mana;
         }
     }
 
@@ -699,6 +729,7 @@ public class City : Ownable, Influencable, TradePartner
         Last_Turn_Yields = new Yields(Yields);
         update_yields = true;
         Owner.Cash += Yields.Cash;
+        Owner.Mana += Yields.Mana;
 
         //Culture
         Cultural_Influence[Owner] += Yields.Culture;
@@ -809,6 +840,18 @@ public class City : Ownable, Influencable, TradePartner
             Owner.Queue_Notification(new Notification("Low order", LOW_ORDER_TEXTURE, SpriteManager.SpriteType.UI, null, delegate () {
                 CityGUIManager.Instance.Current_City = this;
             }));
+        }
+
+        //Status effects
+        List<CityStatusEffect> expiring_status_effects = new List<CityStatusEffect>();
+        foreach(CityStatusEffect status_effect in Status_Effects) {
+            status_effect.Current_Duration--;
+            if(status_effect.Current_Duration == 0) {
+                expiring_status_effects.Add(status_effect);
+            }
+        }
+        foreach(CityStatusEffect expiring_status_effect in expiring_status_effects) {
+            Status_Effects.Remove(expiring_status_effect);
         }
     }
 
@@ -997,6 +1040,13 @@ public class City : Ownable, Influencable, TradePartner
                 happiness += unit_delta;
             }
 
+            //Status effects
+            foreach(CityStatusEffect status_effect in Status_Effects) {
+                Statistics.Happiness.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
+                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect.Happiness);
+                happiness += status_effect.Happiness;
+            }
+
             //Starvation
             if (Starvation) {
                 float starvation_delta = -Population;
@@ -1066,6 +1116,13 @@ public class City : Ownable, Influencable, TradePartner
                 float unit_delta = Garrison.Get_City_Effects(this).Health;
                 Statistics.Health.Add("Units", unit_delta);
                 health += unit_delta;
+            }
+
+            //Status effects
+            foreach (CityStatusEffect status_effect in Status_Effects) {
+                Statistics.Health.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
+                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect.Health);
+                health += status_effect.Health;
             }
 
             return health;
@@ -1148,6 +1205,13 @@ public class City : Ownable, Influencable, TradePartner
                 float unit_delta = Garrison.Get_City_Effects(this).Order;
                 Statistics.Order.Add("Unit abilities", unit_delta);
                 order += unit_delta;
+            }
+
+            //Status effects
+            foreach (CityStatusEffect status_effect in Status_Effects) {
+                Statistics.Order.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
+                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect.Order);
+                order += status_effect.Order;
             }
 
             return order;
@@ -1309,5 +1373,17 @@ public class City : Ownable, Influencable, TradePartner
         }
         Trade_Routes.Add(route);
         return true;
+    }
+
+    public void Apply_Status_Effect(CityStatusEffect status_effect, bool stacks)
+    {
+        while (Status_Effects.Any(x => x.Name == status_effect.Name) && !stacks) {
+            CityStatusEffect old_effect = Status_Effects.First(x => x.Name == status_effect.Name);
+            Status_Effects.Remove(old_effect);
+        }
+        Status_Effects.Add(status_effect);
+        if(!status_effect.Yield_Delta.Empty || !status_effect.Percentage_Yield_Delta.Empty) {
+            Yields_Changed();
+        }
     }
 }

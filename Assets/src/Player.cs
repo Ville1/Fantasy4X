@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class Player {
     private static readonly string TECH_READY_SOUND_EFFECT = "tech_ready_sfx";
@@ -26,6 +27,8 @@ public class Player {
     private bool defeated;
     private float score;
     private List<Notification> notification_queue;
+    private float mana;
+    private Dictionary<Spell, int> spells_on_cooldown;
     
     public City Capital
     {
@@ -58,6 +61,7 @@ public class Player {
         Cities = new List<City>();
         Villages = new List<Village>();
         Is_Neutral = neutral;
+        spells_on_cooldown = new Dictionary<Spell, int>();
     }
 
     public void End_Turn()
@@ -76,6 +80,19 @@ public class Player {
         if(Current_Technology != null) {
             Current_Technology.Research_Acquired += Total_Science;
         }
+
+        List<Spell> spells_off_cooldown = new List<Spell>();
+        List<Spell> keys = new List<Spell>(spells_on_cooldown.Keys);
+        foreach(Spell spell_on_cooldown in keys) {
+            spells_on_cooldown[spell_on_cooldown]--;
+            if(spells_on_cooldown[spell_on_cooldown] <= 0) {
+                spells_off_cooldown.Add(spell_on_cooldown);
+            }
+        }
+        foreach(Spell spell_off_cooldown in spells_off_cooldown) {
+            spells_on_cooldown.Remove(spell_off_cooldown);
+        }
+
         Update_Score();
         NotificationManager.Instance.Clear_Notifications();
     }
@@ -83,11 +100,13 @@ public class Player {
 
     public void Start_Turn()
     {
-
         foreach(Notification notification in notification_queue) {
             NotificationManager.Instance.Add_Notification(notification);
         }
         notification_queue.Clear();
+        if (Mana >= Max_Mana && Mana_Income > 0.0f) {
+            NotificationManager.Instance.Add_Notification(new Notification("Mana pool is full", "mana", SpriteManager.SpriteType.UI, null, null));
+        }
 
         if (Current_Technology != null && Current_Technology.Is_Researched) {
             if (!Main.Instance.Other_Players_Turn) {
@@ -135,6 +154,44 @@ public class Player {
                 science += city.Yields.Science;
             }
             return science;
+        }
+    }
+
+    public float Mana
+    {
+        get {
+            return mana;
+        }
+        set {
+            if(value > 0 && mana > Max_Mana) {
+                return;
+            }
+            mana = Mathf.Clamp(value, 0.0f, Max_Mana);
+        }
+    }
+
+    public float Max_Mana
+    {
+        get {
+            float max_mana = EmpireModifiers.Max_Mana;
+            foreach(City city in Cities) {
+                max_mana += city.Max_Mana;
+            }
+            return max_mana;
+        }
+    }
+
+    public float Mana_Income
+    {
+        get {
+            float income = 0.0f;
+            foreach (City city in Cities) {
+                income += city.Yields.Mana;
+            }
+            foreach (WorldMapEntity entity in WorldMapEntitys) {
+                income -= entity.Mana_Upkeep;
+            }
+            return income;
         }
     }
 
@@ -251,6 +308,41 @@ public class Player {
     public bool Has_Unlocked(Building building)
     {
         return building.Technology_Required == null || (Researched_Technologies.Any(x => x.Name == building.Technology_Required.Name));
+    }
+
+    public List<Spell> Available_Spells
+    {
+        get {
+            List<Spell> spells = new List<Spell>();
+            foreach(Spell faction_spell in Faction.Spells) {
+                if(faction_spell.Technology_Required == null || Researched_Technologies.Any(x => x.Name == faction_spell.Technology_Required.Name)) {
+                    spells.Add(faction_spell);
+                }
+            }
+            return spells;
+        }
+    }
+
+    public bool Can_Cast(Spell spell)
+    {
+        return spell.Mana_Cost <= Mana && Spell_Cooldown(spell) == 0 && (spell.Technology_Required == null || Researched_Technologies.Any(x => x.Name == spell.Technology_Required.Name));
+    }
+
+    public int Spell_Cooldown(Spell spell)
+    {
+        return spells_on_cooldown.ContainsKey(spell) ? spells_on_cooldown[spell] : 0;
+    }
+
+    public void Put_On_Cooldown(Spell spell)
+    {
+        if(spell.Cooldown == 0) {
+            return;
+        }
+        if (spells_on_cooldown.ContainsKey(spell)) {
+            spells_on_cooldown[spell] = spell.Cooldown;
+        } else {
+            spells_on_cooldown.Add(spell, spell.Cooldown);
+        }
     }
 
     public class NewPlayerData

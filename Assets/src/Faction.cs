@@ -21,6 +21,7 @@ public class Faction {
     public float Enemy_Cultural_Influence_Unhappiness_Multiplier { get; set; }
     public EmpireModifiers EmpireModifiers { get; private set; }
     public bool Reveal_Trade_Routes { get; private set; }
+    public List<Spell> Spells { get; private set; }
 
     public Faction(string name, int starting_cash, int capital_starting_population, Dictionary<City.CitySize, Yields> city_yields,
         float pop_food_consumption, int max_food_storage_per_city, float base_happiness, float happiness_from_pops,
@@ -47,6 +48,7 @@ public class Faction {
         Root_Technology = root_technology;
         Army_Prototype = army_prototype;
         EmpireModifiers = modifiers;
+        Spells = new List<Spell>();
     }
 
     public override string ToString()

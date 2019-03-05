@@ -108,6 +108,7 @@ public class MouseManager : MonoBehaviour
 
                 //Close stuff
                 TechnologyPanelManager.Instance.Active = false;
+                SpellGUIManager.Instance.Active = false;
                 SelectTechnologyPanelManager.Instance.Active = false;
                 MainMenuManager.Instance.Active = false;
                 ConsoleManager.Instance.Close_Console();
@@ -141,8 +142,10 @@ public class MouseManager : MonoBehaviour
                             PathRenderer.Instance.Clear_Path();
                         }
                     }
-                    //Close tech panel
+                    //Close stuff
                     TechnologyPanelManager.Instance.Active = false;
+                    SpellGUIManager.Instance.Active = false;
+                    SelectTechnologyPanelManager.Instance.Active = false;
                     //Stop Select Hexh Mode
                     Set_Select_Hex_Mode(false);
                 } else if(Hex_Under_Cursor is CombatMapHex && CombatUIManager.Instance.Current_Unit != null && CombatUIManager.Instance.Current_Unit.Is_Owned_By_Current_Player &&

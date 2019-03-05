@@ -88,6 +88,7 @@
     <Compile Include="Assets\src\Cities\Building.cs" />
     <Compile Include="Assets\src\Cities\City.cs" />
     <Compile Include="Assets\src\Cities\CityStatistics.cs" />
+    <Compile Include="Assets\src\Cities\CityStatusEffect.cs" />
     <Compile Include="Assets\src\Cities\TradePartner.cs" />
     <Compile Include="Assets\src\Cities\TradeRoute.cs" />
     <Compile Include="Assets\src\Combat\CombatManager.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Assets\src\PrefabManager.cs" />
     <Compile Include="Assets\src\RNG.cs" />
     <Compile Include="Assets\src\SortingLayer.cs" />
+    <Compile Include="Assets\src\Spell.cs" />
     <Compile Include="Assets\src\SpriteManager.cs" />
     <Compile Include="Assets\src\Technology.cs" />
     <Compile Include="Assets\src\Trainable.cs" />
@@ -153,6 +155,7 @@
     <Compile Include="Assets\src\UI\PathRenderer.cs" />
     <Compile Include="Assets\src\UI\ScoresGUIManager.cs" />
     <Compile Include="Assets\src\UI\SelectTechnologyPanelManager.cs" />
+    <Compile Include="Assets\src\UI\SpellGUIManager.cs" />
     <Compile Include="Assets\src\UI\TechnologyPanelManager.cs" />
     <Compile Include="Assets\src\UI\TooltipManager.cs" />
     <Compile Include="Assets\src\UI\TopGUIManager.cs" />

@@ -448,6 +448,9 @@ public class WorldMapHex : Hex {
         if (explored_by.Contains(player)) {
             return;
         }
+        if (!Main.Instance.Other_Players_Turn) {
+            Current_LoS = LoS_Status.Explored;
+        }
         explored_by.Add(player);
     }
 
