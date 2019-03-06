@@ -29,7 +29,9 @@ public class Player {
     private List<Notification> notification_queue;
     private float mana;
     private Dictionary<Spell, int> spells_on_cooldown;
-    
+    private Dictionary<Blessing, int> blessings_on_cooldown;
+    private Dictionary<Blessing, int> active_blessings;
+
     public City Capital
     {
         get {
@@ -62,6 +64,8 @@ public class Player {
         Villages = new List<Village>();
         Is_Neutral = neutral;
         spells_on_cooldown = new Dictionary<Spell, int>();
+        blessings_on_cooldown = new Dictionary<Blessing, int>();
+        active_blessings = new Dictionary<Blessing, int>();
     }
 
     public void End_Turn()
@@ -81,9 +85,12 @@ public class Player {
             Current_Technology.Research_Acquired += Total_Science;
         }
 
+        //TODO: Messy code
+        //Cooldowns
+        //Spells
         List<Spell> spells_off_cooldown = new List<Spell>();
-        List<Spell> keys = new List<Spell>(spells_on_cooldown.Keys);
-        foreach(Spell spell_on_cooldown in keys) {
+        List<Spell> spell_keys = new List<Spell>(spells_on_cooldown.Keys);
+        foreach(Spell spell_on_cooldown in spell_keys) {
             spells_on_cooldown[spell_on_cooldown]--;
             if(spells_on_cooldown[spell_on_cooldown] <= 0) {
                 spells_off_cooldown.Add(spell_on_cooldown);
@@ -91,6 +98,34 @@ public class Player {
         }
         foreach(Spell spell_off_cooldown in spells_off_cooldown) {
             spells_on_cooldown.Remove(spell_off_cooldown);
+        }
+        //Blessings
+        List<Blessing> blessings_off_cooldown = new List<Blessing>();
+        List<Blessing> blessing_keys = new List<Blessing>(blessings_on_cooldown.Keys);
+        foreach (Blessing blessing_on_cooldown in blessing_keys) {
+            blessings_on_cooldown[blessing_on_cooldown]--;
+            if (blessings_on_cooldown[blessing_on_cooldown] <= 0) {
+                blessings_off_cooldown.Add(blessing_on_cooldown);
+            }
+        }
+        foreach (Blessing blessing_off_cooldown in blessings_off_cooldown) {
+            blessings_on_cooldown.Remove(blessing_off_cooldown);
+        }
+        //Active blessing duration
+        List<Blessing> expiring_blessings = new List<Blessing>();
+        blessing_keys = new List<Blessing>(active_blessings.Keys);
+        foreach (Blessing active_blessing in blessing_keys) {
+            active_blessings[active_blessing]--;
+            if (active_blessings[active_blessing] <= 0) {
+                expiring_blessings.Add(active_blessing);
+            }
+        }
+        foreach (Blessing expiring_blessing in expiring_blessings) {
+            active_blessings.Remove(expiring_blessing);
+            if (expiring_blessing.Deactivation != null) {
+                Blessing.BlessingResult result = expiring_blessing.Deactivation(expiring_blessing, this);
+                expiring_blessing.Play_Animation(result);
+            }
         }
 
         Update_Score();
@@ -120,6 +155,12 @@ public class Player {
                 if(entity is Worker) {
                     (entity as Worker).Update_Actions_List();
                 }
+            }
+        }
+
+        foreach(KeyValuePair<Blessing, int> active_blessing in active_blessings) {
+            if(active_blessing.Key.Turn_Start != null) {
+                active_blessing.Key.Turn_Start(active_blessing.Key, this);
             }
         }
 
@@ -190,6 +231,17 @@ public class Player {
             }
             foreach (WorldMapEntity entity in WorldMapEntitys) {
                 income -= entity.Mana_Upkeep;
+            }
+            return income;
+        }
+    }
+
+    public float Faith_Income
+    {
+        get {
+            float income = 0.0f;
+            foreach (City city in Cities) {
+                income += city.Yields.Faith;
             }
             return income;
         }
@@ -323,14 +375,38 @@ public class Player {
         }
     }
 
+    public List<Blessing> Available_Blessings
+    {
+        get {
+            List<Blessing> blessings = new List<Blessing>();
+            foreach (Blessing faction_blessing in Faction.Blessings) {
+                if (faction_blessing.Technology_Required == null || Researched_Technologies.Any(x => x.Name == faction_blessing.Technology_Required.Name)) {
+                    blessings.Add(faction_blessing);
+                }
+            }
+            return blessings;
+        }
+    }
+
     public bool Can_Cast(Spell spell)
     {
         return spell.Mana_Cost <= Mana && Spell_Cooldown(spell) == 0 && (spell.Technology_Required == null || Researched_Technologies.Any(x => x.Name == spell.Technology_Required.Name));
     }
 
+    public bool Can_Cast(Blessing blessing)
+    {
+        return blessing.Faith_Required <= Faith_Income && Blessing_Cooldown(blessing) == 0 && !active_blessings.Any(x => x.Key.Name == blessing.Name) &&
+            (blessing.Technology_Required == null || Researched_Technologies.Any(x => x.Name == blessing.Technology_Required.Name));
+    }
+
     public int Spell_Cooldown(Spell spell)
     {
         return spells_on_cooldown.ContainsKey(spell) ? spells_on_cooldown[spell] : 0;
+    }
+
+    public int Blessing_Cooldown(Blessing blessing)
+    {
+        return blessings_on_cooldown.ContainsKey(blessing) ? blessings_on_cooldown[blessing] : 0;
     }
 
     public void Put_On_Cooldown(Spell spell)
@@ -343,6 +419,31 @@ public class Player {
         } else {
             spells_on_cooldown.Add(spell, spell.Cooldown);
         }
+    }
+
+    public void Put_On_Cooldown(Blessing blessing)
+    {
+        if (blessing.Cooldown == 0) {
+            return;
+        }
+        if (blessings_on_cooldown.ContainsKey(blessing)) {
+            blessings_on_cooldown[blessing] = blessing.Cooldown;
+        } else {
+            blessings_on_cooldown.Add(blessing, blessing.Cooldown);
+        }
+    }
+
+    public void Apply_Blessing(Blessing blessing)
+    {
+        while(active_blessings.Any(x => x.Key.Name == blessing.Name)) {
+            Blessing old_blessing = active_blessings.First(x => x.Key.Name == blessing.Name).Key;
+            if(old_blessing.Deactivation != null) {
+                Blessing.BlessingResult result = old_blessing.Deactivation(old_blessing, this);
+                old_blessing.Play_Animation(result);
+            }
+            active_blessings.Remove(old_blessing);
+        }
+        active_blessings.Add(blessing, blessing.Duration);
     }
 
     public class NewPlayerData

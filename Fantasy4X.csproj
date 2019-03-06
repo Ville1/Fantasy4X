@@ -85,6 +85,7 @@
     <Compile Include="Assets\src\Armies\AttackResult.cs" />
     <Compile Include="Assets\src\Armies\Unit.cs" />
     <Compile Include="Assets\src\AudioManager.cs" />
+    <Compile Include="Assets\src\Blessing.cs" />
     <Compile Include="Assets\src\Cities\Building.cs" />
     <Compile Include="Assets\src\Cities\City.cs" />
     <Compile Include="Assets\src\Cities\CityStatistics.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="Assets\src\SpriteManager.cs" />
     <Compile Include="Assets\src\Technology.cs" />
     <Compile Include="Assets\src\Trainable.cs" />
+    <Compile Include="Assets\src\UI\BlessingGUIManager.cs" />
     <Compile Include="Assets\src\UI\BottomGUIManager.cs" />
     <Compile Include="Assets\src\UI\CameraManager.cs" />
     <Compile Include="Assets\src\UI\CityGUIManager.cs" />

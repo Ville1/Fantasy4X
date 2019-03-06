@@ -384,6 +384,10 @@ public class Factions {
             return new Spell.SpellResult();
         }));
 
+        Kingdom.Blessings.Add(new Blessing("TestAAA", 0.0f, 5, 10, null, delegate(Blessing blessing, Player caster) {
+            return new Blessing.BlessingResult(true, null, new List<WorldMapHex>() { caster.Capital.Hex });
+        }, null, null));
+
         Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
             { Kingdom.Improvements.First(x => x.Name == "Farm"), Kingdom.Improvements.First(x => x.Name == "Plantation"), Kingdom.Improvements.First(x => x.Name == "Hunting Lodge"),
             Kingdom.Improvements.First(x => x.Name == "Logging Camp"), Kingdom.Improvements.First(x => x.Name == "Quarry"), Kingdom.Improvements.First(x => x.Name == "Mine"),

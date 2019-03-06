@@ -39,6 +39,7 @@ public class Spell {
             caster.Put_On_Cooldown(this);
             caster.Mana -= Mana_Cost;
             if(!string.IsNullOrEmpty(Effect_Animation) && hex != null && (hex.Current_LoS == WorldMapHex.LoS_Status.Visible || !Main.Instance.Other_Players_Turn)) {
+                //TODO: Do this in GUIManager?
                 EffectManager.Instance.Play_Effect(hex, Effect_Animation);
             }
         }
@@ -55,6 +56,11 @@ public class Spell {
             }
             return tooltip.ToString();
         }
+    }
+
+    public override string ToString()
+    {
+        return string.Format("{0}#{1}", Name, Id);
     }
 
     public class SpellResult

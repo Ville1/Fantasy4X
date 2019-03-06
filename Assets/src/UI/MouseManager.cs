@@ -107,10 +107,7 @@ public class MouseManager : MonoBehaviour
                 }
 
                 //Close stuff
-                TechnologyPanelManager.Instance.Active = false;
-                SpellGUIManager.Instance.Active = false;
-                SelectTechnologyPanelManager.Instance.Active = false;
-                MainMenuManager.Instance.Active = false;
+                Close_Panels();
                 ConsoleManager.Instance.Close_Console();
             } else if (Input.GetMouseButtonDown(1) && Hex_Under_Cursor != null) {
                 if (Hex_Under_Cursor is WorldMapHex && BottomGUIManager.Instance.Current_Entity != null && BottomGUIManager.Instance.Current_Entity.Is_Owned_By_Current_Player && !Main.Instance.Other_Players_Turn) {
@@ -143,9 +140,7 @@ public class MouseManager : MonoBehaviour
                         }
                     }
                     //Close stuff
-                    TechnologyPanelManager.Instance.Active = false;
-                    SpellGUIManager.Instance.Active = false;
-                    SelectTechnologyPanelManager.Instance.Active = false;
+                    Close_Panels();
                     //Stop Select Hexh Mode
                     Set_Select_Hex_Mode(false);
                 } else if(Hex_Under_Cursor is CombatMapHex && CombatUIManager.Instance.Current_Unit != null && CombatUIManager.Instance.Current_Unit.Is_Owned_By_Current_Player &&
@@ -168,6 +163,15 @@ public class MouseManager : MonoBehaviour
         }
 
         last_position = CameraManager.Instance.Camera.ScreenToWorldPoint(Mouse_Position_Relative_To_Camera);
+    }
+
+    private void Close_Panels()
+    {
+        TechnologyPanelManager.Instance.Active = false;
+        SpellGUIManager.Instance.Active = false;
+        BlessingGUIManager.Instance.Active = false;
+        SelectTechnologyPanelManager.Instance.Active = false;
+        MainMenuManager.Instance.Active = false;
     }
 
     public Vector3 Mouse_Position_Relative_To_Camera

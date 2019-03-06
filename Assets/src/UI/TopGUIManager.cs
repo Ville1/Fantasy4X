@@ -8,6 +8,7 @@ public class TopGUIManager : MonoBehaviour {
     public Text Cash_Text;
     public Button Technology_Button;
     public Button Spell_Button;
+    public Button Blessing_Button;
     public Text Rounds_Text;
 
     /// <summary>
@@ -56,6 +57,8 @@ public class TopGUIManager : MonoBehaviour {
             Helper.Plural(Player.Current_Technology.Turns_Left_Estimate)) : "Nothing";
         Spell_Button.GetComponentInChildren<Text>().text = string.Format("{0} ({1}) / {2}", Mathf.RoundToInt(Player.Mana), Helper.Float_To_String(Player.Mana_Income, 1, true),
             Mathf.RoundToInt(Player.Max_Mana));
+        Blessing_Button.GetComponentInChildren<Text>().text = Helper.Float_To_String(Player.Faith_Income, 1, true);
+
         Rounds_Text.text = string.Format("Round: {0}", Main.Instance.Round);
         TooltipManager.Instance.Register_Tooltip(Rounds_Text.gameObject, string.Format("Max: {0}", Main.Instance.Max_Rounds), gameObject);
     }
@@ -68,5 +71,10 @@ public class TopGUIManager : MonoBehaviour {
     public void Spell_Button_On_Click()
     {
         SpellGUIManager.Instance.Toggle();
+    }
+
+    public void Blessing_Button_On_Click()
+    {
+        BlessingGUIManager.Instance.Toggle();
     }
 }
