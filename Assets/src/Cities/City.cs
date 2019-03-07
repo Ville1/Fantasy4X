@@ -180,6 +180,28 @@ public class City : Ownable, Influencable, TradePartner
         return los;
     }
 
+    public bool Has_High_Cultural_Influence(Player player)
+    {
+        return Has_Specified_Cultural_Influence_Level(player, ENEMY_CULTURAL_INFLUENCE_LOS_BREAK_POINT_1);
+    }
+
+    public bool Has_Very_High_Cultural_Influence(Player player)
+    {
+        return Has_Specified_Cultural_Influence_Level(player, ENEMY_CULTURAL_INFLUENCE_LOS_BREAK_POINT_2);
+    }
+
+    private bool Has_Specified_Cultural_Influence_Level(Player player, float influence)
+    {
+        if (!Cultural_Influence.ContainsKey(player)) {
+            return false;
+        }
+        float total_influence = 0.0f;
+        foreach (KeyValuePair<Player, float> influence_data in Cultural_Influence) {
+            total_influence += influence_data.Value;
+        }
+        return Cultural_Influence[player] / total_influence >= influence;
+    }
+
     public void Change_Production(Trainable prototype, bool refound = true)
     {
         if (refound) {
@@ -328,10 +350,10 @@ public class City : Ownable, Influencable, TradePartner
             Yields status_effect_yields = new Yields(status_effect.Yield_Delta);
             Yields status_effect_precentage_yields = new Yields(status_effect.Percentage_Yield_Delta);
             if (update_statistics) {
-                Statistics.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
-                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect_yields);
-                Statistics.Add_Precentage(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
-                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect_precentage_yields);
+                Statistics.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.UI_Current_Duration,
+                    status_effect.UI_Current_Duration != 1 ? "s" : string.Empty), status_effect_yields);
+                Statistics.Add_Precentage(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.UI_Current_Duration,
+                    status_effect.UI_Current_Duration != 1 ? "s" : string.Empty), status_effect_precentage_yields);
             }
             yields.Add(status_effect_yields);
             percentage_bonuses.Add(status_effect_precentage_yields);
@@ -1042,8 +1064,8 @@ public class City : Ownable, Influencable, TradePartner
 
             //Status effects
             foreach(CityStatusEffect status_effect in Status_Effects) {
-                Statistics.Happiness.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
-                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect.Happiness);
+                Statistics.Happiness.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.UI_Current_Duration,
+                    status_effect.UI_Current_Duration != 1 ? "s" : string.Empty), status_effect.Happiness);
                 happiness += status_effect.Happiness;
             }
 
@@ -1120,8 +1142,8 @@ public class City : Ownable, Influencable, TradePartner
 
             //Status effects
             foreach (CityStatusEffect status_effect in Status_Effects) {
-                Statistics.Health.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
-                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect.Health);
+                Statistics.Health.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.UI_Current_Duration,
+                    status_effect.UI_Current_Duration != 1 ? "s" : string.Empty), status_effect.Health);
                 health += status_effect.Health;
             }
 
@@ -1209,8 +1231,8 @@ public class City : Ownable, Influencable, TradePartner
 
             //Status effects
             foreach (CityStatusEffect status_effect in Status_Effects) {
-                Statistics.Order.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.Current_Duration,
-                    status_effect.Current_Duration != 1 ? "s" : string.Empty), status_effect.Order);
+                Statistics.Order.Add(string.Format("{0} ({1} turn{2})", status_effect.Name, status_effect.UI_Current_Duration,
+                    status_effect.UI_Current_Duration != 1 ? "s" : string.Empty), status_effect.Order);
                 order += status_effect.Order;
             }
 

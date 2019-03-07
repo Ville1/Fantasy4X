@@ -6,6 +6,7 @@ public class Blessing {
     private static int current_id = 0;
 
     public delegate BlessingResult Blessing_Effect(Blessing blessing, Player caster);
+    public delegate BlessingResult Blessing_Effect_Turn_Start(Blessing blessing, Player caster, int turns_left);
 
     public string Name { get; private set; }
     public int Id { get; private set; }
@@ -15,11 +16,11 @@ public class Blessing {
     public Technology Technology_Required { get; private set; }
     public Blessing_Effect Activation { get; private set; }
     public Blessing_Effect Deactivation { get; private set; }
-    public Blessing_Effect Turn_Start { get; private set; }
+    public Blessing_Effect_Turn_Start Turn_Start { get; private set; }
     public string Effect_Animation { get; private set; }
 
     public Blessing(string name, float faith_required, int cooldown, int duration, Technology technology_required, Blessing_Effect activation, Blessing_Effect deactivation,
-        Blessing_Effect turn_start, string effect_animation = "default_effect")
+        Blessing_Effect_Turn_Start turn_start, string effect_animation = "default_effect")
     {
         Name = name;
         Faith_Required = faith_required;

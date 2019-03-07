@@ -123,6 +123,7 @@ public class Main : MonoBehaviour {
         if(player_index >= All_Players.Count) {
             player_index = 0;
             Round++;
+            World.Instance.Map.End_Round();
         }
 
         if(Round == Max_Rounds) {

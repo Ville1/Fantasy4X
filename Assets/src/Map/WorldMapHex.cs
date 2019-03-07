@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 public class WorldMapHex : Hex {
@@ -35,6 +37,7 @@ public class WorldMapHex : Hex {
     public Road Road { get; set; }
     public bool Is_Map_Edge_Road_Connection { get; set; }
     public bool Is_Water { get; set; }
+    public List<HexStatusEffect> Status_Effects { get; private set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -55,6 +58,7 @@ public class WorldMapHex : Hex {
         In_LoS_Of_City = false;
         prospected_by = new List<Player>();
         In_Work_Range_Of = new List<City>();
+        Status_Effects = new List<HexStatusEffect>();
     }
 
     /// <summary>
@@ -158,6 +162,9 @@ public class WorldMapHex : Hex {
             if(Improvement != null) {
                 y.Add(Improvement.Yields);
             }
+            foreach(HexStatusEffect status_effect in Status_Effects) {
+                y.Add(status_effect.Yield_Delta);
+            }
             return y;
         }
     }
@@ -165,30 +172,42 @@ public class WorldMapHex : Hex {
     public float Happiness
     {
         get {
-            if(Improvement == null) {
-                return Base_Happiness;
+            float happiness = Base_Happiness;
+            if(Improvement != null) {
+                happiness += Improvement.Happiness;
             }
-            return Base_Happiness + Improvement.Happiness;
+            foreach (HexStatusEffect status_effect in Status_Effects) {
+                happiness += status_effect.Happiness;
+            }
+            return happiness;
         }
     }
 
     public float Health
     {
         get {
-            if (Improvement == null) {
-                return Base_Health;
+            float health = Base_Health;
+            if (Improvement != null) {
+                health += Improvement.Health;
             }
-            return Base_Health + Improvement.Health;
+            foreach (HexStatusEffect status_effect in Status_Effects) {
+                health += status_effect.Health;
+            }
+            return health;
         }
     }
 
     public float Order
     {
         get {
-            if (Improvement == null) {
-                return Base_Order;
+            float order = Base_Order;
+            if (Improvement != null) {
+                order += Improvement.Order;
             }
-            return Base_Order + Improvement.Order;
+            foreach (HexStatusEffect status_effect in Status_Effects) {
+                order += status_effect.Order;
+            }
+            return order;
         }
     }
 
@@ -582,5 +601,47 @@ public class WorldMapHex : Hex {
             Road.Destroy();
         }
         base.Delete();
+    }
+
+    public void End_Round()
+    {
+        List<HexStatusEffect> expiring_status_effects = new List<HexStatusEffect>();
+        foreach (HexStatusEffect status_effect in Status_Effects) {
+            status_effect.Current_Duration--;
+            if (status_effect.Current_Duration == 0) {
+                expiring_status_effects.Add(status_effect);
+            }
+        }
+        foreach (HexStatusEffect expiring_status_effect in expiring_status_effects) {
+            Status_Effects.Remove(expiring_status_effect);
+        }
+    }
+
+    public void Apply_Status_Effect(HexStatusEffect status_effect, bool stacks)
+    {
+        while (Status_Effects.Any(x => x.Name == status_effect.Name) && !stacks) {
+            HexStatusEffect old_effect = Status_Effects.First(x => x.Name == status_effect.Name);
+            Status_Effects.Remove(old_effect);
+        }
+        Status_Effects.Add(status_effect);
+        if (!status_effect.Yield_Delta.Empty) {
+            foreach(City city in In_Work_Range_Of) {
+                city.Yields_Changed();
+            }
+        }
+    }
+
+    public string Status_Effect_Tooltip
+    {
+        get {
+            if(Status_Effects.Count == 0) {
+                return null;
+            }
+            StringBuilder tooltip = new StringBuilder("Status effects:");
+            foreach(HexStatusEffect status_effect in Status_Effects) {
+                tooltip.Append(Environment.NewLine).Append(status_effect.Tooltip);
+            }
+            return tooltip.ToString();
+        }
     }
 }

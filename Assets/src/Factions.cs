@@ -384,9 +384,38 @@ public class Factions {
             return new Spell.SpellResult();
         }));
 
-        Kingdom.Blessings.Add(new Blessing("TestAAA", 0.0f, 5, 10, null, delegate(Blessing blessing, Player caster) {
-            return new Blessing.BlessingResult(true, null, new List<WorldMapHex>() { caster.Capital.Hex });
-        }, null, null));
+        Kingdom.Spells.Add(new Spell("Hex Prosperity", 0.0f, 0, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
+            hex.Apply_Status_Effect(new HexStatusEffect(spell.Name, 5) { Yield_Delta = new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }, true);
+            return new Spell.SpellResult();
+        }));
+
+        Kingdom.Blessings.Add(new Blessing("test", 0.0f, 5, 10, null, delegate (Blessing blessing, Player caster) {
+            foreach (City city in caster.Cities) {
+                city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = blessing.Duration, Yield_Delta = new Yields() { Culture = 10.0f } }, false);
+            }
+            return new Blessing.BlessingResult(true, null, caster.Cities.Select(x => x.Hex).ToList());
+        }, null, delegate(Blessing blessing, Player caster, int turns_left) {
+            foreach(City city in caster.Cities) {
+                city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = turns_left, Yield_Delta = new Yields() { Culture = 10.0f } }, false);
+            }
+            return new Blessing.BlessingResult(true, null, caster.Cities.Select(x => x.Hex).ToList());
+        }));
+
+        Kingdom.Blessings.Add(new Blessing("Rural Bounty", 0.0f, 5, 10, null, delegate(Blessing blessing, Player caster) {
+            Blessing.BlessingResult result = new Blessing.BlessingResult(true, null, caster.Villages.Select(x => x.Hex).ToList());
+            float potency = 1.0f + (caster.Faith_Income * 0.33f);
+            foreach(WorldMapHex hex in result.Affected_Hexes) {
+                hex.Apply_Status_Effect(new HexStatusEffect(blessing.Name, 1) { Parent_Duration = blessing.Duration, Yield_Delta = new Yields(potency, potency * 0.5f, potency * 0.25f, 0.0f, 0.0f, 0.0f, 0.0f) }, false);
+            }
+            return result;
+        }, null, delegate (Blessing blessing, Player caster, int turns_left) {
+            Blessing.BlessingResult result = new Blessing.BlessingResult(true, null, caster.Villages.Select(x => x.Hex).ToList());
+            float potency = 1.0f + (caster.Faith_Income * 0.33f);
+            foreach (WorldMapHex hex in result.Affected_Hexes) {
+                hex.Apply_Status_Effect(new HexStatusEffect(blessing.Name, 1) { Parent_Duration = turns_left, Yield_Delta = new Yields(potency, potency * 0.5f, potency * 0.25f, 0.0f, 0.0f, 0.0f, 0.0f) }, false);
+            }
+            return result;
+        }));
 
         Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
             { Kingdom.Improvements.First(x => x.Name == "Farm"), Kingdom.Improvements.First(x => x.Name == "Plantation"), Kingdom.Improvements.First(x => x.Name == "Hunting Lodge"),

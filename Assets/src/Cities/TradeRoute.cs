@@ -69,6 +69,15 @@ public class TradeRoute {
                 float multiplier = 100.0f * (1.0f + WATER_BONUS);
                 yields.Multiply_By_Percentages(new Yields(multiplier, multiplier, multiplier, multiplier, multiplier, multiplier, multiplier));
             }
+            if(Target is City && !(Target as City).Is_Owned_By(City.Owner) && !Target.Owner.Is_Neutral) {
+                if((Target as City).Has_Very_High_Cultural_Influence(City.Owner)) {
+                    float enemy_city_multiplier = 50.0f;
+                    yields.Multiply_By_Percentages(new Yields(enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier));
+                } else {
+                    float enemy_city_multiplier = 25.0f;
+                    yields.Multiply_By_Percentages(new Yields(enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier, enemy_city_multiplier));
+                }
+            }
             return yields;
         }
     }
@@ -76,7 +85,8 @@ public class TradeRoute {
     public bool Active
     {
         get {
-            return !Hidden && ((City.Owner.Id == Target.Owner.Id) || Target.Owner.Is_Neutral);
+            //TODO: Routes to high influence enemy villages?
+            return !Hidden && (City.Owner.Id == Target.Owner.Id || Target.Owner.Is_Neutral || (Target is City && (Target as City).Has_High_Cultural_Influence(City.Owner)));
         }
     }
 

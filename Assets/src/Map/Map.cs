@@ -685,6 +685,13 @@ public class Map
         Update_LoS();
     }
 
+    public void End_Round()
+    {
+        foreach(WorldMapHex hex in All_Hexes) {
+            hex.End_Round();
+        }
+    }
+
     public void Update_LoS(WorldMapEntity entity)
     {
         foreach (WorldMapHex hex in entity.Last_Hexes_In_Los) {

@@ -111,6 +111,7 @@
     <Compile Include="Assets\src\Main.cs" />
     <Compile Include="Assets\src\Map\Hex.cs" />
     <Compile Include="Assets\src\Map\HexPrototypes.cs" />
+    <Compile Include="Assets\src\Map\HexStatusEffect.cs" />
     <Compile Include="Assets\src\Map\Improvement.cs" />
     <Compile Include="Assets\src\Map\Influencable.cs" />
     <Compile Include="Assets\src\Map\Map.cs" />

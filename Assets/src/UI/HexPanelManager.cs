@@ -43,9 +43,7 @@ public class HexPanelManager : MonoBehaviour
     /// Per frame update
     /// </summary>
     private void Update()
-    {
-
-    }
+    { }
 
     public bool Active
     {
@@ -79,6 +77,7 @@ public class HexPanelManager : MonoBehaviour
                 return;
             }
             Active = true;
+            TooltipManager.Instance.Unregister_Tooltips_By_Owner(gameObject);
             Terrain_Text.text = hex.Terrain + " " + hex.Coordinates.X + "," + hex.Coordinates.Y;
             Hex_Image.overrideSprite = SpriteManager.Instance.Get_Sprite(hex.Texture, SpriteManager.SpriteType.Terrain);
             Food_Text.text = Helper.Float_To_String(hex.Yields.Food, 1, false, false);
@@ -100,6 +99,9 @@ public class HexPanelManager : MonoBehaviour
                 }
             } else {
                 Mineral_Text.gameObject.SetActive(false);
+            }
+            if(Hex.Status_Effect_Tooltip != null) {
+                TooltipManager.Instance.Register_Tooltip(Hex_Image.gameObject, Hex.Status_Effect_Tooltip, gameObject);
             }
 
             if (old_hex != null) {

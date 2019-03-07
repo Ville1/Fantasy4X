@@ -160,7 +160,8 @@ public class Player {
 
         foreach(KeyValuePair<Blessing, int> active_blessing in active_blessings) {
             if(active_blessing.Key.Turn_Start != null) {
-                active_blessing.Key.Turn_Start(active_blessing.Key, this);
+                Blessing.BlessingResult result = active_blessing.Key.Turn_Start(active_blessing.Key, this, active_blessing.Value);
+                active_blessing.Key.Play_Animation(result);
             }
         }
 
