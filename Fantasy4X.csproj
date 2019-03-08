@@ -99,14 +99,18 @@
     <Compile Include="Assets\src\Config.cs" />
     <Compile Include="Assets\src\ConfigManager.cs" />
     <Compile Include="Assets\src\ConsoleScriptManager.cs" />
+    <Compile Include="Assets\src\CooldownManager.cs" />
     <Compile Include="Assets\src\Coordinates.cs" />
     <Compile Include="Assets\src\CustomLogger.cs" />
     <Compile Include="Assets\src\EffectManager.cs" />
+    <Compile Include="Assets\src\EmpireModifierStatusEffect.cs" />
     <Compile Include="Assets\src\EmpireModifiers.cs" />
     <Compile Include="Assets\src\Faction.cs" />
     <Compile Include="Assets\src\Factions.cs" />
     <Compile Include="Assets\src\Helper.cs" />
     <Compile Include="Assets\src\IConfigListener.cs" />
+    <Compile Include="Assets\src\ICooldown.cs" />
+    <Compile Include="Assets\src\IStatusEffect.cs" />
     <Compile Include="Assets\src\LogMessages.cs" />
     <Compile Include="Assets\src\Main.cs" />
     <Compile Include="Assets\src\Map\Hex.cs" />
@@ -135,6 +139,7 @@
     <Compile Include="Assets\src\SortingLayer.cs" />
     <Compile Include="Assets\src\Spell.cs" />
     <Compile Include="Assets\src\SpriteManager.cs" />
+    <Compile Include="Assets\src\StatusEffectList.cs" />
     <Compile Include="Assets\src\Technology.cs" />
     <Compile Include="Assets\src\Trainable.cs" />
     <Compile Include="Assets\src\UI\BlessingGUIManager.cs" />

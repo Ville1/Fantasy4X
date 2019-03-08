@@ -2,7 +2,7 @@
 using System.Text;
 using UnityEngine;
 
-public class Spell {
+public class Spell : ICooldown {
     private static int current_id = 0;
 
     public delegate SpellResult Spell_Effect(Spell spell, Player caster, WorldMapHex hex);

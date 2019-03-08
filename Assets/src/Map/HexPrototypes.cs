@@ -12,13 +12,13 @@ public class HexPrototypes {
 
         world_map_hex_prototypes.Add("grassland", new WorldMapHex("Grassland", "hex_grass", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }));
         world_map_hex_prototypes.Add("plains", new WorldMapHex("Plains", "hex_plain", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }));
-        world_map_hex_prototypes.Add("hill", new WorldMapHex("Hill", "hex_hill", new Yields(1, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true, new List<WorldMapHex.Tag>()));
-        world_map_hex_prototypes.Add("mountain", new WorldMapHex("Mountain", "hex_mountain", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true, new List<WorldMapHex.Tag>()));
-        world_map_hex_prototypes.Add("volcano", new WorldMapHex("Volcano", "hex_volcano", new Yields(0, 2, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true, new List<WorldMapHex.Tag>()));
+        world_map_hex_prototypes.Add("hill", new WorldMapHex("Hill", "hex_hill", new Yields(1, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill }));
+        world_map_hex_prototypes.Add("mountain", new WorldMapHex("Mountain", "hex_mountain", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill }));
+        world_map_hex_prototypes.Add("volcano", new WorldMapHex("Volcano", "hex_volcano", new Yields(0, 2, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill }));
         world_map_hex_prototypes.Add("swamp", new WorldMapHex("Swamp", "hex_swamp", new Yields(2, 0, 0, 1, 0, 0, 0), 0.0f, -1.0f, 0.0f, 3.0f, 0, 1, false, new List<WorldMapHex.Tag>()));
         world_map_hex_prototypes.Add("flower field", new WorldMapHex("Flower Field", "hex_flowers", new Yields(2, 0, 0, 0, 1, 0, 0), 1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }));
         world_map_hex_prototypes.Add("forest", new WorldMapHex("Forest", "hex_forest", new Yields(2, 0.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 2.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));
-        world_map_hex_prototypes.Add("forest hill", new WorldMapHex("Forest Hill", "hex_forest_hill", new Yields(1.5f, 1.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 3.0f, 1, 2, true, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));
+        world_map_hex_prototypes.Add("forest hill", new WorldMapHex("Forest Hill", "hex_forest_hill", new Yields(1.5f, 1.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 3.0f, 1, 2, true, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Hill }));
         world_map_hex_prototypes.Add("mushroom forest", new WorldMapHex("Mushroom Forest", "hex_mushrooms", new Yields(2.5f, 0.5f, 0, 1, 0, 1, 0), 0.0f, 0.0f, 0.0f, 2.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));
         world_map_hex_prototypes.Add("enchanted forest", new WorldMapHex("Enchanted Forest", "hex_enc_forest", new Yields(2, 0.5f, 0, 0, 0, 2, 0), 1.0f, 0.5f, 0.0f, 2.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));
         world_map_hex_prototypes.Add("haunted forest", new WorldMapHex("Haunted Forest", "hex_haunted_forest", new Yields(0, 1, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 2.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }));

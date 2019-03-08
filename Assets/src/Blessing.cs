@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-public class Blessing {
+public class Blessing : ICooldown {
     private static int current_id = 0;
 
     public delegate BlessingResult Blessing_Effect(Blessing blessing, Player caster);
@@ -82,7 +82,7 @@ public class Blessing {
         {
             Success = success;
             Message = message;
-            Affected_Hexes = affected_hexes;
+            Affected_Hexes = affected_hexes == null ? new List<WorldMapHex>() : affected_hexes;
         }
 
         public bool Success { get; set; }

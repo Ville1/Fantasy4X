@@ -78,6 +78,34 @@ public class AbilityPrototypes {
                 return ability.Potency * 0.1f;
             }
         });
+        prototypes.Add("hill combat bonus", new Ability("Hill Combat Bonus", true) {
+            On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Hill) ? ability.Potency : 0.0f
+                };
+            },
+            On_Calculate_Melee_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Defence_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Hill) ? ability.Potency : 0.0f
+                };
+            },
+            On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Hill) ? ability.Potency : 0.0f
+                };
+            },
+            On_Calculate_Ranged_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Defence_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Hill) ? ability.Potency : 0.0f
+                };
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Hill) ? ability.Potency : 0.0f;
+            },
+            Get_Relative_Strength_Multiplier_Bonus = delegate (Ability ability) {
+                return ability.Potency * 0.1f;
+            }
+        });
         prototypes.Add("city defence bonus", new Ability("City Defence Bonus", true) {
             On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {

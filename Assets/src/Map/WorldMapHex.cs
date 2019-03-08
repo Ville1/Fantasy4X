@@ -11,7 +11,7 @@ public class WorldMapHex : Hex {
 
     public enum InfoText { None, Coordinates, Yields, Minerals }
     public enum LoS_Status { Visible, Explored, Unexplored }
-    public enum Tag { Open, Forest, Urban }
+    public enum Tag { Open, Forest, Urban, Hill }
     public delegate bool Hex_Requirements(WorldMapHex hex);
 
     public string Terrain { get; set; }
@@ -37,7 +37,7 @@ public class WorldMapHex : Hex {
     public Road Road { get; set; }
     public bool Is_Map_Edge_Road_Connection { get; set; }
     public bool Is_Water { get; set; }
-    public List<HexStatusEffect> Status_Effects { get; private set; }
+    public StatusEffectList<HexStatusEffect> Status_Effects { get; private set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -58,7 +58,7 @@ public class WorldMapHex : Hex {
         In_LoS_Of_City = false;
         prospected_by = new List<Player>();
         In_Work_Range_Of = new List<City>();
-        Status_Effects = new List<HexStatusEffect>();
+        Status_Effects = new StatusEffectList<HexStatusEffect>();
     }
 
     /// <summary>
@@ -605,25 +605,12 @@ public class WorldMapHex : Hex {
 
     public void End_Round()
     {
-        List<HexStatusEffect> expiring_status_effects = new List<HexStatusEffect>();
-        foreach (HexStatusEffect status_effect in Status_Effects) {
-            status_effect.Current_Duration--;
-            if (status_effect.Current_Duration == 0) {
-                expiring_status_effects.Add(status_effect);
-            }
-        }
-        foreach (HexStatusEffect expiring_status_effect in expiring_status_effects) {
-            Status_Effects.Remove(expiring_status_effect);
-        }
+        Status_Effects.End_Turn();
     }
 
     public void Apply_Status_Effect(HexStatusEffect status_effect, bool stacks)
     {
-        while (Status_Effects.Any(x => x.Name == status_effect.Name) && !stacks) {
-            HexStatusEffect old_effect = Status_Effects.First(x => x.Name == status_effect.Name);
-            Status_Effects.Remove(old_effect);
-        }
-        Status_Effects.Add(status_effect);
+        Status_Effects.Apply_Status_Effect(status_effect, stacks);
         if (!status_effect.Yield_Delta.Empty) {
             foreach(City city in In_Work_Range_Of) {
                 city.Yields_Changed();

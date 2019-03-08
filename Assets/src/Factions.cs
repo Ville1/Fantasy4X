@@ -250,6 +250,33 @@ public class Factions {
             }
         ));
 
+        //Increases order!
+        Kingdom.Improvements.Add(new Improvement("Mansion", "large_hut", "large_hut_inactive", new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 20, 0, false,
+            HexPrototypes.Instance.All_Non_Structures, Architecture,
+            delegate (Improvement improvement) {
+                int adjancent_agriculture = 0;
+                foreach (WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
+                    if (hex.Improvement != null && hex.Owner != null && (hex.Improvement.Name == "Plantation" || hex.Improvement.Name == "Farm")) {
+                        adjancent_agriculture++;
+                    }
+                }
+                improvement.Special_Yield_Delta = new Yields();
+                if (adjancent_agriculture >= 1) {
+                    improvement.Special_Yield_Delta.Cash += 1;
+                }
+                if (adjancent_agriculture >= 2) {
+                    improvement.Special_Yield_Delta.Cash += 1;
+                }
+                if (adjancent_agriculture >= 3) {
+                    improvement.Special_Yield_Delta.Cash += 1;
+                }
+                if (adjancent_agriculture >= 4) {
+                    improvement.Special_Yield_Delta.Cash += 1;
+                    improvement.Special_Yield_Delta.Culture += 1;
+                }
+            }
+        ));
+
 
         Kingdom.Buildings.Add(new Building("Royal Statue", "placeholder", 50, 100, 1.0f, new Yields(0, 0, 0, 0, 1, 0, 0), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
             Village_Cultural_Influence = 1.0f
@@ -401,6 +428,14 @@ public class Factions {
             return new Blessing.BlessingResult(true, null, caster.Cities.Select(x => x.Hex).ToList());
         }));
 
+        Kingdom.Blessings.Add(new Blessing("EmpMod test", 0.0f, 5, 10, null, delegate (Blessing blessing, Player caster) {
+            caster.Apply_Status_Effect(new EmpireModifierStatusEffect(blessing.Name, 1, new EmpireModifiers() { Population_Growth_Bonus = 1.0f }), false);
+            return new Blessing.BlessingResult(true, null, null);
+        }, null, delegate (Blessing blessing, Player caster, int turns_left) {
+            caster.Apply_Status_Effect(new EmpireModifierStatusEffect(blessing.Name, 1, new EmpireModifiers() { Population_Growth_Bonus = 1.0f }), false);
+            return new Blessing.BlessingResult(true, null, null);
+        }));
+
         Kingdom.Blessings.Add(new Blessing("Rural Bounty", 0.0f, 5, 10, null, delegate(Blessing blessing, Player caster) {
             Blessing.BlessingResult result = new Blessing.BlessingResult(true, null, caster.Villages.Select(x => x.Hex).ToList());
             float potency = 1.0f + (caster.Faith_Income * 0.33f);
@@ -500,6 +535,46 @@ public class Factions {
                 AbilityPrototypes.Instance.Get("city attack bonus", 0.50f)
             }, new List<Unit.Tag>()));*/
 
+        /*all.Add(new Faction("High Kingdom of IDK", 250, 1, new Dictionary<City.CitySize, Yields>() {
+            { City.CitySize.Town,       new Yields(2.0f, 2.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f) },
+            { City.CitySize.City,       new Yields(1.0f, 2.0f, 2.0f, 2.0f, 2.0f, 0.0f, 0.0f) },
+            { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 3.0f, 3.0f, 3.0f, 0.0f, 0.0f) }
+        }, 3.0f, 100, 3.0f, -0.50f, 1.0f, -0.30f, 1.5f, -0.20f, 0.90f, false,
+        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "default_unit", 10), new EmpireModifiers() {
+            Passive_Income = 3.0f,
+            Max_Mana = 100.0f,
+            Population_Growth_Bonus = -0.35f
+        }));
+        Faction High_Kingdom = all.Last();
+
+        Technology Placeholder_Tech = new Technology("Placeholder", 20000, new List<AI.Tag>() { AI.Tag.Military });
+        High_Kingdom.Root_Technology.Link(Placeholder_Tech, 0);
+
+        /*Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
+            { Kingdom.Improvements.First(x => x.Name == "Farm"), Kingdom.Improvements.First(x => x.Name == "Plantation"), Kingdom.Improvements.First(x => x.Name == "Hunting Lodge"),
+            Kingdom.Improvements.First(x => x.Name == "Logging Camp"), Kingdom.Improvements.First(x => x.Name == "Quarry"), Kingdom.Improvements.First(x => x.Name == "Mine"),
+            Kingdom.Improvements.First(x => x.Name == "Windmill"), Kingdom.Improvements.First(x => x.Name == "Lumber Mill"), Kingdom.Improvements.First(x => x.Name == "Forester's Lodge")},
+            1.0f, 25, 15, 0.5f, null));*/
+
+
+       /* High_Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, null, 10));
+        
+        High_Kingdom.Units.Add(new Unit("Pathfinder", Unit.UnitType.Infantry, "scout", 3.0f, 50, 75, 0.5f, 0.0f, 3, null, null, 2.0f, true, 9.0f, 75.0f, 100.0f,
+            9.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.5f }, { Unit.DamageType.Thrust, 0.5f } }, 0.1f,
+            0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0,
+            8.0f, 5.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.5f }, { Unit.DamageType.Thrust, 0.75f }, { Unit.DamageType.Impact, 1.0f } }, 7.0f, 6.0f, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("forest combat bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("hill combat bonus", 0.25f)
+            }, new List<Unit.Tag>()));
+        High_Kingdom.Units.Add(new Unit("Volunteer Defender", Unit.UnitType.Infantry, "default_unit", 2.0f, 85, 100, 0.50f, 0.0f, 2, null, new List<Building>(),
+            2.0f, true, 10.0f, 90.0f, 90.0f,
+            13.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.75f }, { Unit.DamageType.Thrust, 0.25f } }, 0.25f,
+            0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0,
+            12.0f, 6.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.90f }, { Unit.DamageType.Thrust, 0.65f }, { Unit.DamageType.Impact, 1.0f } }, 7.0f, 7.0f, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("urban combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("city defence bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("village defence bonus", 0.10f)
+            }, new List<Unit.Tag>()));*/
 
 
         neutral_cities = new Faction("Neutral Cities", 1000, 1, new Dictionary<City.CitySize, Yields>() {
@@ -509,6 +584,7 @@ public class Factions {
             }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f, true,
             new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "default_unit", 100), new EmpireModifiers() {
                 Passive_Income = 5.0f,
+                Max_Mana = 1000.0f,
                 Population_Growth_Bonus = -0.95f
             });
 

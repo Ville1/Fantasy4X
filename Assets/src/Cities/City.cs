@@ -58,7 +58,7 @@ public class City : Ownable, Influencable, TradePartner
     public bool Is_Coastal { get; private set; }
     public Yields Last_Turn_Yields { get; private set; }
     public Army Garrison { get { return Hex.Entity != null && Hex.Entity is Army ? Hex.Entity as Army : null; } }
-    public List<CityStatusEffect> Status_Effects { get; private set; }
+    public StatusEffectList<CityStatusEffect> Status_Effects { get; private set; }
 
     private bool update_yields;
     private Yields saved_base_yields;//TODO: what was this supposed to do?
@@ -84,7 +84,7 @@ public class City : Ownable, Influencable, TradePartner
         Flag = new Flag(hex);
         Trade_Routes = new List<TradeRoute>();
         Last_Turn_Yields = new Yields();
-        Status_Effects = new List<CityStatusEffect>();
+        Status_Effects = new StatusEffectList<CityStatusEffect>();
 
         Cultural_Influence = new Dictionary<Player, float>();
         Cultural_Influence.Add(owner, STARTING_CULTURE);
@@ -864,17 +864,7 @@ public class City : Ownable, Influencable, TradePartner
             }));
         }
 
-        //Status effects
-        List<CityStatusEffect> expiring_status_effects = new List<CityStatusEffect>();
-        foreach(CityStatusEffect status_effect in Status_Effects) {
-            status_effect.Current_Duration--;
-            if(status_effect.Current_Duration == 0) {
-                expiring_status_effects.Add(status_effect);
-            }
-        }
-        foreach(CityStatusEffect expiring_status_effect in expiring_status_effects) {
-            Status_Effects.Remove(expiring_status_effect);
-        }
+        Status_Effects.End_Turn();
     }
 
     public void Auto_Apply_Unemployed_Pops()
@@ -1399,11 +1389,7 @@ public class City : Ownable, Influencable, TradePartner
 
     public void Apply_Status_Effect(CityStatusEffect status_effect, bool stacks)
     {
-        while (Status_Effects.Any(x => x.Name == status_effect.Name) && !stacks) {
-            CityStatusEffect old_effect = Status_Effects.First(x => x.Name == status_effect.Name);
-            Status_Effects.Remove(old_effect);
-        }
-        Status_Effects.Add(status_effect);
+        Status_Effects.Apply_Status_Effect(status_effect, stacks);
         if(!status_effect.Yield_Delta.Empty || !status_effect.Percentage_Yield_Delta.Empty) {
             Yields_Changed();
         }

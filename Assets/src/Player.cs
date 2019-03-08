@@ -7,8 +7,7 @@ public class Player {
     private static readonly string DEFEAT_NOTIFICATION_TEXTURE = "disband";
 
     private static int current_id;
-
-
+    
     public string Name { get; private set; }
     public int? Team { get; private set; }
     public AI AI { get; private set; }
@@ -23,13 +22,14 @@ public class Player {
     public Technology Last_Technology_Researched { get; private set; }
     public Technology Root_Technology { get; private set; }
     public bool Is_Neutral { get; private set; }
+    public StatusEffectList<EmpireModifierStatusEffect> Status_Effects { get; private set; }
 
     private bool defeated;
     private float score;
     private List<Notification> notification_queue;
     private float mana;
-    private Dictionary<Spell, int> spells_on_cooldown;
-    private Dictionary<Blessing, int> blessings_on_cooldown;
+    private CooldownManager<Spell> spells_on_cooldown;
+    private CooldownManager<Blessing> blessings_on_cooldown;
     private Dictionary<Blessing, int> active_blessings;
 
     public City Capital
@@ -63,9 +63,10 @@ public class Player {
         Cities = new List<City>();
         Villages = new List<Village>();
         Is_Neutral = neutral;
-        spells_on_cooldown = new Dictionary<Spell, int>();
-        blessings_on_cooldown = new Dictionary<Blessing, int>();
+        spells_on_cooldown = new CooldownManager<Spell>();
+        blessings_on_cooldown = new CooldownManager<Blessing>();
         active_blessings = new Dictionary<Blessing, int>();
+        Status_Effects = new StatusEffectList<EmpireModifierStatusEffect>();
     }
 
     public void End_Turn()
@@ -85,35 +86,13 @@ public class Player {
             Current_Technology.Research_Acquired += Total_Science;
         }
 
-        //TODO: Messy code
         //Cooldowns
-        //Spells
-        List<Spell> spells_off_cooldown = new List<Spell>();
-        List<Spell> spell_keys = new List<Spell>(spells_on_cooldown.Keys);
-        foreach(Spell spell_on_cooldown in spell_keys) {
-            spells_on_cooldown[spell_on_cooldown]--;
-            if(spells_on_cooldown[spell_on_cooldown] <= 0) {
-                spells_off_cooldown.Add(spell_on_cooldown);
-            }
-        }
-        foreach(Spell spell_off_cooldown in spells_off_cooldown) {
-            spells_on_cooldown.Remove(spell_off_cooldown);
-        }
-        //Blessings
-        List<Blessing> blessings_off_cooldown = new List<Blessing>();
-        List<Blessing> blessing_keys = new List<Blessing>(blessings_on_cooldown.Keys);
-        foreach (Blessing blessing_on_cooldown in blessing_keys) {
-            blessings_on_cooldown[blessing_on_cooldown]--;
-            if (blessings_on_cooldown[blessing_on_cooldown] <= 0) {
-                blessings_off_cooldown.Add(blessing_on_cooldown);
-            }
-        }
-        foreach (Blessing blessing_off_cooldown in blessings_off_cooldown) {
-            blessings_on_cooldown.Remove(blessing_off_cooldown);
-        }
+        spells_on_cooldown.End_Turn();
+        blessings_on_cooldown.End_Turn();
+
         //Active blessing duration
         List<Blessing> expiring_blessings = new List<Blessing>();
-        blessing_keys = new List<Blessing>(active_blessings.Keys);
+        List<Blessing> blessing_keys = new List<Blessing>(active_blessings.Keys);
         foreach (Blessing active_blessing in blessing_keys) {
             active_blessings[active_blessing]--;
             if (active_blessings[active_blessing] <= 0) {
@@ -127,6 +106,9 @@ public class Player {
                 expiring_blessing.Play_Animation(result);
             }
         }
+
+        //Status effects
+        Status_Effects.End_Turn();
 
         Update_Score();
         NotificationManager.Instance.Clear_Notifications();
@@ -341,6 +323,9 @@ public class Player {
             foreach(Technology technology in Researched_Technologies) {
                 modifiers.Add(technology.EmpireModifiers);
             }
+            foreach(EmpireModifierStatusEffect status_effect in Status_Effects) {
+                modifiers.Add(status_effect.Modifiers);
+            }
             return modifiers;
         }
     }
@@ -402,36 +387,22 @@ public class Player {
 
     public int Spell_Cooldown(Spell spell)
     {
-        return spells_on_cooldown.ContainsKey(spell) ? spells_on_cooldown[spell] : 0;
+        return spells_on_cooldown.Get_Cooldown(spell);
     }
 
     public int Blessing_Cooldown(Blessing blessing)
     {
-        return blessings_on_cooldown.ContainsKey(blessing) ? blessings_on_cooldown[blessing] : 0;
+        return blessings_on_cooldown.Get_Cooldown(blessing);
     }
 
     public void Put_On_Cooldown(Spell spell)
     {
-        if(spell.Cooldown == 0) {
-            return;
-        }
-        if (spells_on_cooldown.ContainsKey(spell)) {
-            spells_on_cooldown[spell] = spell.Cooldown;
-        } else {
-            spells_on_cooldown.Add(spell, spell.Cooldown);
-        }
+        spells_on_cooldown.Set_Cooldown(spell);
     }
 
     public void Put_On_Cooldown(Blessing blessing)
     {
-        if (blessing.Cooldown == 0) {
-            return;
-        }
-        if (blessings_on_cooldown.ContainsKey(blessing)) {
-            blessings_on_cooldown[blessing] = blessing.Cooldown;
-        } else {
-            blessings_on_cooldown.Add(blessing, blessing.Cooldown);
-        }
+        blessings_on_cooldown.Set_Cooldown(blessing);
     }
 
     public void Apply_Blessing(Blessing blessing)
@@ -445,6 +416,17 @@ public class Player {
             active_blessings.Remove(old_blessing);
         }
         active_blessings.Add(blessing, blessing.Duration);
+    }
+
+    public void Apply_Status_Effect(EmpireModifierStatusEffect status_effect, bool stacks)
+    {
+        Status_Effects.Apply_Status_Effect(status_effect, stacks);
+        if(!status_effect.Modifiers.Percentage_Village_Yield_Bonus.Empty || !status_effect.Modifiers.Village_Yield_Bonus.Empty ||
+            !status_effect.Modifiers.Trade_Route_Yield_Bonus.Empty) {
+            foreach(City city in Cities) {
+                city.Yields_Changed();
+            }
+        }
     }
 
     public class NewPlayerData

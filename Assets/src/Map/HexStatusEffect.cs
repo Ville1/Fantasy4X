@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-public class HexStatusEffect {
+public class HexStatusEffect : IStatusEffect {
     private static int current_id;
 
     public int Id { get; private set; }
