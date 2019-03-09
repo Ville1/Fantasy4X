@@ -289,7 +289,7 @@ public class Map
             Add_To_Seed("mushroom forest", 3);
             Add_To_Seed("city ruins", 3);
             //Add_To_Seed("volcano", 0);
-            Add_To_Seed("water", 40);//Orig 4
+            Add_To_Seed("water", 5);
             //Add_To_Seed("swamp", 0);
 
             return seed;

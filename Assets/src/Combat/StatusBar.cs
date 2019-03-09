@@ -83,6 +83,9 @@ public class StatusBar {
 
     public static void Update_Bars(Unit unit)
     {
+        if(unit == null) {
+            return;
+        }
         if(unit.Bars.Count == 0) {
             Create_Bars(unit);
         }

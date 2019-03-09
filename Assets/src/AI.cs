@@ -19,12 +19,18 @@ public class AI : IConfigListener
     private static readonly float aggressiveness = 1.0f;
     private static readonly int careful_after_turns = 10;
     private static readonly float carefulness_strenght_multiplier = 0.5f;
+    private static readonly float BASE_SPELL_PREFERENCE = 5.0f;
+    private static readonly float ENEMY_CITY_SPELL_PREFERENCE_PER_POP = 5.0f;
+    private static readonly float MIN_CITY_SPELL_PREFERENCE = 10.0f;
+    private static readonly float MIN_CITY_SPELL_PREFERENCE_MULTIPLIER_ON_HIGH_MANA = 0.25f;
+    private static readonly float HIGH_MANA_THRESHOLD = 0.95f;
+
 
     public static bool Default_Show_Moves = false;
 
     public enum Level { Inactive, Easy, Medium, Hard }
     public enum Tag { Food, Production, Cash, Science, Culture, Mana, Faith, Happiness, Health, Order, Military }
-    public enum LogType { General, Economy, Military, Diagnostic }
+    public enum LogType { General, Economy, Military, Diagnostic, Spells }
 
     public bool Log_Actions { get; set; }
     public List<LogType> Logged_Action_Types { get; set; }
@@ -65,11 +71,13 @@ public class AI : IConfigListener
     private Dictionary<Player, int> turns_since_army_was_scouted;
     private bool last_action_was_visible;
     private List<WorldMapHex> hexes_needing_prospecting;
+    private List<CitySpellPreference> city_spell_targets;
+    Dictionary<WorldMapHex, WorldMapEntity> saved_los;
 
     public AI(Level level, Player player)
     {
-        Log_Actions = false;
-        Logged_Action_Types = new List<LogType>() { LogType.General, LogType.Economy, LogType.Diagnostic };
+        Log_Actions = true;
+        Logged_Action_Types = new List<LogType>() { LogType.General, LogType.Military, LogType.Diagnostic, LogType.Spells };
         Show_Moves = Default_Show_Moves;
         ConfigManager.Instance.Register_Listener(this);
         
@@ -93,6 +101,8 @@ public class AI : IConfigListener
         turns_since_army_was_scouted = new Dictionary<Player, int>();
         last_action_was_visible = false;
         hexes_needing_prospecting = new List<WorldMapHex>();
+        city_spell_targets = new List<CitySpellPreference>();
+        saved_los = new Dictionary<WorldMapHex, WorldMapEntity>();
     }
 
     public void On_Delete()
@@ -121,6 +131,7 @@ public class AI : IConfigListener
         observed_enemy_army_strenght_on_this_turn.Clear();
         armies_seen_this_turn.Clear();
         spectator_city_action_list.Clear();
+        city_spell_targets.Clear();
 
         //Check if armies have been deleted between turns
         //Scouting armies
@@ -155,6 +166,7 @@ public class AI : IConfigListener
         }
 
         Manage_Empire();
+        Manage_Spells();
 
         foreach(Player player in Main.Instance.Players) {
             if (!observed_max_enemy_army_strenght.ContainsKey(player)) {
@@ -310,6 +322,10 @@ public class AI : IConfigListener
             priorities.Add(tag, 0.0f);
         }
         city_specific_priorities.Clear();
+        saved_los.Clear();
+        foreach(KeyValuePair<WorldMapHex, WorldMapEntity> los_data in Player.LoS) {
+            saved_los.Add(los_data.Key, los_data.Value);
+        }
 
         //Production stuff
         total_production = 0.0f;
@@ -379,6 +395,7 @@ public class AI : IConfigListener
                 entity.Delete();
             }
         }
+
 
         foreach (City city in Player.Cities) {
             Manage_City(city);
@@ -576,7 +593,7 @@ public class AI : IConfigListener
         }
 
         //Scouting armies
-        desired_scouting_army_count = (World.Instance.Map.Width * World.Instance.Map.Height) / 400;
+        desired_scouting_army_count = Mathf.Max((World.Instance.Map.Width * World.Instance.Map.Height) / 400, 1);
         base_preference = 10.0f;
         if (scouting_armies.Count + cities_training_scout_armies.Count < desired_scouting_army_count) {
             Log(string.Format("Missing scout armies {0} + {1} / {2}", scouting_armies.Count, cities_training_scout_armies.Count, desired_scouting_army_count), LogType.Military);
@@ -592,9 +609,9 @@ public class AI : IConfigListener
                         continue;
                     }
                     float preference = base_preference;
-                    preference += (unit as Unit).Max_Campaing_Map_Movement;
-                    preference += (unit as Unit).LoS;
-                    preference /= (unit as Unit).Upkeep;
+                    preference += Mathf.Pow(2.0f, (unit as Unit).Max_Campaing_Map_Movement);
+                    preference += Mathf.Pow(2.0f, (unit as Unit).LoS);
+                    preference /= (((unit as Unit).Upkeep + 2.0f) / 3.0f);
                     preference /= (((unit as Unit).Production_Required + (unit as Unit).Cost + 100.0f) / 200.0f);
                     Log(string.Format("{0} -> preference: {1}", unit.Name, Math.Round(preference, 1)), LogType.Military);
                     scout_options.Add(unit, preference);
@@ -870,6 +887,14 @@ public class AI : IConfigListener
         }
         if (i == 0) {
             Log("Could not assign any pops", LogType.Economy);
+        }
+
+        //Spell target?
+        foreach(Spell spell in Player.Available_Spells) {
+            CitySpellPreference pref = Calculate_Spell_Preference(city, spell);
+            if(pref != null) {
+                city_spell_targets.Add(pref);
+            }
         }
 
         Log(string.Format("Manage city: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
@@ -1409,6 +1434,103 @@ public class AI : IConfigListener
         if (Show_Moves && Follow_Moves) {
             spectator_city_action_list.Add(new object[2] { city, action });
         }
+    }
+
+    private CitySpellPreference Calculate_Spell_Preference(City city, Spell spell)
+    {
+        if(spell.AI_Casting_Guidance == null || !Player.Can_Cast(spell) || !spell.AI_Casting_Guidance.City_Or_Hex_Target ||
+            (city.Is_Owned_By(Player) && !spell.AI_Casting_Guidance.Own_Target) || (!city.Is_Owned_By(Player) && !spell.AI_Casting_Guidance.Enemy_Target)) {
+            return null;
+        }
+        CitySpellPreference preference = new CitySpellPreference();
+        preference.Spell = spell;
+        preference.City = city;
+        preference.Preference = BASE_SPELL_PREFERENCE;
+        if (spell.AI_Casting_Guidance.Own_Target) {
+            foreach (Tag tag in Enum.GetValues(typeof(Tag))) {
+                if (!spell.AI_Casting_Guidance.Effect_Priorities.ContainsKey(tag)) {
+                    continue;
+                }
+                preference.Preference += city_specific_priorities[city][tag] * spell.AI_Casting_Guidance.Effect_Priorities[tag];
+            }
+            if(spell.AI_Casting_Guidance.Target == Spell.AISpellCastingGuidance.TargetType.OwnHex) {
+                if(city.Worked_Hexes.Count == 0) {
+                    return null;
+                }
+                preference.Worked_Hex = city.Worked_Hexes.OrderByDescending(x => x.Yields.Total).First();
+            }
+        } else {
+            preference.Preference += city.Population * ENEMY_CITY_SPELL_PREFERENCE_PER_POP;
+            if(spell.AI_Casting_Guidance.Target == Spell.AISpellCastingGuidance.TargetType.EnemyHex) {
+                if(!city.Worked_Hexes.Any(x => saved_los.ContainsKey(x))) {
+                    return null;
+                }
+                preference.Worked_Hex = city.Worked_Hexes.Where(x => saved_los.ContainsKey(x)).OrderByDescending(x => x.Yields.Total).First();
+            }
+        }
+        if(preference.Preference <= 0.0f) {
+            return null;
+        }
+        return preference;
+    }
+
+    private void Manage_Spells()
+    {
+        Log("--- Spell management ---", LogType.Spells);
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        foreach(City enemy_city in scouted_enemy_cities) {
+            foreach(Spell spell in Player.Available_Spells) {
+                CitySpellPreference pref = Calculate_Spell_Preference(enemy_city, spell);
+                if(pref != null) {
+                    city_spell_targets.Add(pref);
+                }
+            }
+        }
+
+        Log("City targets:", LogType.Spells);
+        if(city_spell_targets.Count != 0) {
+            float min_preference = MIN_CITY_SPELL_PREFERENCE;
+            if(Player.Mana / Player.Max_Mana >= HIGH_MANA_THRESHOLD) {
+                min_preference *= MIN_CITY_SPELL_PREFERENCE_MULTIPLIER_ON_HIGH_MANA;
+            }
+            List<CitySpellPreference> city_targets_in_order = city_spell_targets.OrderByDescending(x => x.Preference).ToList();
+            foreach (CitySpellPreference pref in city_targets_in_order) {
+                Log(string.Format("{0} #{1} -> {2} #{3} ({4}): {5}", pref.Spell.Name, pref.Spell.Id, pref.City.Name, pref.City.Id, pref.City.Is_Owned_By(Player) ? "Own" : "Enemy", pref.Preference), LogType.Spells);
+            }
+            Log(string.Format("Min preference: {0}", min_preference), LogType.Spells);
+            for (int i = 0; i < city_targets_in_order.Count; i++) {
+                CitySpellPreference current_target = city_targets_in_order[i];
+                if (!Player.Can_Cast(current_target.Spell)) {
+                    continue;
+                }
+                if(current_target.Preference < min_preference) {
+                    break;
+                }
+                Log(string.Format("Casting spell: {0} #{1} on {2} #{3}{4}", current_target.Spell.Name, current_target.Spell.Id, current_target.City.Name, current_target.City.Id,
+                    current_target.Worked_Hex == null ? string.Empty : string.Format(" (worked hex: {0})", current_target.Worked_Hex.ToString())), LogType.Spells);
+                Spell.SpellResult result = current_target.Spell.Cast(Player, current_target.Worked_Hex == null ? current_target.City.Hex : current_target.Worked_Hex);
+                if (!result.Success) {
+                    //TODO: Should not happen
+                    CustomLogger.Instance.Error(string.Format("AI {0} (P#{1}) failed to cast spell {2} (#{3})", Player.Name, Player.Id, current_target.Spell.Name, current_target.Spell.Id));
+                    CustomLogger.Instance.Error("Message: " + result.Message);
+                }
+            }
+        } else {
+            Log("No targets", LogType.Spells);
+        }
+
+
+        Log(string.Format("Manage spells: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
+    }
+
+    private class CitySpellPreference
+    {
+        public City City { get; set; }
+        public WorldMapHex Worked_Hex { get; set; }
+        public Spell Spell { get; set; }
+        public float Preference { get; set; }
     }
 
     private class ArmyOrder

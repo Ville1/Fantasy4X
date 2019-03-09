@@ -87,6 +87,11 @@ public class MasterUIManager : MonoBehaviour {
             if(BottomGUIManager.Instance.Current_Entity != null) {
                 SelectionCircle.Instance.Active = !combat_ui;
             }
+            if (combat_ui) {
+                WaitingForPlayerGUIManager.Instance.Active = false;
+            } else if (!combat_ui && Main.Instance.Other_Players_Turn) {
+                WaitingForPlayerGUIManager.Instance.Active = true;
+            }
         }
     }
 

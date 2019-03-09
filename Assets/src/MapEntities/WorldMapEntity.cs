@@ -72,6 +72,7 @@ public class WorldMapEntity : Ownable {
         GameObject.transform.parent = Hex.GameObject.transform.transform;
         GameObject.AddComponent<SpriteRenderer>();
         SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Unit);
+        GameObject.SetActive(Hex.Visible_To_Viewing_Player);
     }
 
     /// <summary>

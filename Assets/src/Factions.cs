@@ -401,7 +401,7 @@ public class Factions {
             }
             hex.City.Apply_Status_Effect(new CityStatusEffect(spell.Name, 5) { Happiness = 5.0f }, false);
             return new Spell.SpellResult();
-        }));
+        }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.OwnCity, new Dictionary<AI.Tag, float>() { { AI.Tag.Happiness, 5.0f } }) });
 
         Kingdom.Spells.Add(new Spell("Prosperity", 0.0f, 0, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
             if (!hex.Is_Explored_By(caster) || hex.City == null || (!hex.City.Is_Owned_By(caster) && !hex.City.Owner.Is_Neutral)) {
@@ -411,10 +411,30 @@ public class Factions {
             return new Spell.SpellResult();
         }));
 
-        Kingdom.Spells.Add(new Spell("Hex Prosperity", 0.0f, 0, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
+        Kingdom.Spells.Add(new Spell("City Blight", 0.0f, 5, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
+            if (!hex.Is_Explored_By(caster) || hex.City == null || hex.City.Is_Owned_By(caster)) {
+                return new Spell.SpellResult(false, "Select an enemy city");
+            }
+            hex.City.Apply_Status_Effect(new CityStatusEffect(spell.Name, 5) { Health = -5.0f }, false);
+            return new Spell.SpellResult();
+        }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.EnemyCity, new Dictionary<AI.Tag, float>()) });
+
+        Kingdom.Spells.Add(new Spell("Hex Blight", 0.0f, 3, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
+            if (hex.City != null || hex.Village != null) {
+                return new Spell.SpellResult(false, "Invalid hex");
+            }
+            hex.Apply_Status_Effect(new HexStatusEffect(spell.Name, 5) { Yield_Delta = new Yields(-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) }, true);
+            return new Spell.SpellResult();
+        }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.EnemyHex, new Dictionary<AI.Tag, float>()) });
+
+
+        Kingdom.Spells.Add(new Spell("Hex Prosperity", 0.0f, 2, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
+            if (hex.City != null || hex.Village != null) {
+                return new Spell.SpellResult(false, "Invalid hex");
+            }
             hex.Apply_Status_Effect(new HexStatusEffect(spell.Name, 5) { Yield_Delta = new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }, true);
             return new Spell.SpellResult();
-        }));
+        }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.OwnHex, new Dictionary<AI.Tag, float>() { { AI.Tag.Food, 1.0f }, { AI.Tag.Production, 1.0f }, { AI.Tag.Cash, 1.0f }, { AI.Tag.Science, 1.0f } }) });
 
         Kingdom.Blessings.Add(new Blessing("test", 0.0f, 5, 10, null, delegate (Blessing blessing, Player caster) {
             foreach (City city in caster.Cities) {

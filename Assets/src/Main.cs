@@ -54,10 +54,11 @@ public class Main : MonoBehaviour {
     public List<Player> All_Players
     {
         get {
-            List<Player> list = new List<Player>() { Neutral_Player };
+            List<Player> list = new List<Player>();
             foreach(Player player in Players) {
                 list.Add(player);
             }
+            list.Add(Neutral_Player);
             return list;
         }
     }
