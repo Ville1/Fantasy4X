@@ -24,6 +24,8 @@ public class AI : IConfigListener
     private static readonly float MIN_CITY_SPELL_PREFERENCE = 10.0f;
     private static readonly float MIN_CITY_SPELL_PREFERENCE_MULTIPLIER_ON_HIGH_MANA = 0.25f;
     private static readonly float HIGH_MANA_THRESHOLD = 0.95f;
+    private static readonly float BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE = 50.0f;
+    private static readonly float MIN_BLESSING_PREFERENCE = 1.0f;
 
 
     public static bool Default_Show_Moves = false;
@@ -76,7 +78,7 @@ public class AI : IConfigListener
 
     public AI(Level level, Player player)
     {
-        Log_Actions = true;
+        Log_Actions = false;
         Logged_Action_Types = new List<LogType>() { LogType.General, LogType.Military, LogType.Diagnostic, LogType.Spells };
         Show_Moves = Default_Show_Moves;
         ConfigManager.Instance.Register_Listener(this);
@@ -1294,7 +1296,8 @@ public class AI : IConfigListener
                     }
                 }
                 float own_strenght = army.Get_Relative_Strenght_When_On_Hex(city.Hex, true, true) * aggressiveness;
-                float enemy_strenght = observed_max_enemy_army_strenght[city.Owner] / enemy_city_count;
+                float enemy_strenght = Player.LoS.ContainsKey(city.Hex) ? (city.Garrison == null ? 0.0f : city.Garrison.Current_Relative_Strenght) :
+                    observed_max_enemy_army_strenght[city.Owner] / enemy_city_count;
                 if(turns_since_army_was_scouted[city.Owner] > careful_after_turns) {
                     own_strenght *= carefulness_strenght_multiplier;
                 }
@@ -1489,6 +1492,7 @@ public class AI : IConfigListener
             }
         }
 
+        Log("-- Spells --", LogType.Spells);
         Log("City targets:", LogType.Spells);
         if(city_spell_targets.Count != 0) {
             float min_preference = MIN_CITY_SPELL_PREFERENCE;
@@ -1521,6 +1525,65 @@ public class AI : IConfigListener
             Log("No targets", LogType.Spells);
         }
 
+        Log("-- Blessings --", LogType.Spells);
+        List<BlessingPreference> blessings_by_preference = new List<BlessingPreference>();
+        foreach(Blessing blessing in Player.Available_Blessings) {
+            if (blessing.AI_Casting_Guidance == null || !Player.Can_Cast(blessing)) {
+                continue;
+            }
+            float preference = 0.0f;
+            if(blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.Caster ||
+                blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.All_Players) {
+                //Preference on self
+                foreach (KeyValuePair<Tag, float> preference_data in blessing.AI_Casting_Guidance.Effect_Priorities) {
+                    preference += priorities[preference_data.Key] * preference_data.Value;
+                }
+            }
+            if (blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.Enemy_Players ||
+                blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.All_Players) {
+                //Preference on enemies
+                preference += BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.9f;
+                int enemies = 0;
+                foreach(Player player in Main.Instance.Players) {
+                    if(player.Id == Player.Id || (blessing.AI_Casting_Guidance.Required_Vision == Blessing.AIBlessingCastingGuidance.RequiredVision.Enemy_Cities &&
+                        !scouted_enemy_cities.Any(x => x.Owner.Id == player.Id))) {
+                        continue;
+                    }
+                    preference += player.Score > Player.Score ? BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.5f : BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.1f;
+                    enemies++;
+                }
+                if(enemies == 0) {
+                    preference = 0.0f;
+                }
+            }
+            if (preference > 0.0f) {
+                blessings_by_preference.Add(new BlessingPreference() { Blessing = blessing, Preference = preference });
+            }
+        }
+        if(blessings_by_preference.Count == 0) {
+            Log("No blessings", LogType.Spells);
+        } else {
+            blessings_by_preference = blessings_by_preference.OrderByDescending(x => x.Preference).ToList();
+            foreach(BlessingPreference blessing_and_preference in blessings_by_preference) {
+                Log(string.Format("{0} #{1} -> {2}", blessing_and_preference.Blessing.Name, blessing_and_preference.Blessing.Id, blessing_and_preference.Preference), LogType.Spells);
+            }
+            for (int i = 0; i < blessings_by_preference.Count; i++) {
+                BlessingPreference current_blessing = blessings_by_preference[i];
+                if (!Player.Can_Cast(current_blessing.Blessing)) {
+                    continue;
+                }
+                if (current_blessing.Preference < MIN_BLESSING_PREFERENCE) {
+                    break;
+                }
+                Log(string.Format("Casting blessing: {0} #{1}", current_blessing.Blessing.Name, current_blessing.Blessing.Id), LogType.Spells);
+                Blessing.BlessingResult result = current_blessing.Blessing.Cast(Player);
+                if (!result.Success) {
+                    //TODO: Should not happen
+                    CustomLogger.Instance.Error(string.Format("AI {0} (P#{1}) failed to cast blessing {2} (#{3})", Player.Name, Player.Id, current_blessing.Blessing.Name, current_blessing.Blessing.Id));
+                    CustomLogger.Instance.Error("Message: " + result.Message);
+                }
+            }
+        }
 
         Log(string.Format("Manage spells: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
     }
@@ -1530,6 +1593,12 @@ public class AI : IConfigListener
         public City City { get; set; }
         public WorldMapHex Worked_Hex { get; set; }
         public Spell Spell { get; set; }
+        public float Preference { get; set; }
+    }
+
+    private class BlessingPreference
+    {
+        public Blessing Blessing { get; set; }
         public float Preference { get; set; }
     }
 

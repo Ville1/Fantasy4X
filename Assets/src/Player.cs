@@ -5,6 +5,7 @@ using UnityEngine;
 public class Player {
     private static readonly string TECH_READY_SOUND_EFFECT = "tech_ready_sfx";
     private static readonly string DEFEAT_NOTIFICATION_TEXTURE = "disband";
+    private static readonly int MAX_ACTIVE_BLESSINGS = 1;
 
     private static int current_id;
     
@@ -381,8 +382,8 @@ public class Player {
 
     public bool Can_Cast(Blessing blessing)
     {
-        return blessing.Faith_Required <= Faith_Income && Blessing_Cooldown(blessing) == 0 && !active_blessings.Any(x => x.Key.Name == blessing.Name) &&
-            (blessing.Technology_Required == null || Researched_Technologies.Any(x => x.Name == blessing.Technology_Required.Name));
+        return active_blessings.Count < MAX_ACTIVE_BLESSINGS && blessing.Faith_Required <= Faith_Income && Blessing_Cooldown(blessing) == 0 &&
+            !active_blessings.Any(x => x.Key.Name == blessing.Name) && (blessing.Technology_Required == null || Researched_Technologies.Any(x => x.Name == blessing.Technology_Required.Name));
     }
 
     public int Spell_Cooldown(Spell spell)

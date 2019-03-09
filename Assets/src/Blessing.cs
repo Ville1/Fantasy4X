@@ -18,6 +18,7 @@ public class Blessing : ICooldown {
     public Blessing_Effect Deactivation { get; private set; }
     public Blessing_Effect_Turn_Start Turn_Start { get; private set; }
     public string Effect_Animation { get; private set; }
+    public AIBlessingCastingGuidance AI_Casting_Guidance { get; set; }
 
     public Blessing(string name, float faith_required, int cooldown, int duration, Technology technology_required, Blessing_Effect activation, Blessing_Effect deactivation,
         Blessing_Effect_Turn_Start turn_start, string effect_animation = "default_effect")
@@ -42,6 +43,16 @@ public class Blessing : ICooldown {
             caster.Put_On_Cooldown(this);
             caster.Apply_Blessing(this);
             Play_Animation(result);
+            List<Player> notifications_send = new List<Player>();
+            foreach(WorldMapHex hex in result.Affected_Hexes) {
+                if (hex.Owner != null && !hex.Is_Owned_By(caster) && !notifications_send.Contains(hex.Owner)) {
+                    hex.Owner.Queue_Notification(new Notification(string.Format("{0} casted {1} on {2}", caster.Name, Name, hex.City != null ? hex.City.Name : hex.ToString()),
+                        hex.Texture, SpriteManager.SpriteType.Terrain, null, delegate () {
+                            CameraManager.Instance.Set_Camera_Location(hex);
+                        }
+                    ));
+                }
+            }
         }
         return result;
     }
@@ -91,8 +102,25 @@ public class Blessing : ICooldown {
         public List<WorldMapHex> Affected_Hexes { get; set; }
     }
 
+    public class AIBlessingCastingGuidance
+    {
+        public enum TargetType { Caster, Enemy_Players, All_Players }
+        public enum RequiredVision { Enemy_Cities }
+
+        public Dictionary<AI.Tag, float> Effect_Priorities { get; private set; }
+        public TargetType Target { get; private set; }
+        public RequiredVision? Required_Vision { get; private set; }
+
+        public AIBlessingCastingGuidance(TargetType target, RequiredVision? required_vision, Dictionary<AI.Tag, float> effect_priorities)
+        {
+            Target = target;
+            Required_Vision = required_vision;
+            Effect_Priorities = effect_priorities;
+        }
+    }
+
     public override string ToString()
     {
-        return string.Format("{0}#{1}", Name, Id);
+        return string.Format("{0} #{1}", Name, Id);
     }
 }

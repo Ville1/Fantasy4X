@@ -454,7 +454,43 @@ public class Factions {
         }, null, delegate (Blessing blessing, Player caster, int turns_left) {
             caster.Apply_Status_Effect(new EmpireModifierStatusEffect(blessing.Name, 1, new EmpireModifiers() { Population_Growth_Bonus = 1.0f }), false);
             return new Blessing.BlessingResult(true, null, null);
-        }));
+        }) { AI_Casting_Guidance = new Blessing.AIBlessingCastingGuidance(Blessing.AIBlessingCastingGuidance.TargetType.Caster, null, new Dictionary<AI.Tag, float>()
+        { { AI.Tag.Food, 1.0f }, { AI.Tag.Production, 1.0f }, { AI.Tag.Cash, 1.0f } }) });
+
+        Kingdom.Blessings.Add(new Blessing("Curse test", 0.0f, 5, 10, null, delegate (Blessing blessing, Player caster) {
+            List<WorldMapHex> cursed_cities = new List<WorldMapHex>();
+            foreach(Player player in Main.Instance.Players) {
+                if(player.Id == caster.Id) {
+                    continue;
+                }
+                foreach(City city in player.Cities) {
+                    if (city.Hex.Is_Explored_By(caster)) {
+                        cursed_cities.Add(city.Hex);
+                        city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = blessing.Duration, Order = -1.0f }, false);
+                    }
+                }
+            }
+            if(cursed_cities.Count == 0) {
+                return new Blessing.BlessingResult(false, "No enemy cities found", null);
+            }
+            return new Blessing.BlessingResult(true, null, cursed_cities);
+        }, null, delegate (Blessing blessing, Player caster, int turns_left) {
+            List<WorldMapHex> cursed_cities = new List<WorldMapHex>();
+            foreach (Player player in Main.Instance.Players) {
+                if (player.Id == caster.Id) {
+                    continue;
+                }
+                foreach (City city in player.Cities) {
+                    if (city.Hex.Is_Explored_By(caster)) {
+                        cursed_cities.Add(city.Hex);
+                        city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = turns_left, Order = -1.0f }, false);
+                    }
+                }
+            }
+            return new Blessing.BlessingResult(true, null, cursed_cities);
+        }) {
+            AI_Casting_Guidance = new Blessing.AIBlessingCastingGuidance(Blessing.AIBlessingCastingGuidance.TargetType.Enemy_Players, Blessing.AIBlessingCastingGuidance.RequiredVision.Enemy_Cities, new Dictionary<AI.Tag, float>())
+        });
 
         Kingdom.Blessings.Add(new Blessing("Rural Bounty", 0.0f, 5, 10, null, delegate(Blessing blessing, Player caster) {
             Blessing.BlessingResult result = new Blessing.BlessingResult(true, null, caster.Villages.Select(x => x.Hex).ToList());
