@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class TopGUIManager : MonoBehaviour {
@@ -57,7 +59,17 @@ public class TopGUIManager : MonoBehaviour {
             Helper.Plural(Player.Current_Technology.Turns_Left_Estimate)) : "Nothing";
         Spell_Button.GetComponentInChildren<Text>().text = string.Format("{0} ({1}) / {2}", Mathf.RoundToInt(Player.Mana), Helper.Float_To_String(Player.Mana_Income, 1, true),
             Mathf.RoundToInt(Player.Max_Mana));
-        Blessing_Button.GetComponentInChildren<Text>().text = Helper.Float_To_String(Player.Faith_Income, 1, true);
+        Dictionary<Blessing, int> active_blessings = Player.Active_Blessings;
+        string faith_income_string = Helper.Float_To_String(Player.Faith_Income, 1, true);
+        if (active_blessings.Count == 0) {
+            Blessing_Button.GetComponentInChildren<Text>().text = string.Format("Nothing ({0})", faith_income_string);
+        } else if(active_blessings.Count == 1) {
+            Blessing blessing = active_blessings.First().Key;
+            int duration = active_blessings.First().Value;
+            Blessing_Button.GetComponentInChildren<Text>().text = string.Format("{0} ({1} turn{2}, {3})", blessing.Name, duration, Helper.Plural(duration), faith_income_string);
+        } else {
+            Blessing_Button.GetComponentInChildren<Text>().text = string.Format("Multiple: {0} ({1})", active_blessings.Count, faith_income_string);
+        }
 
         Rounds_Text.text = string.Format("Round: {0}", Main.Instance.Round);
         TooltipManager.Instance.Register_Tooltip(Rounds_Text.gameObject, string.Format("Max: {0}", Main.Instance.Max_Rounds), gameObject);

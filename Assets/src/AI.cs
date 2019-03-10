@@ -21,7 +21,7 @@ public class AI : IConfigListener
     private static readonly float carefulness_strenght_multiplier = 0.5f;
     private static readonly float BASE_SPELL_PREFERENCE = 5.0f;
     private static readonly float ENEMY_CITY_SPELL_PREFERENCE_PER_POP = 5.0f;
-    private static readonly float MIN_CITY_SPELL_PREFERENCE = 10.0f;
+    private static readonly float MIN_SPELL_PREFERENCE = 10.0f;
     private static readonly float MIN_CITY_SPELL_PREFERENCE_MULTIPLIER_ON_HIGH_MANA = 0.25f;
     private static readonly float HIGH_MANA_THRESHOLD = 0.95f;
     private static readonly float BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE = 50.0f;
@@ -168,7 +168,7 @@ public class AI : IConfigListener
         }
 
         Manage_Empire();
-        Manage_Spells();
+        Manage_Casting();
 
         foreach(Player player in Main.Instance.Players) {
             if (!observed_max_enemy_army_strenght.ContainsKey(player)) {
@@ -1441,7 +1441,7 @@ public class AI : IConfigListener
 
     private CitySpellPreference Calculate_Spell_Preference(City city, Spell spell)
     {
-        if(spell.AI_Casting_Guidance == null || !Player.Can_Cast(spell) || !spell.AI_Casting_Guidance.City_Or_Hex_Target ||
+        if(spell.AI_Casting_Guidance == null || spell.Advanced_AI_Casting_Guidance != null || !Player.Can_Cast(spell) || !spell.AI_Casting_Guidance.City_Or_Hex_Target ||
             (city.Is_Owned_By(Player) && !spell.AI_Casting_Guidance.Own_Target) || (!city.Is_Owned_By(Player) && !spell.AI_Casting_Guidance.Enemy_Target)) {
             return null;
         }
@@ -1477,9 +1477,9 @@ public class AI : IConfigListener
         return preference;
     }
 
-    private void Manage_Spells()
+    private void Manage_Casting()
     {
-        Log("--- Spell management ---", LogType.Spells);
+        Log("--- Casting management ---", LogType.Spells);
 
         Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -1493,71 +1493,139 @@ public class AI : IConfigListener
         }
 
         Log("-- Spells --", LogType.Spells);
+        float min_preference = MIN_SPELL_PREFERENCE;
+        if (Player.Mana / Player.Max_Mana >= HIGH_MANA_THRESHOLD) {
+            min_preference *= MIN_CITY_SPELL_PREFERENCE_MULTIPLIER_ON_HIGH_MANA;
+        }
+        Log(string.Format("Min preference: {0}", min_preference), LogType.Spells);
         Log("City targets:", LogType.Spells);
+        List<SpellPreference> spells = new List<SpellPreference>();
         if(city_spell_targets.Count != 0) {
-            float min_preference = MIN_CITY_SPELL_PREFERENCE;
-            if(Player.Mana / Player.Max_Mana >= HIGH_MANA_THRESHOLD) {
-                min_preference *= MIN_CITY_SPELL_PREFERENCE_MULTIPLIER_ON_HIGH_MANA;
-            }
             List<CitySpellPreference> city_targets_in_order = city_spell_targets.OrderByDescending(x => x.Preference).ToList();
             foreach (CitySpellPreference pref in city_targets_in_order) {
                 Log(string.Format("{0} #{1} -> {2} #{3} ({4}): {5}", pref.Spell.Name, pref.Spell.Id, pref.City.Name, pref.City.Id, pref.City.Is_Owned_By(Player) ? "Own" : "Enemy", pref.Preference), LogType.Spells);
-            }
-            Log(string.Format("Min preference: {0}", min_preference), LogType.Spells);
-            for (int i = 0; i < city_targets_in_order.Count; i++) {
-                CitySpellPreference current_target = city_targets_in_order[i];
-                if (!Player.Can_Cast(current_target.Spell)) {
-                    continue;
-                }
-                if(current_target.Preference < min_preference) {
-                    break;
-                }
-                Log(string.Format("Casting spell: {0} #{1} on {2} #{3}{4}", current_target.Spell.Name, current_target.Spell.Id, current_target.City.Name, current_target.City.Id,
-                    current_target.Worked_Hex == null ? string.Empty : string.Format(" (worked hex: {0})", current_target.Worked_Hex.ToString())), LogType.Spells);
-                Spell.SpellResult result = current_target.Spell.Cast(Player, current_target.Worked_Hex == null ? current_target.City.Hex : current_target.Worked_Hex);
-                if (!result.Success) {
-                    //TODO: Should not happen
-                    CustomLogger.Instance.Error(string.Format("AI {0} (P#{1}) failed to cast spell {2} (#{3})", Player.Name, Player.Id, current_target.Spell.Name, current_target.Spell.Id));
-                    CustomLogger.Instance.Error("Message: " + result.Message);
-                }
+                spells.Add(new SpellPreference() { Preference = pref.Preference, Spell = pref.Spell, Target = pref.Worked_Hex != null ? pref.Worked_Hex : pref.City.Hex });
             }
         } else {
-            Log("No targets", LogType.Spells);
+            Log("No city targets", LogType.Spells);
         }
+
+        Log("Advanced targets:", LogType.Spells);
+        bool advanced_target_found = false;
+        foreach(Spell spell in Player.Available_Spells) {
+            if(spell.Advanced_AI_Casting_Guidance == null || !spell.Requires_Target) {
+                continue;
+            }
+            SpellPreference preference = spell.Advanced_AI_Casting_Guidance(spell, Player, priorities);
+            if(preference != null && preference.Preference > 0.0f) {
+                Log(string.Format("{0} #{1} -> {2}: {3}", spell.Name, spell.Id, preference.Target.ToString(), preference.Preference), LogType.Spells);
+                spells.Add(preference);
+                advanced_target_found = true;
+            }
+        }
+        if (!advanced_target_found) {
+            Log("No advanced targets", LogType.Spells);
+        }
+        
+        Log("Non-targeted spells:", LogType.Spells);
+        bool non_targeted_found = false;
+        foreach (Spell spell in Player.Available_Spells) {
+            if ((spell.AI_Casting_Guidance == null && spell.Advanced_AI_Casting_Guidance == null) || spell.Requires_Target) {
+                continue;
+            }
+            if (spell.AI_Casting_Guidance != null) {
+                float preference = 0.0f;
+                foreach (KeyValuePair<Tag, float> priority_data in spell.AI_Casting_Guidance.Effect_Priorities) {
+                    preference += priorities[priority_data.Key] * priority_data.Value;
+                }
+                if (preference > 0.0f) {
+                    spells.Add(new SpellPreference() {
+                        Spell = spell,
+                        Preference = preference
+                    });
+                    Log(string.Format("{0} #{1} -> {2}", spell.Name, spell.Id, preference), LogType.Spells);
+                    non_targeted_found = true;
+                }
+            } else {
+                SpellPreference preference = spell.Advanced_AI_Casting_Guidance(spell, Player, priorities);
+                if(preference != null && preference.Preference > 0.0f) {
+                    spells.Add(preference);
+                    Log(string.Format("{0} #{1} -> {2}", spell.Name, spell.Id, preference.Preference), LogType.Spells);
+                    non_targeted_found = true;
+                }
+            }
+        }
+        if (!non_targeted_found) {
+            Log("No non-targeted spells", LogType.Spells);
+        }
+
+        spells = spells.OrderByDescending(x => x.Preference).ToList();
+
+        //TODO: Mana cost & cooldowns?
+
+        for (int i = 0; i < spells.Count; i++) {
+            SpellPreference current_spell_preference = spells[i];
+            if (!Player.Can_Cast(current_spell_preference.Spell)) {
+                continue;
+            }
+            if (current_spell_preference.Preference < min_preference) {
+                break;
+            }
+            if (current_spell_preference.Spell.Requires_Target) {
+                Log(string.Format("Casting spell: {0} #{1} on {2}", current_spell_preference.Spell.Name, current_spell_preference.Spell.Id,
+                    current_spell_preference.Target.City != null ? current_spell_preference.Target.City.Name : current_spell_preference.Target.ToString()), LogType.Spells);
+            } else {
+                Log(string.Format("Casting spell: {0} #{1}", current_spell_preference.Spell.Name, current_spell_preference.Spell.Id), LogType.Spells);
+            }
+            Spell.SpellResult result = current_spell_preference.Spell.Cast(Player, current_spell_preference.Target);
+            if (!result.Success) {
+                //TODO: Should not happen
+                CustomLogger.Instance.Error(string.Format("AI {0} (P#{1}) failed to cast spell {2} (#{3})", Player.Name, Player.Id, current_spell_preference.Spell.Name, current_spell_preference.Spell.Id));
+                CustomLogger.Instance.Error("Message: " + result.Message);
+            }
+        }
+
 
         Log("-- Blessings --", LogType.Spells);
         List<BlessingPreference> blessings_by_preference = new List<BlessingPreference>();
         foreach(Blessing blessing in Player.Available_Blessings) {
-            if (blessing.AI_Casting_Guidance == null || !Player.Can_Cast(blessing)) {
+            if ((blessing.AI_Casting_Guidance == null && blessing.Advanced_AI_Casting_Guidance == null) || !Player.Can_Cast(blessing)) {
                 continue;
             }
-            float preference = 0.0f;
-            if(blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.Caster ||
-                blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.All_Players) {
-                //Preference on self
-                foreach (KeyValuePair<Tag, float> preference_data in blessing.AI_Casting_Guidance.Effect_Priorities) {
-                    preference += priorities[preference_data.Key] * preference_data.Value;
+            if(blessing.Advanced_AI_Casting_Guidance != null) {
+                BlessingPreference preference = blessing.Advanced_AI_Casting_Guidance(blessing, Player, priorities);
+                if (preference != null && preference.Preference > 0.0f) {
+                    blessings_by_preference.Add(preference);
                 }
-            }
-            if (blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.Enemy_Players ||
-                blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.All_Players) {
-                //Preference on enemies
-                preference += BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.9f;
-                int enemies = 0;
-                foreach(Player player in Main.Instance.Players) {
-                    if(player.Id == Player.Id || (blessing.AI_Casting_Guidance.Required_Vision == Blessing.AIBlessingCastingGuidance.RequiredVision.Enemy_Cities &&
-                        !scouted_enemy_cities.Any(x => x.Owner.Id == player.Id))) {
-                        continue;
+            } else {
+                float preference = 0.0f;
+                if (blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.Caster ||
+                    blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.All_Players) {
+                    //Preference on self
+                    foreach (KeyValuePair<Tag, float> preference_data in blessing.AI_Casting_Guidance.Effect_Priorities) {
+                        preference += priorities[preference_data.Key] * preference_data.Value;
                     }
-                    preference += player.Score > Player.Score ? BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.5f : BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.1f;
-                    enemies++;
                 }
-                if(enemies == 0) {
-                    preference = 0.0f;
+                if (blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.Enemy_Players ||
+                    blessing.AI_Casting_Guidance.Target == Blessing.AIBlessingCastingGuidance.TargetType.All_Players) {
+                    //Preference on enemies
+                    preference += BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.9f;
+                    int enemies = 0;
+                    foreach (Player player in Main.Instance.Players) {
+                        if (player.Id == Player.Id || (blessing.AI_Casting_Guidance.Required_Vision == Blessing.AIBlessingCastingGuidance.RequiredVision.Enemy_Cities &&
+                            !scouted_enemy_cities.Any(x => x.Owner.Id == player.Id))) {
+                            continue;
+                        }
+                        preference += player.Score > Player.Score ? BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.5f : BLESSING_BASE_ENEMY_DEBUFF_PREFERENCE * 0.1f;
+                        enemies++;
+                    }
+                    if (enemies == 0) {
+                        preference = 0.0f;
+                    }
                 }
-            }
-            if (preference > 0.0f) {
-                blessings_by_preference.Add(new BlessingPreference() { Blessing = blessing, Preference = preference });
+                if (preference > 0.0f) {
+                    blessings_by_preference.Add(new BlessingPreference() { Blessing = blessing, Preference = preference });
+                }
             }
         }
         if(blessings_by_preference.Count == 0) {
@@ -1585,7 +1653,14 @@ public class AI : IConfigListener
             }
         }
 
-        Log(string.Format("Manage spells: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
+        Log(string.Format("Manage casting: {0} ms", stopwatch.ElapsedMilliseconds), LogType.Diagnostic);
+    }
+
+    public class SpellPreference
+    {
+        public WorldMapHex Target { get; set; }
+        public Spell Spell { get; set; }
+        public float Preference { get; set; }
     }
 
     private class CitySpellPreference
@@ -1596,7 +1671,7 @@ public class AI : IConfigListener
         public float Preference { get; set; }
     }
 
-    private class BlessingPreference
+    public class BlessingPreference
     {
         public Blessing Blessing { get; set; }
         public float Preference { get; set; }

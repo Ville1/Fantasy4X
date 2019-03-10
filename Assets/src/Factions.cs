@@ -387,126 +387,64 @@ public class Factions {
             Cultural_Influence_Range = 5.0f
         });
 
-        Kingdom.Spells.Add(new Spell("Vision", 0.0f, 0, null, true, delegate(Spell spell, Player caster, WorldMapHex hex) {
+        Kingdom.Spells.Add(new Spell("Vision", 0.0f, 0, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
             if (hex.Is_Explored_By(caster)) {
                 return new Spell.SpellResult(false, "Select a unexplored hex");
             }
             hex.Set_Explored(caster);
             return new Spell.SpellResult();
-        }));
-
-        Kingdom.Spells.Add(new Spell("Fireworks", 0.0f, 5, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
+        }) {
+            Advanced_AI_Casting_Guidance = delegate (Spell spell, Player caster, Dictionary<AI.Tag, float> priorities) {
+                if(Main.Instance.Round > 100) {
+                    return null;
+                }
+                AI.SpellPreference preference = new AI.SpellPreference();
+                preference.Spell = spell;
+                preference.Preference = 15.0f + (50.0f / (Main.Instance.Round + 10.0f));
+                int iteration = 0;
+                while(preference.Target == null && iteration <= 100) {
+                    WorldMapHex random_hex = World.Instance.Map.Random_Hex;
+                    if (!random_hex.Is_Explored_By(caster)) {
+                        preference.Target = random_hex;
+                    }
+                    iteration++;
+                }
+                if(preference.Target == null) {
+                    return null;
+                }
+                return preference;
+            }
+        });
+        
+        Kingdom.Spells.Add(new Spell("Fireworks", 50.0f, 10, Mysticism, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
             if (!hex.Is_Explored_By(caster) || hex.City == null || (!hex.City.Is_Owned_By(caster) && !hex.City.Owner.Is_Neutral)) {
                 return new Spell.SpellResult(false, "Select a city");
             }
-            hex.City.Apply_Status_Effect(new CityStatusEffect(spell.Name, 5) { Happiness = 5.0f }, false);
+            hex.City.Apply_Status_Effect(new CityStatusEffect(spell.Name, 3) { Happiness = 5.0f }, false);
             return new Spell.SpellResult();
         }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.OwnCity, new Dictionary<AI.Tag, float>() { { AI.Tag.Happiness, 5.0f } }) });
-
-        Kingdom.Spells.Add(new Spell("Prosperity", 0.0f, 0, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
-            if (!hex.Is_Explored_By(caster) || hex.City == null || (!hex.City.Is_Owned_By(caster) && !hex.City.Owner.Is_Neutral)) {
-                return new Spell.SpellResult(false, "Select a city");
-            }
-            hex.City.Apply_Status_Effect(new CityStatusEffect(spell.Name, 5) { Yield_Delta = new Yields(1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f) }, true);
-            return new Spell.SpellResult();
-        }));
-
-        Kingdom.Spells.Add(new Spell("City Blight", 0.0f, 5, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
-            if (!hex.Is_Explored_By(caster) || hex.City == null || hex.City.Is_Owned_By(caster)) {
-                return new Spell.SpellResult(false, "Select an enemy city");
-            }
-            hex.City.Apply_Status_Effect(new CityStatusEffect(spell.Name, 5) { Health = -5.0f }, false);
-            return new Spell.SpellResult();
-        }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.EnemyCity, new Dictionary<AI.Tag, float>()) });
-
-        Kingdom.Spells.Add(new Spell("Hex Blight", 0.0f, 3, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
-            if (hex.City != null || hex.Village != null) {
-                return new Spell.SpellResult(false, "Invalid hex");
-            }
-            hex.Apply_Status_Effect(new HexStatusEffect(spell.Name, 5) { Yield_Delta = new Yields(-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) }, true);
-            return new Spell.SpellResult();
-        }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.EnemyHex, new Dictionary<AI.Tag, float>()) });
-
-
-        Kingdom.Spells.Add(new Spell("Hex Prosperity", 0.0f, 2, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
-            if (hex.City != null || hex.Village != null) {
-                return new Spell.SpellResult(false, "Invalid hex");
-            }
-            hex.Apply_Status_Effect(new HexStatusEffect(spell.Name, 5) { Yield_Delta = new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }, true);
-            return new Spell.SpellResult();
-        }) { AI_Casting_Guidance = new Spell.AISpellCastingGuidance(Spell.AISpellCastingGuidance.TargetType.OwnHex, new Dictionary<AI.Tag, float>() { { AI.Tag.Food, 1.0f }, { AI.Tag.Production, 1.0f }, { AI.Tag.Cash, 1.0f }, { AI.Tag.Science, 1.0f } }) });
-
-        Kingdom.Blessings.Add(new Blessing("test", 0.0f, 5, 10, null, delegate (Blessing blessing, Player caster) {
-            foreach (City city in caster.Cities) {
-                city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = blessing.Duration, Yield_Delta = new Yields() { Culture = 10.0f } }, false);
-            }
-            return new Blessing.BlessingResult(true, null, caster.Cities.Select(x => x.Hex).ToList());
-        }, null, delegate(Blessing blessing, Player caster, int turns_left) {
-            foreach(City city in caster.Cities) {
-                city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = turns_left, Yield_Delta = new Yields() { Culture = 10.0f } }, false);
-            }
-            return new Blessing.BlessingResult(true, null, caster.Cities.Select(x => x.Hex).ToList());
-        }));
-
-        Kingdom.Blessings.Add(new Blessing("EmpMod test", 0.0f, 5, 10, null, delegate (Blessing blessing, Player caster) {
-            caster.Apply_Status_Effect(new EmpireModifierStatusEffect(blessing.Name, 1, new EmpireModifiers() { Population_Growth_Bonus = 1.0f }), false);
+        
+        Kingdom.Blessings.Add(new Blessing("Ritual of Prosperity", 1.0f, 10, 3, Mysticism, delegate(Blessing blessing, Player caster) {
             return new Blessing.BlessingResult(true, null, null);
-        }, null, delegate (Blessing blessing, Player caster, int turns_left) {
-            caster.Apply_Status_Effect(new EmpireModifierStatusEffect(blessing.Name, 1, new EmpireModifiers() { Population_Growth_Bonus = 1.0f }), false);
+        }, delegate(Blessing blessing, Player caster, bool interrupted) {
+            if (!interrupted) {
+                caster.Cash += 100.0f;
+            }
             return new Blessing.BlessingResult(true, null, null);
-        }) { AI_Casting_Guidance = new Blessing.AIBlessingCastingGuidance(Blessing.AIBlessingCastingGuidance.TargetType.Caster, null, new Dictionary<AI.Tag, float>()
-        { { AI.Tag.Food, 1.0f }, { AI.Tag.Production, 1.0f }, { AI.Tag.Cash, 1.0f } }) });
-
-        Kingdom.Blessings.Add(new Blessing("Curse test", 0.0f, 5, 10, null, delegate (Blessing blessing, Player caster) {
-            List<WorldMapHex> cursed_cities = new List<WorldMapHex>();
-            foreach(Player player in Main.Instance.Players) {
-                if(player.Id == caster.Id) {
-                    continue;
-                }
-                foreach(City city in player.Cities) {
-                    if (city.Hex.Is_Explored_By(caster)) {
-                        cursed_cities.Add(city.Hex);
-                        city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = blessing.Duration, Order = -1.0f }, false);
-                    }
-                }
-            }
-            if(cursed_cities.Count == 0) {
-                return new Blessing.BlessingResult(false, "No enemy cities found", null);
-            }
-            return new Blessing.BlessingResult(true, null, cursed_cities);
-        }, null, delegate (Blessing blessing, Player caster, int turns_left) {
-            List<WorldMapHex> cursed_cities = new List<WorldMapHex>();
-            foreach (Player player in Main.Instance.Players) {
-                if (player.Id == caster.Id) {
-                    continue;
-                }
-                foreach (City city in player.Cities) {
-                    if (city.Hex.Is_Explored_By(caster)) {
-                        cursed_cities.Add(city.Hex);
-                        city.Apply_Status_Effect(new CityStatusEffect(blessing.Name, 1) { Parent_Duration = turns_left, Order = -1.0f }, false);
-                    }
-                }
-            }
-            return new Blessing.BlessingResult(true, null, cursed_cities);
-        }) {
-            AI_Casting_Guidance = new Blessing.AIBlessingCastingGuidance(Blessing.AIBlessingCastingGuidance.TargetType.Enemy_Players, Blessing.AIBlessingCastingGuidance.RequiredVision.Enemy_Cities, new Dictionary<AI.Tag, float>())
+        }, null) {
+            AI_Casting_Guidance = new Blessing.AIBlessingCastingGuidance(Blessing.AIBlessingCastingGuidance.TargetType.Caster, null, new Dictionary<AI.Tag, float>() { { AI.Tag.Cash, 10.0f } })
         });
 
-        Kingdom.Blessings.Add(new Blessing("Rural Bounty", 0.0f, 5, 10, null, delegate(Blessing blessing, Player caster) {
-            Blessing.BlessingResult result = new Blessing.BlessingResult(true, null, caster.Villages.Select(x => x.Hex).ToList());
-            float potency = 1.0f + (caster.Faith_Income * 0.33f);
-            foreach(WorldMapHex hex in result.Affected_Hexes) {
-                hex.Apply_Status_Effect(new HexStatusEffect(blessing.Name, 1) { Parent_Duration = blessing.Duration, Yield_Delta = new Yields(potency, potency * 0.5f, potency * 0.25f, 0.0f, 0.0f, 0.0f, 0.0f) }, false);
-            }
-            return result;
-        }, null, delegate (Blessing blessing, Player caster, int turns_left) {
+        Kingdom.Blessings.Add(new Blessing("Rural Bounty", 3.0f, 5, 10, Theology, null, null, delegate (Blessing blessing, Player caster, int turns_left) {
             Blessing.BlessingResult result = new Blessing.BlessingResult(true, null, caster.Villages.Select(x => x.Hex).ToList());
             float potency = 1.0f + (caster.Faith_Income * 0.33f);
             foreach (WorldMapHex hex in result.Affected_Hexes) {
                 hex.Apply_Status_Effect(new HexStatusEffect(blessing.Name, 1) { Parent_Duration = turns_left, Yield_Delta = new Yields(potency, potency * 0.5f, potency * 0.25f, 0.0f, 0.0f, 0.0f, 0.0f) }, false);
             }
             return result;
-        }));
+        }) {
+            AI_Casting_Guidance = new Blessing.AIBlessingCastingGuidance(Blessing.AIBlessingCastingGuidance.TargetType.Caster, null, new Dictionary<AI.Tag, float>() { { AI.Tag.Food, 1.0f }, { AI.Tag.Production, 1.0f }, { AI.Tag.Cash, 1.0f } })
+        });
 
         Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
             { Kingdom.Improvements.First(x => x.Name == "Farm"), Kingdom.Improvements.First(x => x.Name == "Plantation"), Kingdom.Improvements.First(x => x.Name == "Hunting Lodge"),

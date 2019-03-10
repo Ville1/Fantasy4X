@@ -5,8 +5,10 @@ using System.Text;
 public class Blessing : ICooldown {
     private static int current_id = 0;
 
-    public delegate BlessingResult Blessing_Effect(Blessing blessing, Player caster);
+    public delegate BlessingResult Blessing_Effect_Activation(Blessing blessing, Player caster);
+    public delegate BlessingResult Blessing_Effect_Deactivation(Blessing blessing, Player caster, bool interrupted);
     public delegate BlessingResult Blessing_Effect_Turn_Start(Blessing blessing, Player caster, int turns_left);
+    public delegate AI.BlessingPreference Advanced_AI_Guidance_Delegate(Blessing blessing, Player caster, Dictionary<AI.Tag, float> priorities);
 
     public string Name { get; private set; }
     public int Id { get; private set; }
@@ -14,13 +16,14 @@ public class Blessing : ICooldown {
     public int Cooldown { get; private set; }
     public int Duration { get; private set; }
     public Technology Technology_Required { get; private set; }
-    public Blessing_Effect Activation { get; private set; }
-    public Blessing_Effect Deactivation { get; private set; }
+    public Blessing_Effect_Activation Activation { get; private set; }
+    public Blessing_Effect_Deactivation Deactivation { get; private set; }
     public Blessing_Effect_Turn_Start Turn_Start { get; private set; }
     public string Effect_Animation { get; private set; }
     public AIBlessingCastingGuidance AI_Casting_Guidance { get; set; }
+    public Advanced_AI_Guidance_Delegate Advanced_AI_Casting_Guidance { get; set; }
 
-    public Blessing(string name, float faith_required, int cooldown, int duration, Technology technology_required, Blessing_Effect activation, Blessing_Effect deactivation,
+    public Blessing(string name, float faith_required, int cooldown, int duration, Technology technology_required, Blessing_Effect_Activation activation, Blessing_Effect_Deactivation deactivation,
         Blessing_Effect_Turn_Start turn_start, string effect_animation = "default_effect")
     {
         Name = name;
@@ -38,7 +41,7 @@ public class Blessing : ICooldown {
 
     public BlessingResult Cast(Player caster)
     {
-        BlessingResult result = Activation(this, caster);
+        BlessingResult result = Activation != null ? Activation(this, caster) : Turn_Start(this, caster, Duration);
         if (result.Success) {
             caster.Put_On_Cooldown(this);
             caster.Apply_Blessing(this);

@@ -89,6 +89,7 @@ public class BlessingGUIManager : MonoBehaviour {
                 }
                 if (result.Success) {
                     Update_List();
+                    TopGUIManager.Instance.Update_GUI();
                 }
             }));
             go.GetComponentInChildren<Button>().onClick = on_click_event;

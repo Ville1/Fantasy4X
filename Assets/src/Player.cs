@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Player {
     private static readonly string TECH_READY_SOUND_EFFECT = "tech_ready_sfx";
+    private static readonly string BLESSING_EXPIRED_SOUND_EFFECT = "tech_ready_sfx";
     private static readonly string DEFEAT_NOTIFICATION_TEXTURE = "disband";
     private static readonly int MAX_ACTIVE_BLESSINGS = 1;
 
@@ -103,9 +104,12 @@ public class Player {
         foreach (Blessing expiring_blessing in expiring_blessings) {
             active_blessings.Remove(expiring_blessing);
             if (expiring_blessing.Deactivation != null) {
-                Blessing.BlessingResult result = expiring_blessing.Deactivation(expiring_blessing, this);
+                Blessing.BlessingResult result = expiring_blessing.Deactivation(expiring_blessing, this, false);
                 expiring_blessing.Play_Animation(result);
             }
+            Queue_Notification(new Notification(string.Format("{0} has expired", expiring_blessing.Name), "faith", SpriteManager.SpriteType.UI, BLESSING_EXPIRED_SOUND_EFFECT, delegate() {
+                BlessingGUIManager.Instance.Active = true;
+            }));
         }
 
         //Status effects
@@ -375,6 +379,17 @@ public class Player {
         }
     }
 
+    public Dictionary<Blessing, int> Active_Blessings
+    {
+        get {
+            Dictionary<Blessing, int> blessings = new Dictionary<Blessing, int>();
+            foreach (KeyValuePair<Blessing, int> active_blessing_data in active_blessings) {
+                blessings.Add(active_blessing_data.Key, active_blessing_data.Value);
+            }
+            return blessings;
+        }
+    }
+
     public bool Can_Cast(Spell spell)
     {
         return spell.Mana_Cost <= Mana && Spell_Cooldown(spell) == 0 && (spell.Technology_Required == null || Researched_Technologies.Any(x => x.Name == spell.Technology_Required.Name));
@@ -411,7 +426,7 @@ public class Player {
         while(active_blessings.Any(x => x.Key.Name == blessing.Name)) {
             Blessing old_blessing = active_blessings.First(x => x.Key.Name == blessing.Name).Key;
             if(old_blessing.Deactivation != null) {
-                Blessing.BlessingResult result = old_blessing.Deactivation(old_blessing, this);
+                Blessing.BlessingResult result = old_blessing.Deactivation(old_blessing, this, true);
                 old_blessing.Play_Animation(result);
             }
             active_blessings.Remove(old_blessing);

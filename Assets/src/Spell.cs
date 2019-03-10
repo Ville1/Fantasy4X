@@ -7,7 +7,7 @@ public class Spell : ICooldown {
     private static int current_id = 0;
 
     public delegate SpellResult Spell_Effect(Spell spell, Player caster, WorldMapHex hex);
-    public delegate float Advanced_AI_Guidance_Delegate();
+    public delegate AI.SpellPreference Advanced_AI_Guidance_Delegate(Spell spell, Player caster, Dictionary<AI.Tag, float> priorities);
 
     public string Name { get; private set; }
     public int Id { get; private set; }
@@ -46,7 +46,7 @@ public class Spell : ICooldown {
                 //TODO: Do this in GUIManager?
                 EffectManager.Instance.Play_Effect(hex, Effect_Animation);
             }
-            if(Main.Instance.Other_Players_Turn && hex.Owner != null && !hex.Is_Owned_By(caster)) {
+            if(Main.Instance.Other_Players_Turn && hex != null && hex.Owner != null && !hex.Is_Owned_By(caster)) {
                 hex.Owner.Queue_Notification(new Notification(string.Format("{0} casted {1} on {2}", caster.Name, Name, hex.City != null ? hex.City.Name : hex.ToString()),
                     hex.Texture, SpriteManager.SpriteType.Terrain, null, delegate() {
                         CameraManager.Instance.Set_Camera_Location(hex);
@@ -94,7 +94,7 @@ public class Spell : ICooldown {
 
     public class AISpellCastingGuidance
     {
-        public enum TargetType { OwnCity, EnemyCity, OwnHex, EnemyHex }
+        public enum TargetType { OwnCity, EnemyCity, OwnHex, EnemyHex, NoTarget }
         public Dictionary<AI.Tag, float> Effect_Priorities { get; private set; }
         public TargetType Target { get; private set; }
 

@@ -121,6 +121,16 @@ public class Technology {
                 unlocks.Add(trainable.Name);
             }
         }
+        foreach (Spell spell in Owner.Faction.Spells) {
+            if (spell.Technology_Required != null && spell.Technology_Required.Name == Name) {
+                unlocks.Add(spell.Name);
+            }
+        }
+        foreach (Blessing blessing in Owner.Faction.Blessings) {
+            if (blessing.Technology_Required != null && blessing.Technology_Required.Name == Name) {
+                unlocks.Add(blessing.Name);
+            }
+        }
         return unlocks;
     }
 
