@@ -80,6 +80,7 @@ public class Main : MonoBehaviour {
         MasterUIManager.Instance.Show_UI = true;
         GameEndedGUIManager.Instance.Active = false;
         NotificationManager.Instance.Clear_Notifications();
+        NameManager.Instance.Reset();
         foreach (Player p in Players) {
             if(p.AI != null) {
                 p.AI.On_Delete();

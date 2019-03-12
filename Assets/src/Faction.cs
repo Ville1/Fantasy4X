@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 
 public class Faction {
+    private static int current_id = 0;
+
+    public int Id { get; private set; }
     public string Name { get; private set; }
     public int Starting_Cash { get; private set; }
     public int Capital_Starting_Population { get; private set; }
@@ -51,6 +54,9 @@ public class Faction {
         EmpireModifiers = modifiers;
         Spells = new List<Spell>();
         Blessings = new List<Blessing>();
+
+        Id = current_id;
+        current_id++;
     }
 
     public override string ToString()

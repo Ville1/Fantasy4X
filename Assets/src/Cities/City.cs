@@ -119,8 +119,8 @@ public class City : Ownable, Influencable, TradePartner
         Auto_Apply_Unemployed_Pops();
 
         Id = current_id;
-        Name = string.Format("City #{0}", Id);
         current_id++;
+        Name = NameManager.Instance.Get_Name(NameManager.NameType.City, owner.Faction, false);
     }
 
     public void Start_Game()
@@ -1350,6 +1350,9 @@ public class City : Ownable, Influencable, TradePartner
         if(Owner.Cities.Count == 0 && !Owner.Is_Neutral) {
             Owner.Defeated = true;
         }
+        Owner.Queue_Notification(new Notification("{0} has been conquered!", Hex.Texture, SpriteManager.SpriteType.Terrain, null, delegate() {
+            CameraManager.Instance.Set_Camera_Location(Hex);
+        }));
         Owner = conqueror;
         Owner.Cities.Add(this);
         foreach(WorldMapHex hex in Worked_Hexes) {

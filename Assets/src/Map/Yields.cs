@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using UnityEngine;
 
 public class Yields {
     public float Food { get; set; }

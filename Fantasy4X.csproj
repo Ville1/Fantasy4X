@@ -130,6 +130,7 @@
     <Compile Include="Assets\src\MapEntities\SelectionCircle.cs" />
     <Compile Include="Assets\src\MapEntities\Worker.cs" />
     <Compile Include="Assets\src\MapEntities\WorldMapEntity.cs" />
+    <Compile Include="Assets\src\NameManager.cs" />
     <Compile Include="Assets\src\Ownable.cs" />
     <Compile Include="Assets\src\Pathfinding\Pathfinding.cs" />
     <Compile Include="Assets\src\Pathfinding\PathfindingNode.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="Assets\src\UI\BottomGUIManager.cs" />
     <Compile Include="Assets\src\UI\CameraManager.cs" />
     <Compile Include="Assets\src\UI\CityGUIManager.cs" />
+    <Compile Include="Assets\src\UI\CityOrVillageOverviewGUIManager.cs" />
     <Compile Include="Assets\src\UI\CombatLogManager.cs" />
     <Compile Include="Assets\src\UI\CombatUIManager.cs" />
     <Compile Include="Assets\src\UI\ConsoleManager.cs" />

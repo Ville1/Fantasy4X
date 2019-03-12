@@ -57,6 +57,10 @@ public class HexPanelManager : MonoBehaviour
             Panel.SetActive(value);
             if(hex != null) {
                 hex.Borders = Active ? Border_Color : (Color?)null;
+                CityOrVillageOverviewGUIManager.Instance.Current = hex.Trade_Partner;
+            }
+            if (!Active) {
+                CityOrVillageOverviewGUIManager.Instance.Active = false;
             }
         }
     }
@@ -77,6 +81,7 @@ public class HexPanelManager : MonoBehaviour
                 return;
             }
             Active = true;
+            CityOrVillageOverviewGUIManager.Instance.Current = hex.Trade_Partner;
             TooltipManager.Instance.Unregister_Tooltips_By_Owner(gameObject);
             Terrain_Text.text = hex.Terrain + " " + hex.Coordinates.X + "," + hex.Coordinates.Y;
             Hex_Image.overrideSprite = SpriteManager.Instance.Get_Sprite(hex.Texture, SpriteManager.SpriteType.Terrain);

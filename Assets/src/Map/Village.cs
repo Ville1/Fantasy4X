@@ -19,7 +19,6 @@ public class Village : Ownable, Influencable, TradePartner
         Hex.Village = this;
         Id = current_id;
         current_id++;
-        Name = string.Format("Village #{0}", Id);
         Owner = owner;
         Hex.Owner = Owner;
         Flag = new Flag(hex);
@@ -35,6 +34,8 @@ public class Village : Ownable, Influencable, TradePartner
                 Is_Coastal = true;
             }
         }
+
+        Name = NameManager.Instance.Get_Name(NameManager.NameType.Village, null, false);
     }
 
     public float Cultural_Influence_Resistance {

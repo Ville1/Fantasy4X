@@ -287,6 +287,7 @@ public class Army : WorldMapEntity {
             Attack(new_hex.Entity as Army);
             return true;
         }
+        WorldMapHex old_hex = Hex;
         bool success = base.Move(new_hex, ignore_movement_restrictions, update_los);
         if(success)  {
             if (!ignore_movement_restrictions) {
@@ -299,6 +300,9 @@ public class Army : WorldMapEntity {
             }
             if(Hex.City != null && !Hex.City.Is_Owned_By(Owner)) {
                 Hex.City.Conquer(Owner);
+            }
+            if(old_hex.Village != null) {
+                old_hex.Village.Update_Owner();
             }
             if (Hex.Village != null && !Hex.Village.Is_Owned_By(Owner)) {
                 Hex.Village.Update_Owner();
