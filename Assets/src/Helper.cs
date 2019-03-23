@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Helper {
     /// <summary>
@@ -74,19 +75,19 @@ public class Helper {
         return string.Format("{0}{1}", (show_plus_sign ? "+" : string.Empty), rounded);
     }
 
-    public static List<string> Copy_List(List<string> original)
+    public static List<T> Copy_List<T>(List<T> original)
     {
-        List<string> copy = new List<string>();
-        foreach(string s in original) {
-            copy.Add(s);
+        List<T> copy = new List<T>();
+        foreach(T item in original) {
+            copy.Add(item);
         }
         return copy;
     }
 
-    public static Dictionary<Unit.DamageType, float> Copy_Dictionary(Dictionary<Unit.DamageType, float> dictionary)
+    public static Dictionary<T, float> Copy_Dictionary<T>(Dictionary<T, float> dictionary)
     {
-        Dictionary<Unit.DamageType, float> copy = new Dictionary<Unit.DamageType, float>();
-        foreach(KeyValuePair<Unit.DamageType, float> pair in dictionary) {
+        Dictionary<T, float> copy = new Dictionary<T, float>();
+        foreach(KeyValuePair<T, float> pair in dictionary) {
             copy.Add(pair.Key, pair.Value);
         }
         return copy;
@@ -116,5 +117,13 @@ public class Helper {
             index -= direction_array.Length;
         }
         return direction_array[index];
+    }
+
+    public static void Destroy_GameObjects(ref List<GameObject> list)
+    {
+        foreach(GameObject go in list) {
+            GameObject.Destroy(go);
+        }
+        list.Clear();
     }
 }

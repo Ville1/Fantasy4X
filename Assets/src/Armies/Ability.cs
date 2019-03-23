@@ -7,12 +7,14 @@ public class Ability {
     public delegate float Get_Fluctuating_Relative_Strength_Multiplier_Delegate(Ability ability, WorldMapHex hex, bool attacker);
     public delegate float Get_Relative_Strength_Multiplier_Delegate(Ability ability);
     public delegate float Get_Run_Stamina_Cost_Multiplier_Delegate(Ability ability, CombatMapHex hex);
+    public delegate bool Allow_Ranged_Attack_Delegate(Ability ability, Unit unit, CombatMapHex hex);
     public delegate float Get_Upkeep_Multiplier_Delegate(Ability ability, WorldMapHex hex);
     public delegate CityEffects Get_City_Effects_Delegate(Ability ability, City city);
 
     public string Name { get; private set; }
     public float Potency { get; set; }
     public bool Potency_As_Percent { get; private set; }
+    public bool Uses_Potency { get; private set; }
     public Calculate_Damage_Delegate On_Calculate_Melee_Damage_As_Attacker { get; set; }
     public Calculate_Damage_Delegate On_Calculate_Melee_Damage_As_Defender { get; set; }
     public Calculate_Damage_Delegate On_Calculate_Ranged_Damage_As_Attacker { get; set; }
@@ -34,12 +36,14 @@ public class Ability {
     /// </summary>
     public Get_Upkeep_Multiplier_Delegate Get_Upkeep_Multiplier { get; set; }
     public Get_City_Effects_Delegate Get_City_Effects { get; set; }
+    public Allow_Ranged_Attack_Delegate On_Allow_Ranged_Attack { get; set; }
 
-    public Ability(string name, float potency, bool potency_as_percent)
+    public Ability(string name, float potency, bool potency_as_percent, bool uses_potency)
     {
         Name = name;
         Potency = potency;
         Potency_As_Percent = potency_as_percent;
+        Uses_Potency = uses_potency;
     }
 
     /// <summary>
@@ -47,23 +51,17 @@ public class Ability {
     /// </summary>
     /// <param name="name"></param>
     /// <param name="potency_as_percent"></param>
-    public Ability(string name, bool potency_as_percent)
+    public Ability(string name, bool potency_as_percent, bool uses_potency)
     {
         Name = name;
         Potency = 0.0f;
         Potency_As_Percent = potency_as_percent;
-    }
-    
-    public bool Uses_Potency
-    {
-        get {
-            return Potency != -1.0f;
-        }
+        Uses_Potency = uses_potency;
     }
 
     public Ability Clone()
     {
-        Ability clone = new Ability(Name, Potency, Potency_As_Percent);
+        Ability clone = new Ability(Name, Potency, Potency_As_Percent, Uses_Potency);
         clone.On_Calculate_Melee_Damage_As_Attacker = On_Calculate_Melee_Damage_As_Attacker;
         clone.On_Calculate_Melee_Damage_As_Defender = On_Calculate_Melee_Damage_As_Defender;
         clone.On_Calculate_Ranged_Damage_As_Attacker = On_Calculate_Ranged_Damage_As_Attacker;
@@ -73,6 +71,7 @@ public class Ability {
         clone.Get_Run_Stamina_Cost_Multiplier = Get_Run_Stamina_Cost_Multiplier;
         clone.Get_Upkeep_Multiplier = Get_Upkeep_Multiplier;
         clone.Get_City_Effects = Get_City_Effects;
+        clone.On_Allow_Ranged_Attack = On_Allow_Ranged_Attack;
         return clone;
     }
 

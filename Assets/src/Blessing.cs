@@ -99,6 +99,13 @@ public class Blessing : ICooldown {
             Affected_Hexes = affected_hexes == null ? new List<WorldMapHex>() : affected_hexes;
         }
 
+        public BlessingResult(bool success, string message, WorldMapHex affected_hex)
+        {
+            Success = success;
+            Message = message;
+            Affected_Hexes = affected_hex == null ? new List<WorldMapHex>() : new List<WorldMapHex>() { affected_hex };
+        }
+
         public bool Success { get; set; }
         public string Message { get; set; }
         public bool Has_Message { get { return !string.IsNullOrEmpty(Message); } }

@@ -37,6 +37,8 @@ public class Building {
     public float Village_Cultural_Influence { get; set; }
     public float Trade_Value { get; set; }
     public float Max_Mana { get; set; }
+    public float Health_Penalty_From_Buildings_Multiplier { get; set; }
+    public int Update_Priority { get; set; }
 
     private float upkeep;
     private bool paused;
@@ -77,6 +79,8 @@ public class Building {
         Village_Cultural_Influence = prototype.Village_Cultural_Influence;
         Trade_Value = prototype.Trade_Value;
         Max_Mana = prototype.Max_Mana;
+        Health_Penalty_From_Buildings_Multiplier = prototype.Health_Penalty_From_Buildings_Multiplier;
+        Update_Priority = prototype.Update_Priority;
     }
 
     public Building(string name, string texture, int production_required, int cost, float upkeep, Yields yields, float happiness, float health, float order,
@@ -110,6 +114,8 @@ public class Building {
         Cultural_Influence_Range = 0.0f;
         Village_Cultural_Influence = 0.0f;
         Trade_Value = 0.0f;
+        Health_Penalty_From_Buildings_Multiplier = 0.0f;
+        Update_Priority = 0;
     }
 
     public Yields Yields
@@ -248,6 +254,9 @@ public class Building {
             }
             if (Trade_Value != 0.0f) {
                 tooltip.Append(Environment.NewLine).Append("Trade value: ").Append(Math.Round(Trade_Value, 1).ToString("0.0"));
+            }
+            if (Health_Penalty_From_Buildings_Multiplier != 0.0f) {
+                tooltip.Append(Environment.NewLine).Append("Health penalty from buildings: ").Append(Mathf.RoundToInt(100.0f * Health_Penalty_From_Buildings_Multiplier)).Append("%");
             }
             return tooltip.ToString();
         }

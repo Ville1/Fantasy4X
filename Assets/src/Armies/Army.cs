@@ -458,7 +458,7 @@ public class Army : WorldMapEntity {
 
     public void Update_Text()
     {
-        if (!text_initialized) {
+        if (!text_initialized || Was_Deleted) {
             return;
         }
         if(Relative_Strenght < 1000.0f) {

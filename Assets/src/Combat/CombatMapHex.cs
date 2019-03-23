@@ -16,6 +16,7 @@ public class CombatMapHex : Hex {
     public float Run_Stamina_Penalty { get; private set; }
     public int Elevation { get; private set; }
     public int Height { get; private set; }
+    public float Cover { get; private set; }
     public Unit Unit { get; set; }
     public CombatMap Map { get; private set; }
     public List<Tag> Tags { get; private set; }
@@ -31,7 +32,7 @@ public class CombatMapHex : Hex {
     /// <summary>
     /// Prototype constructor
     /// </summary>
-    public CombatMapHex(string terrain, string texture, float movement_cost, float run_stamina_penalty, int elevation, int height, List<Tag> tags) : base()
+    public CombatMapHex(string terrain, string texture, float movement_cost, float run_stamina_penalty, int elevation, int height, float cover, List<Tag> tags) : base()
     {
         Terrain = terrain;
         Texture = texture;
@@ -39,10 +40,8 @@ public class CombatMapHex : Hex {
         Run_Stamina_Penalty = run_stamina_penalty;
         Elevation = elevation;
         Height = height;
-        Tags = new List<Tag>();
-        foreach(Tag tag in tags) {
-            Tags.Add(tag);
-        }
+        Cover = cover;
+        Tags = Helper.Copy_List(tags);
     }
 
     public void Change_To(CombatMapHex prototype)
@@ -53,11 +52,8 @@ public class CombatMapHex : Hex {
         Run_Stamina_Penalty = prototype.Run_Stamina_Penalty;
         Elevation = prototype.Elevation;
         Height = prototype.Height;
-        Tags = new List<Tag>();
-        Tags = new List<Tag>();
-        foreach (Tag tag in prototype.Tags) {
-            Tags.Add(tag);
-        }
+        Cover = prototype.Cover;
+        Tags = Helper.Copy_List(prototype.Tags);
         SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
     }
 

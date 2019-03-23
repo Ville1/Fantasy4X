@@ -42,6 +42,12 @@ public class CombatManager : MonoBehaviour {
         if (!Active_Combat) {
             return;
         }
+        foreach(Unit unit in Army_1.Units) {
+            unit.Update(Time.deltaTime);
+        }
+        foreach (Unit unit in Army_2.Units) {
+            unit.Update(Time.deltaTime);
+        }
         if (Retreat_Phase) {
             if (retreat_timer > 0.0f) {
                 retreat_timer -= Time.deltaTime;
@@ -115,6 +121,9 @@ public class CombatManager : MonoBehaviour {
         MessageManager.Instance.Show_Message(victory ? "Victory" : "Defeat");
         if (victory) {
             Army_1.Push_Into(hex);
+            if(hex.City != null) {//Villages?
+                Army_2.Delete();
+            }
         }
         Army_1.Update_Text();
         Army_2.Update_Text();

@@ -19,6 +19,7 @@ public class Worker : WorldMapEntity, Trainable
     public Technology Technology_Required { get; private set; }
     public float Work_Speed { get; private set; }
     public bool Requires_Coast { get { return Movement_Type == Map.MovementType.Water; } }
+    public float Mineral_Reroll_Chance { get; private set; }
 
     public Worker(WorldMapHex hex, Worker prototype, Player owner) : base(hex, prototype, owner, true)
     {
@@ -33,6 +34,7 @@ public class Worker : WorldMapEntity, Trainable
         Technology_Required = prototype.Technology_Required;
         Working_Animation = Helper.Copy_List(prototype.Working_Animation);
         Working_Animation_FPS = prototype.Working_Animation_FPS;
+        Mineral_Reroll_Chance = prototype.Mineral_Reroll_Chance;
         Update_Actions_List();
     }
 
@@ -44,7 +46,7 @@ public class Worker : WorldMapEntity, Trainable
     /// <param name="los"></param>
     /// <param name="texture"></param>
     public Worker(string name, float max_movement, Map.MovementType movement, int los, string texture, List<string> working_animation, float working_animation_fps,
-        List<Improvement> buildable_improvements, float work_speed, int cost, int production_required, float upkeep, Technology technology_required) :
+        List<Improvement> buildable_improvements, float work_speed, int cost, int production_required, float upkeep, Technology technology_required, float reroll_chance) :
             base(name, max_movement, movement, los, texture)
     {
         Buildable_Improvements = buildable_improvements;
@@ -55,6 +57,7 @@ public class Worker : WorldMapEntity, Trainable
         Working_Animation = working_animation;
         Working_Animation_FPS = working_animation_fps;
         Technology_Required = technology_required;
+        Mineral_Reroll_Chance = reroll_chance;
     }
 
     public void Start_Construction(Improvement improvement)
@@ -90,8 +93,23 @@ public class Worker : WorldMapEntity, Trainable
                     Hex.Improvement.Delete();
                 }
                 Hex.Improvement = new Improvement(Hex, Improvement_Under_Construction);
-                if(Hex.Improvement.Extracts_Minerals && Hex.Can_Spawn_Minerals) {
+                if(Hex.Improvement.Extracts_Minerals && Hex.Can_Spawn_Minerals && !Hex.Is_Prospected_By(Owner)) {
                     Hex.Prospect(Owner);
+                    if (Hex.Mineral == null && Mineral_Reroll_Chance > 0.0f && RNG.Instance.Next(0, 100) <= Mathf.RoundToInt(100.0f * Mineral_Reroll_Chance)) {
+                        CustomLogger.Instance.Debug(string.Format("Worker #{0} rerolled mineral!", Id));
+                        if (RNG.Instance.Next(100) <= Mathf.RoundToInt(World.Instance.Map.Mineral_Spawn_Rate * 100.0f)) {
+                            Hex.Spawn_Mineral();
+                            CustomLogger.Instance.Debug(string.Format("{0} spawned!", Hex.Mineral.Name));
+                        } else {
+                            CustomLogger.Instance.Debug("Nothing spawned");
+                        }
+                    }
+                    if (Hex.Mineral != null) {
+                        Owner.Queue_Notification(new Notification("Mineral found: " + Hex.Mineral.Name, "prospect", SpriteManager.SpriteType.UI, null, delegate () {
+                            BottomGUIManager.Instance.Current_Entity = this;
+                            CameraManager.Instance.Set_Camera_Location(Hex);
+                        }));
+                    }
                 }
                 Stop_Building();
             }
@@ -206,11 +224,14 @@ public class Worker : WorldMapEntity, Trainable
             tooltip.Append(Name);
             tooltip.Append(Environment.NewLine).Append("Upkeep: ").Append(Math.Round(Upkeep, 2).ToString("0.00"));
             tooltip.Append(Environment.NewLine).Append("Work Speed: ").Append(Math.Round(Work_Speed, 1).ToString("0.0"));
+            if(Mineral_Reroll_Chance != 0.0f) {
+                tooltip.Append(Environment.NewLine).Append("Mineral Reroll Chance: ").Append(Helper.Float_To_String(Mineral_Reroll_Chance * 100.0f, 0)).Append("%");
+            }
             tooltip.Append(Environment.NewLine).Append("Movement: ").Append(Mathf.RoundToInt(Max_Movement));
             if(Movement_Type == Map.MovementType.Water) {
-                tooltip.Append(Environment.NewLine).Append("Water unit");
+                tooltip.Append(Environment.NewLine).Append("Water Unit");
             } else if (Movement_Type == Map.MovementType.Amphibious) {
-                tooltip.Append(Environment.NewLine).Append("Amphibious unit").Append(Mathf.RoundToInt(Max_Movement));
+                tooltip.Append(Environment.NewLine).Append("Amphibious Unit").Append(Mathf.RoundToInt(Max_Movement));
             }
             tooltip.Append(Environment.NewLine).Append("Improvements:");
             foreach(Improvement improvement in Buildable_Improvements) {

@@ -25,6 +25,7 @@ public class WorldMapEntity : Ownable {
     public int Stored_Path_Index { get; set; }
     public Flag Flag { get; private set; }
     public Map.MovementType Movement_Type { get; private set; }
+    public bool Was_Deleted { get; private set; }
 
     private float animation_frame_time_left;
     protected bool wait_turn;
@@ -188,6 +189,11 @@ public class WorldMapEntity : Ownable {
         return Hex.Get_Hexes_In_LoS(LoS);
     }
 
+    /// <summary>
+    /// TODO: Duplicated code: Unit
+    /// </summary>
+    /// <param name="textures"></param>
+    /// <param name="animation_fps"></param>
     public void Start_Animation(List<string> textures, float animation_fps)
     {
         Current_Animation = new List<Sprite>();
@@ -236,6 +242,10 @@ public class WorldMapEntity : Ownable {
         if(BottomGUIManager.Instance.Current_Entity == this) {
             BottomGUIManager.Instance.Current_Entity = null;
         }
+        Owner.Queue_Notification(new Notification(string.Format("{0} was destroyed", Name), Texture, SpriteManager.SpriteType.Unit, null, delegate () {
+            CameraManager.Instance.Set_Camera_Location(Hex);
+        }));
+        Was_Deleted = true;
     }
 
     public WorldMapHex Stored_Path_Target

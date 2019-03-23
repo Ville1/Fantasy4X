@@ -26,6 +26,7 @@ public class Player {
     public bool Is_Neutral { get; private set; }
     public StatusEffectList<EmpireModifierStatusEffect> Status_Effects { get; private set; }
 
+    private Dictionary<string, object> temp_data;
     private bool defeated;
     private float score;
     private List<Notification> notification_queue;
@@ -69,6 +70,7 @@ public class Player {
         blessings_on_cooldown = new CooldownManager<Blessing>();
         active_blessings = new Dictionary<Blessing, int>();
         Status_Effects = new StatusEffectList<EmpireModifierStatusEffect>();
+        temp_data = new Dictionary<string, object>();
     }
 
     public void End_Turn()
@@ -443,6 +445,25 @@ public class Player {
                 city.Yields_Changed();
             }
         }
+    }
+
+    public void Store_Temp_Data(string key, object data)
+    {
+        if (temp_data.ContainsKey(key)) {
+            temp_data[key] = data;
+        } else {
+            temp_data.Add(key, data);
+        }
+    }
+
+    public T Get_Temp_Data<T>(string key, bool remove = false)
+    {
+        if (!remove) {
+            return (T)temp_data[key];
+        }
+        T data = (T)temp_data[key];
+        temp_data.Remove(key);
+        return data;
     }
 
     public class NewPlayerData

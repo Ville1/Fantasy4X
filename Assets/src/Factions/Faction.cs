@@ -26,11 +26,12 @@ public class Faction {
     public bool Reveal_Trade_Routes { get; private set; }
     public List<Spell> Spells { get; private set; }
     public List<Blessing> Blessings { get; private set; }
+    public string City_Hex { get; private set; }
 
     public Faction(string name, int starting_cash, int capital_starting_population, Dictionary<City.CitySize, Yields> city_yields,
         float pop_food_consumption, int max_food_storage_per_city, float base_happiness, float happiness_from_pops,
         float base_health, float health_from_pops, float base_order, float order_from_pops, float enemy_cultural_influence_unhappiness_multiplier,
-        bool reveal_trade_routes, Technology root_technology, Army army_prototype, EmpireModifiers modifiers)
+        bool reveal_trade_routes, string city_hex, Technology root_technology, Army army_prototype, EmpireModifiers modifiers)
     {
         Name = name;
         Starting_Cash = starting_cash;
@@ -52,6 +53,7 @@ public class Faction {
         Root_Technology = root_technology;
         Army_Prototype = army_prototype;
         EmpireModifiers = modifiers;
+        City_Hex = city_hex;
         Spells = new List<Spell>();
         Blessings = new List<Blessing>();
 

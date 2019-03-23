@@ -22,17 +22,40 @@ public class Unit : Trainable
     private static readonly float morale_gained_on_rout_multiplier = 0.5f;
     private static readonly float morale_damage_bonus_on_charge = 0.25f;
 
+    private static readonly Dictionary<AttackArch, float> ARCH_ATTACK_MULTIPLIERS = new Dictionary<AttackArch, float>() {
+        { AttackArch.None, 0.1f },
+        { AttackArch.Low, 0.0f },
+        { AttackArch.High, -0.25f }
+    };
+    private static readonly Dictionary<AttackArch, float> ARCH_RANGE_MULTIPLIERS = new Dictionary<AttackArch, float>() {
+        { AttackArch.None, 0.0f },
+        { AttackArch.Low, 0.0f },
+        { AttackArch.High, -0.25f }
+    };
+    private static readonly Dictionary<AttackArch, string> ARCH_DETAIL_DESCRIPTIONS = new Dictionary<AttackArch, string>() {
+        { AttackArch.None, "Straight Shot" },
+        { AttackArch.Low, "Arching Shot" },
+        { AttackArch.High, "High Arching Shot" }
+    };
+    private static readonly int MAX_ELEVATION_DIFFERENCE = 1;
+    private static readonly float ELEVATION_DIFFERENCE_RANGE_MULTIPLIER = 0.1f;
+
     private static int current_id = 0;
 
     public enum DamageType { Slash, Thrust, Impact }
+    public enum DamageProperty { Magical, Psionic }
     public enum UnitType { Undefined, Infantry, Cavalry }
+    public enum ArmorType { Unarmoured, Light, Medium, Heavy }
+    public enum AttackArch { None, Low, High }
     public enum Tag
     {
         Small_Shields,
         Medium_Shields,//Axe units tend to gain bonuses against shielded units
         Large_Shields,
         Wooden,//Axe again
-        Undead
+        Undead,
+        Siege_Weapon,
+        Large
     }
 
     public string Name { get; private set; }
@@ -67,8 +90,12 @@ public class Unit : Trainable
     public float Charge { get; private set; }
     public float Run_Stamina_Cost { get; private set; }
     public Dictionary<DamageType, float> Melee_Attack_Types { get; private set; }
+    public Dictionary<DamageProperty, float> Melee_Attack_Properties { get; private set; }
     public float Ranged_Attack { get; private set; }
     public Dictionary<DamageType, float> Ranged_Attack_Types { get; private set; }
+    public Dictionary<DamageProperty, float> Ranged_Attack_Properties { get; private set; }
+    public List<string> Ranged_Attack_Animation { get; private set; }
+    public string Ranged_Attack_Effect_Name { get; private set; }
     public int Range { get; private set; }
     public int Current_Ammo { get; private set; }
     public int Max_Ammo { get; private set; }
@@ -81,18 +108,20 @@ public class Unit : Trainable
     public Player Owner { get { return Army != null ? Army.Owner : null; } }
     public List<StatusBar> Bars { get; private set; }
     public float Mana_Upkeep { get; private set; }
+    public ArmorType Armor { get; private set; }
+    public bool Requires_Coast { get { return false; } }
+
 
     public bool Has_Moved_This_Turn { get; private set; }
     public bool Last_Move_This_Turn_Was_Running { get; private set; }
+    public bool Wait_Turn { get; set; } 
 
-    public bool Wait_Turn { get; set; }
-
-    public bool Requires_Coast { get { return false; } }
 
     private float animation_frame_time_left;
     private bool can_run;
     private float relative_strenght;
     private float upkeep;
+    private bool repeat_animation;
 
     public Unit(Unit prototype)
     {
@@ -116,10 +145,7 @@ public class Unit : Trainable
         foreach(Ability ability in prototype.Abilities) {
             Abilities.Add(ability.Clone());
         }
-        Tags = new List<Tag>();
-        foreach(Tag t in prototype.Tags) {
-            Tags.Add(t);
-        }
+        Tags = Helper.Copy_List(prototype.Tags);
         Bars = new List<StatusBar>();
 
         Manpower = 1.0f;
@@ -130,8 +156,12 @@ public class Unit : Trainable
         Melee_Attack = prototype.Melee_Attack;
         Charge = prototype.Charge;
         Melee_Attack_Types = Helper.Copy_Dictionary(prototype.Melee_Attack_Types);
+        Melee_Attack_Properties = Helper.Copy_Dictionary(prototype.Melee_Attack_Properties);
         Ranged_Attack = prototype.Ranged_Attack;
         Ranged_Attack_Types = Helper.Copy_Dictionary(prototype.Ranged_Attack_Types);
+        Ranged_Attack_Properties = Helper.Copy_Dictionary(prototype.Ranged_Attack_Properties);
+        Ranged_Attack_Effect_Name = prototype.Ranged_Attack_Effect_Name;
+        Ranged_Attack_Animation = prototype.Ranged_Attack_Animation != null ? Helper.Copy_List(prototype.Ranged_Attack_Animation) : null;
         Range = prototype.Range;
         Max_Ammo = prototype.Max_Ammo;
         Melee_Defence = prototype.Melee_Defence;
@@ -139,6 +169,7 @@ public class Unit : Trainable
         Resistances = Helper.Copy_Dictionary(prototype.Resistances);
         Morale_Value = prototype.Morale_Value;
         Discipline = prototype.Discipline;
+        Armor = prototype.Armor;
 
         Id = current_id;
         current_id++;
@@ -177,8 +208,8 @@ public class Unit : Trainable
     /// <param name="discipline"></param>
     public Unit(string name, UnitType type, string texture, float campaing_map_movement, int production_required, int cost, float upkeep, float mana_upkeep, int los, Technology technology_required,
         List<Building> buildings_required, float movement, bool can_run, float run_stamina_cost, float morale, float stamina, float melee_attack, Dictionary<DamageType, float> melee_attack_types,
-        float charge, float ranged_attack, Dictionary<DamageType, float> ranged_attack_types, int range, int ammo, float melee_defence, float ranged_defence,
-        Dictionary<DamageType, float> resistances, float morale_value, float discipline, List<Ability> abilities, List<Tag> tags)
+        float charge, float ranged_attack, Dictionary<DamageType, float> ranged_attack_types, int range, int ammo, string ranged_attack_effect_name, List<string> ranged_attack_animation,
+        float melee_defence, float ranged_defence, Dictionary<DamageType, float> resistances, float morale_value, float discipline, ArmorType armor, List<Ability> abilities, List<Tag> tags)
     {
         Name = name;
         Type = type;
@@ -200,9 +231,13 @@ public class Unit : Trainable
         Melee_Attack = melee_attack;
         Charge = charge;
         Melee_Attack_Types = melee_attack_types;
+        Melee_Attack_Properties = new Dictionary<DamageProperty, float>();
         Ranged_Attack = ranged_attack;
         Ranged_Attack_Types = ranged_attack_types;
+        Ranged_Attack_Properties = new Dictionary<DamageProperty, float>();
+        Ranged_Attack_Effect_Name = ranged_attack_effect_name;
         Range = range;
+        Ranged_Attack_Animation = ranged_attack_animation;
         Max_Ammo = ammo;
         Melee_Defence = melee_defence;
         Ranged_Defence = ranged_defence;
@@ -210,6 +245,7 @@ public class Unit : Trainable
         Morale_Value = morale_value;
         Discipline = discipline;
         Abilities = abilities;
+        Armor = armor;
         Tags = tags;
         Bars = new List<StatusBar>();
 
@@ -318,6 +354,7 @@ public class Unit : Trainable
         StatusBar.Update_Bars(this);
         Has_Moved_This_Turn = true;
         Last_Move_This_Turn_Was_Running = run;
+        Stop_Animation();//TODO: Move / run animations?
 
         return true;
     }
@@ -379,27 +416,38 @@ public class Unit : Trainable
             Get_Hexes_In_Movement_Range_Recursive(hex, adjancent_hex, movement, run, hexes);
         }
     }
-
-    /// <summary>
-    /// TODO: Arching shots
-    /// </summary>
-    /// <returns></returns>
+    
     public List<CombatMapHex> Get_Hexes_In_Attack_Range()
     {
         if(Range <= 0.0f) {
             return new List<CombatMapHex>();
         }
-        return Hex.Get_Hexes_Around(Range);
+        List<CombatMapHex> hexes = new List<CombatMapHex>();
+        foreach(CombatMapHex hex in Hex.Get_Hexes_Around(Mathf.RoundToInt(Range * (1.0f + (MAX_ELEVATION_DIFFERENCE * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER))))) {
+            if (In_Attack_Range(hex)) {
+                hexes.Add(hex);
+            }
+        }
+        return hexes;
     }
-
-    /// <summary>
-    /// TODO: Arching shots
-    /// </summary>
-    /// <param name="hex"></param>
-    /// <returns></returns>
+    
     public bool In_Attack_Range(CombatMapHex hex)
     {
-        return Hex.Distance(hex) <= Range;
+        float effective_range = Range;
+        effective_range *= 1.0f + ((Hex.Elevation - hex.Elevation) * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER);
+        if(effective_range < 1.0f) {
+            effective_range = 1.0f;
+        }
+        effective_range *= 1.0f + ARCH_RANGE_MULTIPLIERS[Get_Attack_Arch(hex)];
+        if(Hex.Distance(hex) > effective_range) {
+            return false;
+        }
+        foreach (Ability ability in Abilities) {
+            if (ability.On_Allow_Ranged_Attack != null && !ability.On_Allow_Ranged_Attack(ability, this, hex)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public bool Can_Run
@@ -623,7 +671,6 @@ public class Unit : Trainable
     {
         AttackResult attacker_result = new AttackResult();
         AttackResult defender_result = new AttackResult();
-
         
         //Attacker's attack
         defender_result.Can_Attack = null;
@@ -682,6 +729,11 @@ public class Unit : Trainable
         float ability_defence_delta = 0.0f;
         float ability_defence_multiplier = 1.0f;
 
+        result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = Morale_Effect - 1.0f, Description = "Morale" });
+        result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = Stamina_Effect - 1.0f, Description = "Stamina" });
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = target.Morale_Effect - 1.0f, Description = "Morale" });
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = target.Stamina_Effect - 1.0f, Description = "Stamina" });
+
         //Charge TODO: double loops
         float ability_charge_multiplier = 1.0f;
         Dictionary<DamageType, float> melee_attack_types = Melee_Attack_Types;
@@ -702,7 +754,9 @@ public class Unit : Trainable
             ability_charge_multiplier += ability.On_Calculate_Melee_Damage_As_Defender(ability, this, target, result).Charge_Multiplier;
         }
         if (Last_Move_This_Turn_Was_Running) {
-            attack *= (1.0f + (Charge * Mathf.Max(ability_charge_multiplier, 0.05f)));
+            float charge_bonus = Charge * Mathf.Max(ability_charge_multiplier, 0.05f);
+            attack *= (1.0f + charge_bonus);
+            result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = charge_bonus, Description = "Charge" });
         }
 
         //Base defence
@@ -717,6 +771,7 @@ public class Unit : Trainable
             CustomLogger.Instance.Warning(string.Format("Unit {0} does not have proper melee damage types, they have sum of {1}", Name, total));
         }
         defence *= resistance_multiplier;
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
 
         //Ability delta
         foreach (Ability ability in Abilities) {
@@ -726,8 +781,10 @@ public class Unit : Trainable
             Ability.DamageData data = ability.On_Calculate_Melee_Damage_As_Attacker(ability, this, target, result);
             ability_attack_delta += data.Attack_Delta;
             ability_attack_multiplier += data.Attack_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Attack_Delta = data.Attack_Delta, Attack_Multiplier = data.Attack_Multiplier, Description = ability.Name });
             ability_defence_delta += data.Defence_Delta;
             ability_defence_multiplier += data.Defence_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Defence_Delta = data.Defence_Delta, Defence_Multiplier = data.Defence_Multiplier, Description = ability.Name });
         }
         foreach (Ability ability in target.Abilities) {
             if (ability.On_Calculate_Melee_Damage_As_Defender == null) {
@@ -736,8 +793,10 @@ public class Unit : Trainable
             Ability.DamageData data = ability.On_Calculate_Melee_Damage_As_Defender(ability, this, target, result);
             ability_attack_delta += data.Attack_Delta;
             ability_attack_multiplier += data.Attack_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Attack_Delta = data.Attack_Delta, Attack_Multiplier = data.Attack_Multiplier, Description = ability.Name });
             ability_defence_delta += data.Defence_Delta;
             ability_defence_multiplier += data.Defence_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Defence_Delta = data.Defence_Delta, Defence_Multiplier = data.Defence_Multiplier, Description = ability.Name });
         }
         attack = Mathf.Max(attack + ability_attack_delta, 1.0f);
         attack *= Mathf.Max(ability_attack_multiplier, 0.05f);
@@ -757,14 +816,14 @@ public class Unit : Trainable
         if(!preview && (!In_Attack_Range(target.Hex) || !Can_Ranged_Attack)) {
             return null;
         }
-
+        
         if(preview && !Can_Ranged_Attack) {
             return Perform_Melee_Attack(target, preview);
         }
 
         AttackResult attacker_result = new AttackResult();
         AttackResult defender_result = new AttackResult();
-        
+
         //Attacker's attack
         defender_result.Can_Attack = null;
         defender_result.Movement = null;
@@ -784,8 +843,12 @@ public class Unit : Trainable
         attacker_result.Morale_Delta = 0.0f;
 
         if (!preview) {
-            EffectManager.Instance.Play_Effect(Hex, "ranged_attack");
-            EffectManager.Instance.Play_Effect(target.Hex, "ranged_target");
+            if(Ranged_Attack_Animation != null && Ranged_Attack_Animation.Count != 0) {
+                Start_Animation(Ranged_Attack_Animation, 5.0f, false);
+            } else {
+                EffectManager.Instance.Play_Effect(Hex, "ranged_attack");
+            }
+            EffectManager.Instance.Play_Effect(target.Hex, string.IsNullOrEmpty(Ranged_Attack_Effect_Name) ? "ranged_target" : Ranged_Attack_Effect_Name);
             Apply(attacker_result);
             target.Apply(defender_result);
             StatusBar.Update_Bars(this);
@@ -809,13 +872,27 @@ public class Unit : Trainable
 
     private float Calculate_Ranged_Damage(Unit target, AttackResult result)
     {
-        float attack = Ranged_Attack * ((Morale_Effect + 1.0f) / 2.0f) * Stamina_Effect;
+        float morale_effect_attack = (Morale_Effect + 1.0f) / 2.0f;
+        float attack = Ranged_Attack * morale_effect_attack * Stamina_Effect;
         float ability_attack_delta = 0.0f;
         float ability_attack_multiplier = 1.0f;
-        float defence = target.Ranged_Defence * ((target.Morale_Effect + 1.0f) / 2.0f) * ((target.Stamina_Effect + 1.0f) / 2.0f);
+        float morale_effect_defence = (target.Morale_Effect + 1.0f) / 2.0f;
+        float stamina_effect_defence = (target.Stamina_Effect + 1.0f) / 2.0f;
+        float defence = target.Ranged_Defence * morale_effect_defence * stamina_effect_defence * (1.0f + target.Hex.Cover);
         float ability_defence_delta = 0.0f;
         float ability_defence_multiplier = 1.0f;
         float resistance_multiplier = 0.0f;
+        
+        result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = morale_effect_attack - 1.0f, Description = "Morale" });
+        result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = Stamina_Effect - 1.0f, Description = "Stamina" });
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = morale_effect_defence - 1.0f, Description = "Morale" });
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = stamina_effect_defence - 1.0f, Description = "Stamina" });
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = target.Hex.Cover, Description = "Cover" });
+
+        AttackArch arch = Get_Attack_Arch(target.Hex);
+        attack *= 1.0f + ARCH_ATTACK_MULTIPLIERS[arch];
+        result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = ARCH_ATTACK_MULTIPLIERS[arch], Description = ARCH_DETAIL_DESCRIPTIONS[arch] });
+
         float total = 0.0f;
         foreach (KeyValuePair<DamageType, float> damage in Ranged_Attack_Types) {
             float resistance_to_type = target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f;
@@ -826,6 +903,7 @@ public class Unit : Trainable
             CustomLogger.Instance.Warning(string.Format("Unit {0} does not have proper ranged damage types, they have sum of {1}", Name, total));
         }
         defence *= resistance_multiplier;
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
 
         //Ability delta
         foreach (Ability ability in Abilities) {
@@ -835,8 +913,10 @@ public class Unit : Trainable
             Ability.DamageData data = ability.On_Calculate_Ranged_Damage_As_Attacker(ability, this, target, result);
             ability_attack_delta += data.Attack_Delta;
             ability_attack_multiplier += data.Attack_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Attack_Delta = data.Attack_Delta, Attack_Multiplier = data.Attack_Multiplier, Description = ability.Name });
             ability_defence_delta += data.Defence_Delta;
             ability_defence_multiplier += data.Defence_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Defence_Delta = data.Defence_Delta, Defence_Multiplier = data.Defence_Multiplier, Description = ability.Name });
         }
         foreach (Ability ability in target.Abilities) {
             if (ability.On_Calculate_Ranged_Damage_As_Defender == null) {
@@ -845,8 +925,10 @@ public class Unit : Trainable
             Ability.DamageData data = ability.On_Calculate_Ranged_Damage_As_Defender(ability, this, target, result);
             ability_attack_delta += data.Attack_Delta;
             ability_attack_multiplier += data.Attack_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Attack_Delta = data.Attack_Delta, Attack_Multiplier = data.Attack_Multiplier, Description = ability.Name });
             ability_defence_delta += data.Defence_Delta;
             ability_defence_multiplier += data.Defence_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Defence_Delta = data.Defence_Delta, Defence_Multiplier = data.Defence_Multiplier, Description = ability.Name });
         }
         attack = Mathf.Max(attack + ability_attack_delta, 1.0f);
         attack *= Mathf.Max(ability_attack_multiplier, 0.05f);
@@ -984,7 +1066,9 @@ public class Unit : Trainable
 
     private void Update_Relative_Strengh()
     {
-        relative_strenght = ((Max_Morale - 50.0f) / 2.0f) + ((Max_Stamina - 50.0f) / 2.0f) + Melee_Attack + Melee_Defence + (Ranged_Attack * Range * 0.25f) +
+        float morale = Uses_Morale ? Max_Morale : 200.0f;
+        float stamina = Uses_Stamina ? Max_Stamina : 200.0f;
+        relative_strenght = ((morale - 50.0f) / 5.0f) + ((stamina - 50.0f) / 5.0f) + Melee_Attack + Melee_Defence + (Ranged_Attack * Range * 0.25f) +
             Ranged_Defence + (Max_Movement * 2.0f);
         float multiplier = 1.0f;
         foreach(Ability ability in Abilities) {
@@ -1062,6 +1146,75 @@ public class Unit : Trainable
                 }
             }
             return tooltip.ToString();
+        }
+    }
+
+    public AttackArch Get_Attack_Arch(CombatMapHex target_hex)
+    {
+        float height = 0.0f;
+        float unit_height = 0.5f;
+        foreach (CombatMapHex hex in Hex.Map.Straight_Line(Hex, target_hex)) {
+            float hex_height = hex.Height;
+            if(hex.Unit != null && hex.Elevation + unit_height > hex_height) {
+                hex_height = hex.Elevation + unit_height;
+            }
+            if(hex_height > height) {
+                height = hex_height;
+            }
+        }
+        height -= Hex.Elevation * 0.5f;//TODO: Better math? Trigonometry?
+        height += target_hex.Elevation * 0.5f;
+        if(height <= 0.0f) {
+            return AttackArch.None;
+        }
+        if(height < 1.0f) {
+            return AttackArch.Low;
+        }
+        return AttackArch.High;
+    }
+
+    /// <summary>
+    /// TODO: Duplicated code: WorldMapEntity
+    /// </summary>
+    /// <param name="textures"></param>
+    /// <param name="animation_fps"></param>
+    public void Start_Animation(List<string> textures, float animation_fps, bool repeat)
+    {
+        Current_Animation = new List<Sprite>();
+        Animation_Index = 0;
+        Animation_FPS = animation_fps;
+        foreach (string t in textures) {
+            Current_Animation.Add(SpriteManager.Instance.Get_Sprite(t, SpriteManager.SpriteType.Unit_Animation));
+        }
+        animation_frame_time_left = 1.0f / Animation_FPS;
+        repeat_animation = repeat;
+    }
+
+    public void Stop_Animation()
+    {
+        Current_Animation = null;
+        Animation_Index = 0;
+        Animation_FPS = 0.0f;
+        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Unit);
+    }
+
+    public void Update(float delta_s)
+    {
+        if (Hex == null || Current_Animation == null) {
+            return;
+        }
+        animation_frame_time_left -= delta_s;
+        if (animation_frame_time_left <= 0.0f) {
+            animation_frame_time_left += (1.0f / Animation_FPS);
+            Animation_Index++;
+            if (Animation_Index >= Current_Animation.Count) {
+                Animation_Index = 0;
+                if (!repeat_animation) {
+                    Stop_Animation();
+                    return;
+                }
+            }
+            SpriteRenderer.sprite = Current_Animation[Animation_Index];
         }
     }
 

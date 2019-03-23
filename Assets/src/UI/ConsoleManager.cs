@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -296,6 +297,18 @@ public class ConsoleManager : MonoBehaviour
                 }
             }
             return string.Format("AI-Players: Log_Actions = {0}", b);
+        });
+
+        commands.Add("generate_faction_csv", (string[] arguments) => {
+            if (arguments.Length != 2) {
+                return "Invalid number of arguments";
+            }
+            try {
+                Factions.Generate_CSV(arguments[1]);
+            } catch(Exception e) {
+                return e.Message;
+            }
+            return string.Format("CSV generated: " + arguments[1]);
         });
 
         Update_Output();

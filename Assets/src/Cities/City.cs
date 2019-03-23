@@ -645,7 +645,7 @@ public class City : Ownable, Influencable, TradePartner
     public int Pop_Growth_Required
     {
         get {
-            return (int)Math.Pow(Population, 2) + 15;
+            return (int)Math.Pow(Population, 2) + 50;
         }
     }
 
@@ -822,7 +822,7 @@ public class City : Ownable, Influencable, TradePartner
         }
 
         //Special building actions
-        foreach(Building building in Buildings) {
+        foreach(Building building in Buildings.OrderByDescending(x => x.Update_Priority).ToList()) {
             if(building.On_Turn_End != null) {
                 building.On_Turn_End(building);
             }
@@ -1093,11 +1093,14 @@ public class City : Ownable, Influencable, TradePartner
             Statistics.Health.Add("Base", Owner.Faction.Base_Health);
 
             //Population
+            float building_penalty_multiplier = 1.0f;
             float health_from_pops = Owner.Faction.Health_From_Pops;
-            float building_delta = 0.0f;
             foreach (Building building in Buildings) {
                 health_from_pops += building.Base_Health_From_Pops_Delta;
-                building_delta += building.Health;
+                building_penalty_multiplier += building.Health_Penalty_From_Buildings_Multiplier;
+            }
+            if(building_penalty_multiplier < 0.0f) {
+                building_penalty_multiplier = 0.0f;
             }
             if(health_from_pops > 0.0f) {
                 health_from_pops = 0.0f;
@@ -1113,8 +1116,12 @@ public class City : Ownable, Influencable, TradePartner
             }
             Statistics.Health.Add("Hexes", hex_delta);
             health += hex_delta;
-            
+
             //Buildings
+            float building_delta = 0.0f;
+            foreach (Building building in Buildings) {
+                building_delta += building.Health >= 0.0f ? building.Health : building_penalty_multiplier * building.Health;
+            }
             Statistics.Health.Add("Buildings", building_delta);
             health += building_delta;
 
@@ -1289,6 +1296,9 @@ public class City : Ownable, Influencable, TradePartner
     {
         get {
             Dictionary<Influencable, float> cities_and_villages = new Dictionary<Influencable, float>();
+            if (Owner.Is_Neutral) {
+                return cities_and_villages;
+            }
             foreach (Player p in Main.Instance.All_Players) {
                 foreach(City c in p.Cities) {
                     if (c.Hex.Is_Explored_By(Owner) && c.Id != Id) {
@@ -1331,6 +1341,9 @@ public class City : Ownable, Influencable, TradePartner
         float distance = city.Hex.Distance(target.Hex);
         if(target is Village) {
             foreach(Building building in city.Buildings) {
+                if (building.Paused) {
+                    continue;
+                }
                 influence += building.Village_Cultural_Influence;
             }
         }
@@ -1395,6 +1408,19 @@ public class City : Ownable, Influencable, TradePartner
         Status_Effects.Apply_Status_Effect(status_effect, stacks);
         if(!status_effect.Yield_Delta.Empty || !status_effect.Percentage_Yield_Delta.Empty) {
             Yields_Changed();
+        }
+    }
+
+    public List<Improvement> Worked_Improvements
+    {
+        get {
+            List<Improvement> improvements = new List<Improvement>();
+            foreach(WorldMapHex hex in Worked_Hexes) {
+                if(hex.Improvement != null) {
+                    improvements.Add(hex.Improvement);
+                }
+            }
+            return improvements;
         }
     }
 }

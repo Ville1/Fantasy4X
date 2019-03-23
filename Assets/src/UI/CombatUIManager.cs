@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class CombatUIManager : MonoBehaviour {
+    private static readonly bool SHOW_ATTACK_PREVIEW_DETAILS = true;
     public static CombatUIManager Instance { get; private set; }
 
     public GameObject Panel;
@@ -31,11 +32,21 @@ public class CombatUIManager : MonoBehaviour {
     public GameObject Damage_Output_Preview_Panel;
     public Text Damage_Output_Preview_Damage_Text;
     public Text Damage_Output_Preview_Attack_Text;
+    public Text Damage_Output_Preview_Base_Attack_Text;
+    public Text Damage_Output_Preview_Attack_Multiplier_Text;
     public Text Damage_Output_Preview_Defence_Text;
+    public Text Damage_Output_Preview_Base_Defence_Text;
+    public Text Damage_Output_Preview_Defence_Multiplier_Text;
+    public GameObject Damage_Output_Preview_Detail_Row;
     public GameObject Damage_Taken_Preview_Panel;
     public Text Damage_Taken_Preview_Damage_Text;
     public Text Damage_Taken_Preview_Attack_Text;
+    public Text Damage_Taken_Preview_Base_Attack_Text;
+    public Text Damage_Taken_Preview_Attack_Multiplier_Text;
     public Text Damage_Taken_Preview_Defence_Text;
+    public Text Damage_Taken_Preview_Base_Defence_Text;
+    public Text Damage_Taken_Preview_Defence_Multiplier_Text;
+    public GameObject Damage_Taken_Preview_Detail_Row;
 
     private Unit current_unit;
     private Color default_text_color;
@@ -52,6 +63,8 @@ public class CombatUIManager : MonoBehaviour {
     private CombatMapHex last_hex_under_cursor;
     private List<CombatMapHex> highlighted_movement_range_hexes;
     private List<CombatMapHex> marked_attack_range_hexes;
+    private List<GameObject> damage_output_details;
+    private List<GameObject> damage_taken_details;
 
     /// <summary>
     /// Initializiation
@@ -64,6 +77,8 @@ public class CombatUIManager : MonoBehaviour {
         }
         Instance = this;
         Panel.SetActive(false);
+        Damage_Output_Preview_Detail_Row.SetActive(false);
+        Damage_Taken_Preview_Detail_Row.SetActive(false);
         Damage_Output_Preview_Panel.SetActive(false);
         Damage_Taken_Preview_Panel.SetActive(false);
 
@@ -82,6 +97,8 @@ public class CombatUIManager : MonoBehaviour {
         last_hex_under_cursor = null;
         highlighted_movement_range_hexes = new List<CombatMapHex>();
         marked_attack_range_hexes = new List<CombatMapHex>();
+        damage_output_details = new List<GameObject>();
+        damage_taken_details = new List<GameObject>();
     }
 
     /// <summary>
@@ -100,10 +117,13 @@ public class CombatUIManager : MonoBehaviour {
             } else if(h != last_hex_under_cursor) {
                 last_hex_under_cursor = h;
                 AttackResult[] preview = Current_Unit.Attack(h.Unit, true);
-                if (preview != null && !preview[1].Empty) {
+                if (preview != null) {
+                    //Output
                     Damage_Output_Preview_Panel.SetActive(true);
                     Damage_Output_Preview_Damage_Text.text = string.Format("{0} / {1}", Mathf.RoundToInt(preview[1].Manpower_Delta * -100.0f), Mathf.RoundToInt(preview[1].Morale_Delta * -1.0f));
-                    if(preview[1].Damage_Effectiveness <= 1.0f - penalty_buff_color_change_threshold) {
+                    Damage_Output_Preview_Base_Attack_Text.text = Mathf.RoundToInt(preview[1].Base_Attack).ToString();
+                    Damage_Output_Preview_Attack_Multiplier_Text.text = string.Format("{0}%", Helper.Float_To_String((preview[1].Final_Attack / preview[1].Base_Attack) * 100.0f, 0));
+                    if (preview[1].Damage_Effectiveness <= 1.0f - penalty_buff_color_change_threshold) {
                         Damage_Output_Preview_Damage_Text.color = penalized_damage_color;
                     } else if(preview[1].Damage_Effectiveness >= 1.0f + penalty_buff_color_change_threshold) {
                         Damage_Output_Preview_Damage_Text.color = buffed_damage_color;
@@ -118,20 +138,31 @@ public class CombatUIManager : MonoBehaviour {
                     } else {
                         Damage_Output_Preview_Attack_Text.color = default_text_color;
                     }
-                    Damage_Output_Preview_Defence_Text.text = Math.Round(preview[1].Final_Defence, 1).ToString();
-                    if (preview[1].Defence_Effectiveness <= 1.0f - penalty_buff_color_change_threshold) {
-                        Damage_Output_Preview_Defence_Text.color = penalized_stat_color;
-                    } else if (preview[1].Defence_Effectiveness >= 1.0f + penalty_buff_color_change_threshold) {
-                        Damage_Output_Preview_Defence_Text.color = buffed_stat_color;
+                    if (preview[0].Final_Defence != 0.0f) {
+                        Damage_Output_Preview_Defence_Text.text = Math.Round(preview[0].Final_Defence, 1).ToString();
+                        Damage_Output_Preview_Base_Defence_Text.text = Mathf.RoundToInt(preview[0].Base_Defence).ToString();
+                        Damage_Output_Preview_Defence_Multiplier_Text.text = string.Format("{0}%", Helper.Float_To_String((preview[0].Final_Defence / preview[0].Base_Defence) * 100.0f, 0));
+                        if (preview[0].Defence_Effectiveness <= 1.0f - penalty_buff_color_change_threshold) {
+                            Damage_Output_Preview_Defence_Text.color = penalized_stat_color;
+                        } else if (preview[0].Defence_Effectiveness >= 1.0f + penalty_buff_color_change_threshold) {
+                            Damage_Output_Preview_Defence_Text.color = buffed_stat_color;
+                        } else {
+                            Damage_Output_Preview_Defence_Text.color = default_text_color;
+                        }
                     } else {
+                        //TODO: Right def stat
+                        Damage_Output_Preview_Defence_Text.text = Math.Round(Current_Unit.Melee_Defence, 1).ToString();
+                        Damage_Output_Preview_Base_Defence_Text.text = Mathf.RoundToInt(Current_Unit.Melee_Defence).ToString();
+                        Damage_Output_Preview_Defence_Multiplier_Text.text = "100%";
                         Damage_Output_Preview_Defence_Text.color = default_text_color;
                     }
-                } else {
-                    Damage_Output_Preview_Panel.SetActive(false);
-                }
-                if (preview != null && !preview[0].Empty) {
+                    Show_Details(preview[1], preview[0], true);
+
+                    //Taken
                     Damage_Taken_Preview_Panel.SetActive(true);
                     Damage_Taken_Preview_Damage_Text.text = string.Format("{0} / {1}", Mathf.RoundToInt(preview[0].Manpower_Delta * -100.0f), Mathf.RoundToInt(preview[0].Morale_Delta * -1.0f));
+                    Damage_Taken_Preview_Base_Attack_Text.text = Mathf.RoundToInt(preview[0].Base_Attack).ToString();
+                    Damage_Taken_Preview_Attack_Multiplier_Text.text = string.Format("{0}%", Helper.Float_To_String((preview[0].Final_Attack / preview[0].Base_Attack) * 100.0f, 0));
                     if (preview[0].Damage_Effectiveness <= 1.0f - penalty_buff_color_change_threshold) {
                         Damage_Taken_Preview_Damage_Text.color = penalized_damage_color;
                     } else if (preview[0].Damage_Effectiveness >= 1.0f + penalty_buff_color_change_threshold) {
@@ -147,15 +178,27 @@ public class CombatUIManager : MonoBehaviour {
                     } else {
                         Damage_Taken_Preview_Attack_Text.color = default_text_color;
                     }
-                    Damage_Taken_Preview_Defence_Text.text = Math.Round(preview[0].Final_Defence, 1).ToString();
-                    if (preview[0].Defence_Effectiveness <= 1.0f - penalty_buff_color_change_threshold) {
-                        Damage_Taken_Preview_Defence_Text.color = penalized_stat_color;
-                    } else if (preview[0].Defence_Effectiveness >= 1.0f + penalty_buff_color_change_threshold) {
-                        Damage_Taken_Preview_Defence_Text.color = buffed_stat_color;
+                    if (preview[1].Final_Defence != 0.0f) {
+                        Damage_Taken_Preview_Defence_Text.text = Math.Round(preview[1].Final_Defence, 1).ToString();
+                        Damage_Taken_Preview_Base_Defence_Text.text = Mathf.RoundToInt(preview[1].Base_Defence).ToString();
+                        Damage_Taken_Preview_Defence_Multiplier_Text.text = string.Format("{0}%", Helper.Float_To_String((preview[1].Final_Defence / preview[1].Base_Defence) * 100.0f, 0));
+                        if (preview[1].Defence_Effectiveness <= 1.0f - penalty_buff_color_change_threshold) {
+                            Damage_Taken_Preview_Defence_Text.color = penalized_stat_color;
+                        } else if (preview[1].Defence_Effectiveness >= 1.0f + penalty_buff_color_change_threshold) {
+                            Damage_Taken_Preview_Defence_Text.color = buffed_stat_color;
+                        } else {
+                            Damage_Taken_Preview_Defence_Text.color = default_text_color;
+                        }
                     } else {
+                        //TODO: Right def stat
+                        Damage_Taken_Preview_Defence_Text.text = Math.Round(h.Unit.Melee_Defence, 1).ToString();
+                        Damage_Taken_Preview_Base_Defence_Text.text = Mathf.RoundToInt(h.Unit.Melee_Defence).ToString();
+                        Damage_Taken_Preview_Defence_Multiplier_Text.text = "100%";
                         Damage_Taken_Preview_Defence_Text.color = default_text_color;
                     }
+                    Show_Details(preview[1], preview[0], false);
                 } else {
+                    Damage_Output_Preview_Panel.SetActive(false);
                     Damage_Taken_Preview_Panel.SetActive(false);
                 }
             }
@@ -286,7 +329,8 @@ public class CombatUIManager : MonoBehaviour {
         Previous_Unit_Button.interactable = true;
         Toggle_Run_Button.interactable = Current_Unit.Can_Run && !CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn;
         if (!Current_Unit.Can_Run) {
-            Run = false;
+            run = false;
+            Toggle_Run_Button.GetComponentInChildren<Text>().text = "Run";
         }
 
         TooltipManager.Instance.Register_Tooltip(Unit_Image.gameObject, Current_Unit.Tooltip, gameObject);
@@ -331,6 +375,9 @@ public class CombatUIManager : MonoBehaviour {
             return run;
         }
         set {
+            if(run == value) {
+                return;
+            }
             run = value;
             Toggle_Run_Button.GetComponentInChildren<Text>().text = run ? "Run" : "Walk";
             Update_Current_Unit();
@@ -370,6 +417,50 @@ public class CombatUIManager : MonoBehaviour {
                 new_attack_range_hex.In_Attack_Range_Mark = true;
                 marked_attack_range_hexes.Add(new_attack_range_hex);
             }
+        }
+    }
+
+    private void Show_Details(AttackResult damage_output_result, AttackResult damage_taken_result, bool output)
+    {
+        List<GameObject> detail_list = output ? damage_output_details : damage_taken_details;
+        GameObject detail_row = output ? Damage_Output_Preview_Detail_Row : Damage_Taken_Preview_Detail_Row;
+        Helper.Destroy_GameObjects(ref detail_list);
+
+        if (!SHOW_ATTACK_PREVIEW_DETAILS) {
+            return;
+        }
+
+        Dictionary<string, AttackResult.Detail> details = new Dictionary<string, AttackResult.Detail>();
+        foreach(AttackResult.Detail output_detail in damage_output_result.Details) {
+            if((output && output_detail.Has_Attack_Data) || (!output && output_detail.Has_Defence_Data)) {
+                if (details.ContainsKey(output_detail.Description)) {
+                    details[output_detail.Description].Add(output_detail);
+                } else {
+                    details.Add(output_detail.Description, output_detail.Clone());
+                }
+            }
+        }
+        foreach (AttackResult.Detail taken_detail in damage_taken_result.Details) {
+            if ((output && taken_detail.Has_Defence_Data) || (!output && taken_detail.Has_Attack_Data)) {
+                if (details.ContainsKey(taken_detail.Description)) {
+                    details[taken_detail.Description].Add(taken_detail);
+                } else {
+                    details.Add(taken_detail.Description, taken_detail.Clone());
+                }
+            }
+        }
+        float row_height = 20.0f;
+        int i = 0;
+        foreach (KeyValuePair<string, AttackResult.Detail> detail in details) {
+            GameObject go = GameObject.Instantiate(detail_row);
+            go.SetActive(true);
+            go.transform.SetParent(detail_row.gameObject.transform.parent, false);
+            go.name = "Detail" + i;
+            go.transform.position = new Vector3(detail_row.transform.position.x,
+                detail_row.transform.position.y + (i * row_height), detail_row.transform.position.z);
+            go.GetComponentInChildren<Text>().text = detail.Value.ToString();
+            detail_list.Add(go);
+            i++;
         }
     }
 }

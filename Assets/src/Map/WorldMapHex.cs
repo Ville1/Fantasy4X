@@ -631,4 +631,14 @@ public class WorldMapHex : Hex {
             return tooltip.ToString();
         }
     }
+
+    public bool Has_Mineral(Mineral.Tag tag)
+    {
+        return Mineral != null && Mineral.Tags.Contains(tag);
+    }
+
+    public bool Has_Mineral(Mineral.Tag tag_1, Mineral.Tag tag_2)
+    {
+        return Mineral != null && Mineral.Tags.Contains(tag_1) && Mineral.Tags.Contains(tag_2);
+    }
 }

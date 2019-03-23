@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 
 public class Mineral {
+    public enum Tag { Smeltable, Industrial, Precious }
+
     private static Dictionary<string, Mineral> prototypes;
 
     public string Name { get; private set; }
@@ -9,12 +11,13 @@ public class Mineral {
     public float Happiness { get; private set; }
     public float Health { get; private set; }
     public float Order { get; private set; }
+    public List<Tag> Tags { get; private set; }
     private int base_spawn_rate;
     private Dictionary<string, int> own_hex_spawn_rate_delta;
     private Dictionary<string, int> adjancent_hex_spawn_rate_delta;
 
-    private Mineral(string name, string name_with_improvement, Yields yields, float happiness, float health, float order, int base_spawn_rate, Dictionary<string, int> own_hex_spawn_rate_delta,
-        Dictionary<string, int> adjancent_hex_spawn_rate_delta)
+    private Mineral(string name, string name_with_improvement, Yields yields, float happiness, float health, float order, int base_spawn_rate,
+        List<Tag> tags, Dictionary<string, int> own_hex_spawn_rate_delta, Dictionary<string, int> adjancent_hex_spawn_rate_delta)
     {
         Name = name;
         Name_With_Improvement = name_with_improvement;
@@ -22,6 +25,7 @@ public class Mineral {
         Happiness = happiness;
         Health = health;
         Order = order;
+        Tags = tags;
         this.base_spawn_rate = base_spawn_rate;
         this.own_hex_spawn_rate_delta = own_hex_spawn_rate_delta;
         this.adjancent_hex_spawn_rate_delta = adjancent_hex_spawn_rate_delta;
@@ -31,23 +35,23 @@ public class Mineral {
     {
         prototypes = new Dictionary<string, Mineral>();
 
-        prototypes.Add("copper", new Mineral("Copper", "Copper", new Yields(0, 1, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 125, new Dictionary<string, int>(), new Dictionary<string, int>()));
-        prototypes.Add("iron", new Mineral("Iron", "Iron", new Yields(0, 3, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 125, new Dictionary<string, int>(), new Dictionary<string, int>()));
-        prototypes.Add("silver", new Mineral("Silver", "Silver", new Yields(0, 0, 3, 0, 0, 0, 0), 1.0f, 0.0f, -0.25f, 75, new Dictionary<string, int>(), new Dictionary<string, int>()));
-        prototypes.Add("gold", new Mineral("Gold", "Gold", new Yields(0, 0, 4, 0, 0, 0, 0), 1.0f, 0.0f, -0.5f, 35,
+        prototypes.Add("copper", new Mineral("Copper", "Copper", new Yields(0, 1, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 125, new List<Tag>() { Tag.Smeltable, Tag.Industrial }, new Dictionary<string, int>(), new Dictionary<string, int>()));
+        prototypes.Add("iron", new Mineral("Iron", "Iron", new Yields(0, 3, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 125, new List<Tag>() { Tag.Smeltable, Tag.Industrial }, new Dictionary<string, int>(), new Dictionary<string, int>()));
+        prototypes.Add("silver", new Mineral("Silver", "Silver", new Yields(0, 0, 3, 0, 0, 0, 0), 1.0f, 0.0f, -0.25f, 75, new List<Tag>() { Tag.Smeltable, Tag.Precious }, new Dictionary<string, int>(), new Dictionary<string, int>()));
+        prototypes.Add("gold", new Mineral("Gold", "Gold", new Yields(0, 0, 4, 0, 0, 0, 0), 1.0f, 0.0f, -0.5f, 35, new List<Tag>() { Tag.Smeltable, Tag.Precious },
             new Dictionary<string, int>() { { "Mountain", 10 }, { "Volcano", 10 } },
             new Dictionary<string, int>()
         ));
-        prototypes.Add("salt", new Mineral("Salt", "Salt", new Yields(1, 0, 1, 0, 0, 0, 0), 1.0f, 1.0f, 0.0f, 100, new Dictionary<string, int>(), new Dictionary<string, int>()));
-        prototypes.Add("gems", new Mineral("Gems", "Gem", new Yields(0, -1, 3, 0, 1, 0, 0), 1.0f, 0.0f, -0.5f, 25,
+        prototypes.Add("salt", new Mineral("Salt", "Salt", new Yields(1, 0, 1, 0, 0, 0, 0), 1.0f, 1.0f, 0.0f, 100, new List<Tag>(), new Dictionary<string, int>(), new Dictionary<string, int>()));
+        prototypes.Add("gems", new Mineral("Gems", "Gem", new Yields(0, -1, 3, 0, 1, 0, 0), 1.0f, 0.0f, -0.5f, 25, new List<Tag>() { Tag.Precious },
             new Dictionary<string, int>() { { "Mountain", 5 }, { "Volcano", 5 } },
             new Dictionary<string, int>()
         ));
-        prototypes.Add("crystal", new Mineral("Crystal", "Crystal", new Yields(0, -1, 1, 2, 0, 1, 1), 0.0f, 0.0f, 0.0f, 20,
+        prototypes.Add("crystal", new Mineral("Crystal", "Crystal", new Yields(0, -1, 1, 2, 0, 1, 1), 0.0f, 0.0f, 0.0f, 20, new List<Tag>() { },
             new Dictionary<string, int>() { { "Mountain", 10 }, { "Volcano", -10 } },
             new Dictionary<string, int>() { { "Enchanted Forest", 5 } }
         ));
-        prototypes.Add("adamantine", new Mineral("Adamantine", "Adamantine", new Yields(0, 4, 1, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5,
+        prototypes.Add("adamantine", new Mineral("Adamantine", "Adamantine", new Yields(0, 4, 1, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5, new List<Tag>() { Tag.Smeltable, Tag.Industrial },
             new Dictionary<string, int>() { { "Mountain", 5 }, { "Volcano", 10 } },
             new Dictionary<string, int>()
         ));

@@ -86,6 +86,7 @@
     <Compile Include="Assets\src\Armies\Unit.cs" />
     <Compile Include="Assets\src\AudioManager.cs" />
     <Compile Include="Assets\src\Blessing.cs" />
+    <Compile Include="Assets\src\CSVHelper.cs" />
     <Compile Include="Assets\src\Cities\Building.cs" />
     <Compile Include="Assets\src\Cities\City.cs" />
     <Compile Include="Assets\src\Cities\CityStatistics.cs" />
@@ -105,8 +106,9 @@
     <Compile Include="Assets\src\EffectManager.cs" />
     <Compile Include="Assets\src\EmpireModifierStatusEffect.cs" />
     <Compile Include="Assets\src\EmpireModifiers.cs" />
-    <Compile Include="Assets\src\Faction.cs" />
-    <Compile Include="Assets\src\Factions.cs" />
+    <Compile Include="Assets\src\Factions\Faction.cs" />
+    <Compile Include="Assets\src\Factions\Factions.cs" />
+    <Compile Include="Assets\src\Factions\Partial\Dwarves.cs" />
     <Compile Include="Assets\src\Helper.cs" />
     <Compile Include="Assets\src\IConfigListener.cs" />
     <Compile Include="Assets\src\ICooldown.cs" />
@@ -173,6 +175,7 @@
     <Compile Include="Assets\src\World.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Resources\console_scripts\csv.txt" />
     <None Include="Assets\Resources\console_scripts\ia.txt" />
     <None Include="Assets\Resources\console_scripts\it.txt" />
     <None Include="Assets\Resources\console_scripts\ta1.txt" />

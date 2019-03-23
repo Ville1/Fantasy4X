@@ -26,17 +26,17 @@ public class HexPrototypes {
         world_map_hex_prototypes.Add("city ruins", new WorldMapHex("City Ruins", "hex_ruins", new Yields(1, 0, 0, 2, 1, 1, 1), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false, new List<WorldMapHex.Tag>()));
         world_map_hex_prototypes.Add("grave yard", new WorldMapHex("Grave Yard", "hex_grave_yard", new Yields(0, 0, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }));
 
-        world_map_hex_prototypes.Add("small_city", new WorldMapHex("Small City", "city_small", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban }));
+        world_map_hex_prototypes.Add("small city", new WorldMapHex("Small City", "city_small", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban }));
         world_map_hex_prototypes.Add("city", new WorldMapHex("City", "hex_castle", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban }));
         world_map_hex_prototypes.Add("village", new WorldMapHex("Village", "hex_village", new Yields(1, 1, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban }));
-
+        world_map_hex_prototypes.Add("dwarven city", new WorldMapHex("Dwarven City", "hex_dwarven_city", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 1, false, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban }));
 
         combat_map_hex_prototypes = new Dictionary<string, CombatMapHex>();
-        combat_map_hex_prototypes.Add("grass", new CombatMapHex("Grass", "cm_hex_grass", 1.0f, 0.0f, 0, 0, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
-        combat_map_hex_prototypes.Add("scrubs", new CombatMapHex("Scrubs", "cm_hex_scrubs", 1.0f, 0.0f, 0, 0, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
-        combat_map_hex_prototypes.Add("trees", new CombatMapHex("Trees", "cm_hex_forest", 2.0f, 0.0f, 0, 1, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Forest }));
-        combat_map_hex_prototypes.Add("houses", new CombatMapHex("Houses", "cm_hex_houses", 2.0f, 0.0f, 0, 1, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
-        combat_map_hex_prototypes.Add("street", new CombatMapHex("Street", "cm_hex_paving", 1.0f, 0.0f, 0, 0, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
+        combat_map_hex_prototypes.Add("grass", new CombatMapHex("Grass", "cm_hex_grass", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
+        combat_map_hex_prototypes.Add("scrubs", new CombatMapHex("Scrubs", "cm_hex_scrubs", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
+        combat_map_hex_prototypes.Add("trees", new CombatMapHex("Trees", "cm_hex_forest", 2.0f, 0.0f, 0, 1, 0.50f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Forest }));
+        combat_map_hex_prototypes.Add("houses", new CombatMapHex("Houses", "cm_hex_houses", 2.0f, 0.0f, 0, 1, 1.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
+        combat_map_hex_prototypes.Add("street", new CombatMapHex("Street", "cm_hex_paving", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
 
         road_prototypes = new Dictionary<string, Road>();
         road_prototypes.Add("gravel road", new Road("Gravel Road", "road_ne", "road_e", 0.1f));
@@ -62,7 +62,7 @@ public class HexPrototypes {
     }
 
     /// <summary>
-    /// Execept haunted forest
+    /// Except haunted forest
     /// </summary>
     public List<string> All_Forests
     {
@@ -70,9 +70,16 @@ public class HexPrototypes {
             return new List<string>() { "Forest", "Forest Hill", "Mushroom Forest", "Enchanted Forest" };
         }
     }
+    
+    public List<string> Choppable_Forests
+    {
+        get {
+            return new List<string>() { "Forest", "Forest Hill", "Enchanted Forest" };
+        }
+    }
 
     /// <summary>
-    /// Execept haunted forest, water, swamp, mountain and volcano
+    /// Except haunted forest, water, swamp, mountain and volcano
     /// </summary>
     public List<string> All_Non_Structures
     {

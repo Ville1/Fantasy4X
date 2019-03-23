@@ -46,7 +46,7 @@ public class Map
         edge_hexes = new List<WorldMapHex>();
         visible = true;
         dummy_boat = new Worker("Dummy Boat", 3.0f, MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
-            1.0f, 50, 100, 1.0f, null);
+            1.0f, 50, 100, 1.0f, null, 0.0f);
 
         //Generate
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -245,7 +245,7 @@ public class Map
         //Spawn minerals
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                if (hexes[x][y] != null && RNG.Instance.Next(100) < (int)(Mineral_Spawn_Rate * 100)) {
+                if (hexes[x][y] != null && RNG.Instance.Next(100) <= Mathf.RoundToInt(Mineral_Spawn_Rate * 100.0f)) {
                     hexes[x][y].Spawn_Mineral();
                 }
             }
@@ -343,7 +343,7 @@ public class Map
                 if (!too_close || ignore_distances) {
                     City capital = new City(random_hex, player, HexPrototypes.Instance.Get_World_Map_Hex("water"));
                     player.Capital = capital;
-                    random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex("city"));
+                    random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex(string.IsNullOrEmpty(player.Faction.City_Hex) ? "city" : player.Faction.City_Hex));
                     capital.Update_Hex_Yields();
                     random_hex.Owner = player;
                     Cities.Add(capital);
@@ -388,7 +388,7 @@ public class Map
                 if (!too_close) {
                     City city = new City(random_hex, Main.Instance.Neutral_Player, HexPrototypes.Instance.Get_World_Map_Hex("water"));
                     Main.Instance.Neutral_Player.Cities.Add(city);
-                    random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex("small_city"));
+                    random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex("small city"));
                     city.Update_Hex_Yields();
                     random_hex.Owner = Main.Instance.Neutral_Player;
                     int defenders = RNG.Instance.Next(2, 5);

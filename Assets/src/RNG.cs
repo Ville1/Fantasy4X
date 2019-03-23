@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 /// <summary>
@@ -127,5 +128,10 @@ public class RNG
             result.Append(chars[Next(chars.Length)]);
         }
         return result.ToString();
+    }
+
+    public T Random_Item<T>(List<T> list)
+    {
+        return list[Next(0, list.Count - 1)];
     }
 }
