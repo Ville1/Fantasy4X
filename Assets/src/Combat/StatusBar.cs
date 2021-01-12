@@ -83,7 +83,7 @@ public class StatusBar {
 
     public static void Update_Bars(Unit unit)
     {
-        if(unit == null) {
+        if(unit == null || unit.GameObject == null) {
             return;
         }
         if(unit.Bars.Count == 0) {

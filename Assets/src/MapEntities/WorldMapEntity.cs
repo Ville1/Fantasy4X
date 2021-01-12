@@ -264,9 +264,16 @@ public class WorldMapEntity : Ownable {
         Stored_Path_Index = 0;
     }
 
+    public bool Has_Stored_Path
+    {
+        get {
+            return Stored_Path != null && Stored_Path_Index < Stored_Path.Count;
+        }
+    }
+
     public bool Follow_Stored_Path()
     {
-        if(Stored_Path == null || Stored_Path_Index >= Stored_Path.Count) {
+        if(!Has_Stored_Path) {
             return false;
         }
         bool success = Move(Stored_Path[Stored_Path_Index]);

@@ -55,7 +55,8 @@ public class Unit : Trainable
         Wooden,//Axe again
         Undead,
         Siege_Weapon,
-        Large
+        Large,
+        Blocks_Hex_Working
     }
 
     public string Name { get; private set; }
@@ -1066,10 +1067,10 @@ public class Unit : Trainable
 
     private void Update_Relative_Strengh()
     {
-        float morale = Uses_Morale ? Max_Morale : 200.0f;
-        float stamina = Uses_Stamina ? Max_Stamina : 200.0f;
-        relative_strenght = ((morale - 50.0f) / 5.0f) + ((stamina - 50.0f) / 5.0f) + Melee_Attack + Melee_Defence + (Ranged_Attack * Range * 0.25f) +
-            Ranged_Defence + (Max_Movement * 2.0f);
+        float morale = Uses_Morale ? Math.Max(Max_Morale, 50.0f) : 200.0f;
+        float stamina = Uses_Stamina ? Math.Max(Max_Stamina, 50.0f) : 200.0f;
+        relative_strenght = ((morale - 50.0f) / 5.0f) + ((stamina - 50.0f) / 7.5f) + ((Melee_Attack * 1.25f) * (1.0f + (Charge * 0.1f))) + (Melee_Defence * 1.25f) +
+            (Ranged_Attack * Range * 0.25f) + (Ranged_Defence * 1.25f) + (Max_Movement * 2.0f);
         float multiplier = 1.0f;
         foreach(Ability ability in Abilities) {
             if(ability.Get_Relative_Strength_Multiplier_Bonus != null) {

@@ -14,7 +14,9 @@ public class Main : MonoBehaviour {
     public List<Player> Players { get; private set; }
     public Player Current_Player { get; private set; }
     public Player Viewing_Player { get; private set; }
-    public Player Neutral_Player { get; private set; }
+    public Player Neutral_Cities_Player { get; private set; }
+    public Player Wild_Life_Player { get; private set; }
+    public Player Bandit_Player { get; private set; }
     public bool Game_Is_Running { get; private set; }
     public bool Pause_AI { get; set; }
     public int Round { get; private set; }
@@ -58,7 +60,9 @@ public class Main : MonoBehaviour {
             foreach(Player player in Players) {
                 list.Add(player);
             }
-            list.Add(Neutral_Player);
+            list.Add(Neutral_Cities_Player);
+            list.Add(Wild_Life_Player);
+            list.Add(Bandit_Player);
             return list;
         }
     }
@@ -90,8 +94,11 @@ public class Main : MonoBehaviour {
         foreach(Player.NewPlayerData data in player_data) {
             Players.Add(new Player(data.Name, data.AI, data.Faction));
         }
-        Neutral_Player = new Player("Neutral Cities", (!Average_AI_Level.HasValue || Average_AI_Level == AI.Level.Inactive) ? AI.Level.Easy : Average_AI_Level,
+        Neutral_Cities_Player = new Player("Neutral Cities", (!Average_AI_Level.HasValue || Average_AI_Level == AI.Level.Inactive) ? AI.Level.Easy : Average_AI_Level,
             Factions.Neutral_Cities, true);
+        Wild_Life_Player = new Player("???", AI.Level.Inactive, Factions.Wild_Life, true);
+        Bandit_Player = new Player("Bandits", (!Average_AI_Level.HasValue || Average_AI_Level == AI.Level.Inactive) ? AI.Level.Easy : Average_AI_Level,
+            Factions.Bandits, true);
         Current_Player = Players[0];
         Viewing_Player = Current_Player;
         player_index = 0;
@@ -257,8 +264,11 @@ public class Main : MonoBehaviour {
     private void Turn_Start_Update_GUI()
     {
         BottomGUIManager.Instance.Start_Turn();
-        CameraManager.Instance.Set_Camera_Location(BottomGUIManager.Instance.Current_Entity != null ?
-            BottomGUIManager.Instance.Current_Entity.Hex : Current_Player.Capital.Hex);
+        if(BottomGUIManager.Instance.Current_Entity != null) {
+            CameraManager.Instance.Set_Camera_Location(BottomGUIManager.Instance.Current_Entity.Hex);
+        } else if (Current_Player.Capital != null) {
+            CameraManager.Instance.Set_Camera_Location(Current_Player.Capital.Hex);
+        }
         TopGUIManager.Instance.Update_GUI();
     }
 

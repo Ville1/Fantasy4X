@@ -21,6 +21,7 @@ public class Army : WorldMapEntity {
     //Militia taskforce
     public int Max_Size { get; private set; }
     public List<Unit> Units { get; private set; }
+    public float Raiding_Income { get; private set; }
 
     private bool text_initialized;
     private GameObject TextMesh_game_object;
@@ -307,6 +308,24 @@ public class Army : WorldMapEntity {
             if (Hex.Village != null && !Hex.Village.Is_Owned_By(Owner)) {
                 Hex.Village.Update_Owner();
             }
+            if(Hex.Owner != null && (Blocks_Hex_Working || Has_Raider)) {
+                foreach (City city in Hex.In_Work_Range_Of) {
+                    if(city.Owner.Is_Neutral || city.Is_Owned_By(Owner)) {
+                        continue;
+                    }
+                    if (Blocks_Hex_Working && city.Unassing_Pop(Hex)) {
+                        city.Auto_Apply_Unemployed_Pops();
+                        city.Owner.Queue_Notification(new Notification("Worked hex blocked", Texture, SpriteManager.SpriteType.Unit, null, delegate() {
+                            CameraManager.Instance.Set_Camera_Location(Hex);
+                        }));
+                    } else if (Has_Raider) {
+                        city.Owner.Queue_Notification(new Notification("Raiders", Texture, SpriteManager.SpriteType.Unit, null, delegate () {
+                            CameraManager.Instance.Set_Camera_Location(Hex);
+                        }));
+                        city.Yields_Changed();
+                    }
+                }
+            }
         }
         return success;
     }
@@ -322,9 +341,25 @@ public class Army : WorldMapEntity {
         } else if(Hex.Owner != null && !Hex.Is_Owned_By(Owner)) {
             manpower_regen = MANPOWER_REGEN_ENEMY_LAND;
         }
+        Yields raided_yields = new Yields();
+        bool raid = Hex.Owner != null && !Hex.Owner.Is_Neutral && !Hex.Is_Owned_By(Owner) && Hex.In_Work_Range_Of.Count != 0;
         foreach (Unit unit in Units) {
             unit.Current_Campaing_Map_Movement = unit.Max_Campaing_Map_Movement;
             unit.Regen_Manpower(manpower_regen);
+            if (raid) {
+                foreach(Ability ability in unit.Abilities) {
+                    if(ability.On_Worked_Hex_Raid != null) {
+                        raided_yields.Add(ability.On_Worked_Hex_Raid(ability, unit, Hex));
+                    }
+                }
+            }
+        }
+        Raiding_Income = raided_yields.Cash;
+        Owner.Cash += Raiding_Income;
+        if(Raiding_Income > 0.0f) {
+            Hex.Owner.Queue_Notification(new Notification("Raiders", Texture, SpriteManager.SpriteType.Unit, null, delegate () {
+                CameraManager.Instance.Set_Camera_Location(Hex);
+            }));
         }
         Update_Text();
     }
@@ -495,6 +530,32 @@ public class Army : WorldMapEntity {
                 order += 3.25f;
             }
             return order;
+        }
+    }
+
+    public bool Blocks_Hex_Working
+    {
+        get {
+            foreach(Unit unit in Units) {
+                if (unit.Tags.Contains(Unit.Tag.Blocks_Hex_Working)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public bool Has_Raider
+    {
+        get {
+            foreach (Unit unit in Units) {
+                foreach(Ability ability in unit.Abilities) {
+                    if(ability.On_Worked_Hex_Raid != null) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 

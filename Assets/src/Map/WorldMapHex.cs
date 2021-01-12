@@ -11,7 +11,7 @@ public class WorldMapHex : Hex {
 
     public enum InfoText { None, Coordinates, Yields, Minerals }
     public enum LoS_Status { Visible, Explored, Unexplored }
-    public enum Tag { Open, Forest, Urban, Hill }
+    public enum Tag { Open, Forest, Urban, Hill, Underground, Special, Timber, Arid, Game }
     public delegate bool Hex_Requirements(WorldMapHex hex);
 
     public string Terrain { get; set; }
@@ -38,6 +38,8 @@ public class WorldMapHex : Hex {
     public bool Is_Map_Edge_Road_Connection { get; set; }
     public bool Is_Water { get; set; }
     public StatusEffectList<HexStatusEffect> Status_Effects { get; private set; }
+    public Dictionary<string, int> CombatMap_Seed { get; private set; }
+    public Dictionary<string, int> CombatMap_City_Seed { get; private set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -65,7 +67,7 @@ public class WorldMapHex : Hex {
     /// Prototype constructor
     /// </summary>
     public WorldMapHex(string terrain, string texture, Yields yields, float happiness, float health, float order, float movement_cost, int elevation, int height,
-        bool can_spawn_minerals, List<Tag> tags) : base()
+        bool can_spawn_minerals, List<Tag> tags, Dictionary<string, int> combatMap_seed, Dictionary<string, int> combatMap_City_Seed) : base()
     {
         Terrain = terrain;
         Texture = texture;
@@ -77,10 +79,9 @@ public class WorldMapHex : Hex {
         Base_Health = health;
         Base_Order = order;
         Can_Spawn_Minerals = can_spawn_minerals;
-        Tags = new List<Tag>();
-        foreach (Tag tag in tags) {
-            Tags.Add(tag);
-        }
+        Tags = tags;
+        CombatMap_Seed = Helper.Copy_Dictionary(combatMap_seed);
+        CombatMap_City_Seed = combatMap_City_Seed != null ? Helper.Copy_Dictionary(combatMap_City_Seed) : null;
         Is_Water = false;
     }
 
@@ -97,10 +98,9 @@ public class WorldMapHex : Hex {
         Base_Order = prototype.Base_Order;
         Can_Spawn_Minerals = prototype.Can_Spawn_Minerals;
         Is_Water = prototype.Is_Water;
-        Tags = new List<Tag>();
-        foreach (Tag tag in prototype.Tags) {
-            Tags.Add(tag);
-        }
+        Tags = Helper.Copy_List(prototype.Tags);
+        CombatMap_Seed = Helper.Copy_Dictionary(prototype.CombatMap_Seed);
+        CombatMap_City_Seed = prototype.CombatMap_City_Seed != null ? Helper.Copy_Dictionary(prototype.CombatMap_City_Seed) : null;
         SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
     }
     
@@ -361,6 +361,12 @@ public class WorldMapHex : Hex {
     public PathfindingNode Get_Specific_PathfindingNode(WorldMapEntity entity, WorldMapHex ignore_entity_hex = null, bool use_los = true)
     {
         bool blocked = ((entity.Is_Civilian && Civilian != null) || (!entity.Is_Civilian && Entity != null) && this != ignore_entity_hex);
+
+        //TODO: Clean this up
+        if (!blocked && (City != null || Village != null) && entity.Owner != null && entity.Owner.AI != null && entity.Owner.AI is WildLifeAI) {
+            blocked = true;
+        }
+
         return new PathfindingNode(
             Coordinates,
             GameObject.transform.position.x,
@@ -640,5 +646,15 @@ public class WorldMapHex : Hex {
     public bool Has_Mineral(Mineral.Tag tag_1, Mineral.Tag tag_2)
     {
         return Mineral != null && Mineral.Tags.Contains(tag_1) && Mineral.Tags.Contains(tag_2);
+    }
+
+    public Army Army
+    {
+        get {
+            if(Entity == null || !(Entity is Army)) {
+                return null;
+            }
+            return Entity as Army;
+        }
     }
 }

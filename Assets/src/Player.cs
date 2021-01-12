@@ -12,7 +12,7 @@ public class Player {
     
     public string Name { get; private set; }
     public int? Team { get; private set; }
-    public AI AI { get; private set; }
+    public I_AI AI { get; private set; }
     public List<City> Cities { get; private set; }
     public List<Village> Villages { get; private set; }
     public List<WorldMapEntity> WorldMapEntitys { get; private set; }
@@ -51,7 +51,6 @@ public class Player {
     public Player(string name, AI.Level? ai, Faction faction, bool neutral = false)
     {
         Name = name;
-        AI = ai != null ? new AI(ai.Value, this) : null;
         WorldMapEntitys = new List<WorldMapEntity>();
         Id = current_id;
         current_id++;
@@ -71,6 +70,28 @@ public class Player {
         active_blessings = new Dictionary<Blessing, int>();
         Status_Effects = new StatusEffectList<EmpireModifierStatusEffect>();
         temp_data = new Dictionary<string, object>();
+
+        if (faction.Uses_Special_AI) {
+            switch (faction.Name) {
+                case "Bandits":
+                    if (!ai.HasValue) {
+                        CustomLogger.Instance.Error("AI level is required");
+                        AI = null;
+                    } else {
+                        AI = new BanditAI(this, ai.Value);
+                    }
+                    break;
+                case "Wild Life":
+                    AI = new WildLifeAI(this);
+                    break;
+                default:
+                    AI = null;
+                    CustomLogger.Instance.Error(string.Format("Faction {0} (#{1}) lacks a special AI", faction.Name, faction.Id));
+                    break;
+            }
+        } else {
+            AI = ai != null ? new AI(ai.Value, this) : null;
+        }
     }
 
     public void End_Turn()
@@ -83,7 +104,9 @@ public class Player {
             }
             entity.End_Turn();
         }
-        Capital.End_Turn();
+        if(Capital != null) {
+            Capital.End_Turn();
+        }
 
         //TODO: move this to city.End_Turn()?
         if(Current_Technology != null) {
@@ -172,6 +195,9 @@ public class Player {
             }
             foreach(WorldMapEntity entity in WorldMapEntitys) {
                 income -= entity.Upkeep;
+                if(entity is Army) {
+                    income += (entity as Army).Raiding_Income;
+                }
             }
             return income;
         }

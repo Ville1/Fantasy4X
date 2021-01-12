@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
-public class AI : IConfigListener
+public class AI : IConfigListener, I_AI
 {
     //TODO: Knows if scouted city changes owners
 
@@ -74,7 +74,7 @@ public class AI : IConfigListener
     private bool last_action_was_visible;
     private List<WorldMapHex> hexes_needing_prospecting;
     private List<CitySpellPreference> city_spell_targets;
-    Dictionary<WorldMapHex, WorldMapEntity> saved_los;
+    private Dictionary<WorldMapHex, WorldMapEntity> saved_los;
 
     public AI(Level level, Player player)
     {
@@ -1282,6 +1282,28 @@ public class AI : IConfigListener
             }
         }
 
+        //Attacking enemy armies
+        if(main_armies[army] == null) {
+            Dictionary<Army, float> possible_targets = new Dictionary<Army, float>();
+            foreach(Army enemy_army in armies_seen_this_turn) {
+                if (enemy_army.Get_Relative_Strenght_When_On_Hex(enemy_army.Hex, true, false) * (1.0f + army_attack_carefulness) >=
+                    army.Get_Relative_Strenght_When_On_Hex(enemy_army.Hex, true, true)) {
+                    continue;
+                }
+                List<PathfindingNode> path_to_enemy = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, enemy_army.Hex),
+                    army.Hex.Get_Specific_PathfindingNode(army), enemy_army.Hex.Get_Specific_PathfindingNode(army, enemy_army.Hex, true));
+                if(path_to_enemy.Count == 0) {
+                    continue;
+                }
+                possible_targets.Add(army, path_to_enemy.Count * enemy_army.Get_Relative_Strenght_When_On_Hex(enemy_army.Hex, true, false));
+            }
+            if(possible_targets.Count != 0) {
+                List<Army> possible_targets_by_preference = possible_targets.OrderBy(x => x.Value).Select(x => x.Key).ToList();
+                Log("New order: attack army #" + possible_targets_by_preference[0].Id, LogType.Military);
+                main_armies[army] = new ArmyOrder(ArmyOrder.OrderType.Attack_Army, possible_targets_by_preference[0]);
+            }
+        }
+
         //Attacking enemy cities
         if (main_armies[army] == null) {
             foreach(City city in scouted_enemy_cities) {
@@ -1319,6 +1341,11 @@ public class AI : IConfigListener
                     break;
                 }
             }
+        }
+
+        //Moving back to own territory
+        if(main_armies[army] == null && !army.Hex.Is_Owned_By(Player)) {
+            //TODO: this
         }
         
         //Moving out of cities
@@ -1388,13 +1415,33 @@ public class AI : IConfigListener
         } else if(main_armies[army].Type == ArmyOrder.OrderType.Attack_City) {
             Log("Following orders to attack city #" + main_armies[army].Hex_Target.City.Id, LogType.Military);
             if(main_armies[army].Hex_Target.Current_LoS == WorldMapHex.LoS_Status.Visible && main_armies[army].Hex_Target.Entity != null &&
-                    main_armies[army].Hex_Target.Entity is Army && ((main_armies[army].Hex_Target.Entity as Army).Current_Relative_Strenght * (1.0f + city_attack_carefulness)) > army.Current_Relative_Strenght) {
+                    main_armies[army].Hex_Target.Entity is Army && ((main_armies[army].Hex_Target.Entity as Army).Get_Relative_Strenght_When_On_Hex(main_armies[army].Hex_Target, true, false) * (1.0f + city_attack_carefulness)) >
+                    army.Get_Relative_Strenght_When_On_Hex(main_armies[army].Hex_Target, true, true)) {
                 Log("City is too well defended, aborting attack order", LogType.Military);
                 main_armies[army] = null;
                 last_action_was_visible = false;
                 return;
             }
             path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, main_armies[army].Hex_Target),
+                army.Hex.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target), main_armies[army].Hex_Target.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target));
+        } else if(main_armies[army].Type == ArmyOrder.OrderType.Attack_Army) {
+            Log("Following orders to attack army #" + main_armies[army].Army_Target.Id, LogType.Military);
+            if(main_armies[army].Army_Target.Hex.Current_LoS != WorldMapHex.LoS_Status.Visible) {
+                //TODO: turn this into some kind of move order?
+                Log("Lost sight of enemy army, aborting attack order", LogType.Military);
+                main_armies[army] = null;
+                last_action_was_visible = false;
+                return;
+            }
+            if (main_armies[army].Army_Target.Hex.Current_LoS == WorldMapHex.LoS_Status.Visible &&
+                    (main_armies[army].Army_Target.Get_Relative_Strenght_When_On_Hex(main_armies[army].Army_Target.Hex, true, false) * (1.0f + army_attack_carefulness)) >
+                    army.Get_Relative_Strenght_When_On_Hex(main_armies[army].Army_Target.Hex, true, true)) {
+                Log("Army is too strong, aborting attack order", LogType.Military);
+                main_armies[army] = null;
+                last_action_was_visible = false;
+                return;
+            }
+            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, main_armies[army].Army_Target.Hex),
                 army.Hex.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target), main_armies[army].Hex_Target.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target));
         }
 
@@ -1768,9 +1815,18 @@ public class AI : IConfigListener
         Unit closest_enemy = null;
         int closest_distance = -1;
         foreach(Unit enemy in enemy_army.Units) {
-            if(closest_distance == -1 || (enemy.Hex.Distance(unit.Hex) < closest_distance)) {
-                closest_enemy = enemy;
-                closest_distance = enemy.Hex.Distance(unit.Hex);
+            //TODO
+            try {
+                if (closest_distance == -1 || (enemy.Hex.Distance(unit.Hex) < closest_distance)) {
+                    closest_enemy = enemy;
+                    closest_distance = enemy.Hex.Distance(unit.Hex);
+                }
+            } catch(Exception e) {
+                CustomLogger.Instance.Error(unit.ToString());
+                CustomLogger.Instance.Error(unit.Hex != null ? unit.Hex.ToString() : "null");
+                CustomLogger.Instance.Error(enemy.ToString());
+                CustomLogger.Instance.Error(enemy.Hex != null ? enemy.Hex.ToString() : "null");
+                throw e;
             }
         }
         if (closest_enemy.Hex.Is_Adjancent_To(unit.Hex)) {

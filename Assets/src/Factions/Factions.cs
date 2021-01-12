@@ -9,6 +9,8 @@ public partial class Factions {
     private static bool initialized = false;
     private static List<Faction> all;
     private static Faction neutral_cities;
+    private static Faction bandits;
+    private static Faction wild_life;
 
     public static List<Faction> All
     {
@@ -30,15 +32,39 @@ public partial class Factions {
         }
     }
 
+    public static Faction Bandits
+    {
+        get {
+            if (!initialized) {
+                Initialize();
+            }
+            return bandits;
+        }
+    }
+
+    public static Faction Wild_Life
+    {
+        get {
+            if (!initialized) {
+                Initialize();
+            }
+            return wild_life;
+        }
+    }
+
     public static void Generate_CSV(string file_location)
     {
         CSVHelper csv = new CSVHelper();
-        foreach(Faction faction in All) {
+        List<Faction> factions = new List<Faction>(All);
+        factions.Add(Neutral_Cities);
+        factions.Add(Bandits);
+        factions.Add(Wild_Life);
+        foreach(Faction faction in factions) {
             csv.Append_Row(string.Empty);
             csv.Append_Row(faction.Name);
 
-            string[] header_row_1_1 = new string[] { "",     "Economy", "", "",              "Movement", "",       "General Stats", "", "",    "Melee Offence", "", "",     "Ranged Offence", "", "", "" };
-            string[] header_row_2_1 = new string[] { "Name", "Production", "Cost", "Upkeep", "Campaign", "Combat", "Morale", "Stamina", "LoS", "Attack", "Charge", "Types", "Attack", "Types", "Range", "Ammo" };
+            string[] header_row_1_1 = new string[] { "", "",       "Economy", "", "",              "Movement", "",       "General Stats", "", "",    "Melee Offence", "", "",     "Ranged Offence", "", "", "" };
+            string[] header_row_2_1 = new string[] { "Name", "RS", "Production", "Cost", "Upkeep", "Campaign", "Combat", "Morale", "Stamina", "LoS", "Attack", "Charge", "Types", "Attack", "Types", "Range", "Ammo" };
             
             string[] header_row_1_2 = new string[] { "Defence", "", "",           "Resistances" };
             string[] header_row_2_2 = new string[] { "Melee", "Ranged", "RD-Ratio" };
@@ -85,7 +111,7 @@ public partial class Factions {
                     i++;
                 }
 
-                string[] row = new string[] { unit.Name, unit.Production_Required.ToString(), unit.Cost.ToString(), Helper.Float_To_String(unit.Upkeep, 2), Helper.Float_To_String(unit.Max_Campaing_Map_Movement, 1),
+                string[] row = new string[] { unit.Name, Helper.Float_To_String(unit.Relative_Strenght, 0), unit.Production_Required.ToString(), unit.Cost.ToString(), Helper.Float_To_String(unit.Upkeep, 2), Helper.Float_To_String(unit.Max_Campaing_Map_Movement, 1),
                     Helper.Float_To_String(unit.Max_Movement, 1), Helper.Float_To_String(unit.Max_Morale, 0), Helper.Float_To_String(unit.Max_Stamina, 0), Helper.Float_To_String(unit.LoS, 1),
                     Helper.Float_To_String(unit.Melee_Attack, 0), Helper.Float_To_String(unit.Charge * 100.0f, 0) + "%", melee_attack_types.ToString(), Helper.Float_To_String(unit.Ranged_Attack, 0), ranged_attack_types.ToString(),
                     unit.Range.ToString(), unit.Max_Ammo.ToString(), Helper.Float_To_String(unit.Melee_Defence, 0), Helper.Float_To_String(unit.Ranged_Defence, 0), Helper.Float_To_String(((unit.Ranged_Defence - unit.Melee_Defence) / unit.Melee_Defence) * 100.0f, 0) + "%"
@@ -270,14 +296,14 @@ public partial class Factions {
 
 
 
-        Kingdom.Improvements.Add(new Improvement("Farm", "farm", "farm_inactive", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, new List<string>() { "Grassland", "Plains", "Flower Field" }, null, null));
-        Kingdom.Improvements.Add(new Improvement("Plantation", "plantation", "plantation_inactive", new Yields(0, 0, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 13, 0, false, new List<string>() { "Grassland", "Flower Field" }, null, null));
-        Kingdom.Improvements.Add(new Improvement("Hunting Lodge", "hunting_lodge", "hunting_lodge_inactive", new Yields(1.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 7, 0, false, HexPrototypes.Instance.All_Forests, null, null));
-        Kingdom.Improvements.Add(new Improvement("Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Choppable_Forests, null, null));
-        Kingdom.Improvements.Add(new Improvement("Quarry", "quarry", "quarry_inactive", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 20, 0, false, new List<string>() { "Hill", "Plains" }, null, null));
-        Kingdom.Improvements.Add(new Improvement("Mine", "mine", "mine_inactive", new Yields(-1, 1, 0, 0, 0, 0, 0), 0.0f, -0.5f, 0.0f, 17, 0, true, new List<string>() { "Hill", "Forest Hill", "Mountain", "Volcano" }, null, null));
+        Kingdom.Improvements.Add(new Improvement("Farm", "farm", "farm_inactive", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open), null, null));
+        Kingdom.Improvements.Add(new Improvement("Plantation", "plantation", "plantation_inactive", new Yields(0, 0, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid), null, null));
+        Kingdom.Improvements.Add(new Improvement("Hunting Lodge", "hunting_lodge", "hunting_lodge_inactive", new Yields(1.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 7, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Game), null, null));
+        Kingdom.Improvements.Add(new Improvement("Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Timber), null, null));
+        Kingdom.Improvements.Add(new Improvement("Quarry", "quarry", "quarry_inactive", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 20, 0, false, new List<string>() { "Hill", "Plains", "Hill with a Cave" }, null, null));
+        Kingdom.Improvements.Add(new Improvement("Mine", "mine", "mine_inactive", new Yields(-1, 1, 0, 0, 0, 0, 0), 0.0f, -0.5f, 0.0f, 17, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), null, null));
 
-        Kingdom.Improvements.Add(new Improvement("Windmill", "windmill", "windmill_inactive", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, new List<string>() { "Hill" }, Engineering, 
+        Kingdom.Improvements.Add(new Improvement("Windmill", "windmill", "windmill_inactive", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, new List<string>() { "Hill", "Hill with a Cave" }, Engineering, 
             delegate(Improvement improvement) {
                 int adjancent_agriculture = 0;
                 foreach(WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
@@ -558,7 +584,8 @@ public partial class Factions {
             0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,
             10.0f, 7.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.50f }, { Unit.DamageType.Thrust, 0.75f }, { Unit.DamageType.Impact, 1.0f } },
             7.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
-                AbilityPrototypes.Instance.Get("forest combat bonus", 0.10f)
+                AbilityPrototypes.Instance.Get("forest combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("wild animal", 1.00f)
             }, new List<Unit.Tag>()));
         Kingdom.Units.Add(new Unit("Peasant Militia", Unit.UnitType.Infantry, "default_spear_unit_2", 2.0f, 35, 20, 0.25f, 0.0f, 2, null, new List<Building>(),
             2.0f, true, 10.0f, 50.0f, 90.0f,
@@ -681,9 +708,9 @@ public partial class Factions {
         all.Add(Dwarves());
 
         neutral_cities = new Faction("Neutral Cities", 1000, 1, new Dictionary<City.CitySize, Yields>() {
-                { City.CitySize.Town, new Yields(2, 1, 2, 1, 1, 0, 0) },
-                { City.CitySize.City, new Yields(1, 2, 3, 2, 1, 0, 0) },
-                { City.CitySize.Metropolis, new Yields(0, 2, 5, 3, 2, 0, 0) }
+                { City.CitySize.Town,       new Yields(2.0f, 1.0f, 2.0f, 1.0f, 1.0f, 0.0f, 0.0f) },
+                { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
+                { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f, true, null,
             new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "default_unit", 100), new EmpireModifiers() {
                 Passive_Income = 5.0f,
@@ -695,7 +722,8 @@ public partial class Factions {
             2.0f, true, 10.0f, 100.0f, 100.0f,
             13.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Thrust, 0.60f }, { Unit.DamageType.Slash, 0.35f }, { Unit.DamageType.Impact, 0.05f } }, 0.15f,
             0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,
-            10.0f, 6.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.75f }, { Unit.DamageType.Thrust, 0.90f }, { Unit.DamageType.Impact, 1.0f } }, 7.0f, 8.0f, Unit.ArmorType.Medium, new List<Ability>() {
+            10.0f, 6.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.75f }, { Unit.DamageType.Thrust, 0.90f }, { Unit.DamageType.Impact, 1.0f } },
+            7.0f, 8.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("anti cavalry", 0.15f),
                 AbilityPrototypes.Instance.Get("charge resistance", 0.25f),
                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.10f),
@@ -704,6 +732,81 @@ public partial class Factions {
                 AbilityPrototypes.Instance.Get("increases order", 1.00f)
             }, new List<Unit.Tag>()));
 
+        bandits = new Faction("Bandits", 1000, 1, new Dictionary<City.CitySize, Yields>() {
+                { City.CitySize.Town,       new Yields(2.0f, 1.0f, 3.0f, 0.5f, 0.5f, 0.0f, 0.0f) },
+                { City.CitySize.City,       new Yields(1.0f, 2.0f, 4.0f, 0.5f, 1.0f, 0.0f, 0.0f) },
+                { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 1.0f, 2.0f, 0.0f, 0.0f) }
+            }, 3.0f, 100, 2.0f, -0.40f, 1.0f, -0.30f, 1.0f, -0.50f, 0.5f, true, null,
+            new Technology("Root", 5, new List<AI.Tag>()), new Army("Bandits", "default_unit", 100), new EmpireModifiers() {
+                Passive_Income = 3.0f,
+                Max_Mana = 100.0f,
+                Population_Growth_Bonus = -0.95f
+            });
+        bandits.Uses_Special_AI = true;
+
+        bandits.Units.Add(new Unit("Thug", Unit.UnitType.Infantry, "default_unit", 2.0f, 20, 20, 0.25f, 0.0f, 2, null, null,
+            2.0f, true, 10.0f, 75.0f, 90.0f,
+            8.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Impact, 1.00f } }, 0.15f,
+            0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,
+            8.0f, 4.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.50f }, { Unit.DamageType.Thrust, 0.50f }, { Unit.DamageType.Impact, 1.0f } },
+            3.0f, 3.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("urban combat bonus", 0.15f),
+                AbilityPrototypes.Instance.Get("armor piercing", 0.05f),
+                AbilityPrototypes.Instance.Get("decreases order", 0.25f),
+                AbilityPrototypes.Instance.Get("city cash", 0.50f),//TODO: Urban stealth?
+                AbilityPrototypes.Instance.Get("thief", 0.25f)
+            }, new List<Unit.Tag>()));
+
+        bandits.Units.Add(new Unit("Outlaw", Unit.UnitType.Infantry, "default_unit", 2.0f, 75, 75, 0.25f, 0.0f, 2, null, null,
+            2.0f, true, 10.0f, 90.0f, 100.0f,
+            12.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.50f }, { Unit.DamageType.Thrust, 0.50f } }, 0.10f,
+            9.0f, new Dictionary<Unit.DamageType, float>(), 5, 20, null, null,
+            10.0f, 6.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.50f }, { Unit.DamageType.Thrust, 0.50f }, { Unit.DamageType.Impact, 1.0f } },
+            6.0f, 4.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("urban combat bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("decreases order", 0.25f),
+                AbilityPrototypes.Instance.Get("city cash", 0.50f),
+                AbilityPrototypes.Instance.Get("armor piercing ranged", 0.15f),
+                AbilityPrototypes.Instance.Get("straight shot bonus", 0.25f),//TODO: Urban stealth?
+                AbilityPrototypes.Instance.Get("thief", 0.30f)
+            }, new List<Unit.Tag>()));
+
+        bandits.Units.Add(new Unit("Highwayman", Unit.UnitType.Infantry, "default_unit", 3.0f, 100, 100, 0.25f, 0.0f, 3, null, null,
+            2.0f, true, 10.0f, 90.0f, 100.0f,
+            14.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.75f }, { Unit.DamageType.Thrust, 0.25f } }, 0.25f,
+            9.0f, new Dictionary<Unit.DamageType, float>(), 5, 20, null, null,
+            13.0f, 8.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.50f }, { Unit.DamageType.Thrust, 0.75f }, { Unit.DamageType.Impact, 1.0f } },
+            9.0f, 5.0f, Unit.ArmorType.Light, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("forest combat bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("hill combat bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("decreases order", 0.15f),
+                AbilityPrototypes.Instance.Get("armor piercing ranged", 0.15f),
+                AbilityPrototypes.Instance.Get("straight shot bonus", 0.25f),//TODO: Forest stealth?
+                AbilityPrototypes.Instance.Get("thief", 0.35f)
+            }, new List<Unit.Tag>()));
+
+        wild_life = new Faction("Wild Life", 1, 1, new Dictionary<City.CitySize, Yields>() {
+                { City.CitySize.Town,       new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) },
+                { City.CitySize.City,       new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) },
+                { City.CitySize.Metropolis, new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }
+            }, 3.0f, 100, 1.0f, -0.10f, 1.0f, -0.10f, 1.0f, -0.10f, 0.5f, false, null,
+            new Technology("Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", 100), new EmpireModifiers() {
+                Max_Mana = 500.0f
+            });
+        wild_life.Uses_Special_AI = true;
+
+        wild_life.Units.Add(new Unit("Wolf", Unit.UnitType.Undefined, "wolf", 3.0f, 1, 1, 0.0f, 0.0f, 3, null, null,
+            3.0f, true, 5.0f, 75.0f, 150.0f,
+            6.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.85f }, { Unit.DamageType.Thrust, 0.15f } }, 0.25f,
+            0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,
+            4.0f, 2.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.50f }, { Unit.DamageType.Thrust, 0.50f }, { Unit.DamageType.Impact, 1.0f } },
+            1.0f, 2.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("forest combat bonus", 0.35f),
+                AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("wild animal", 1.00f)
+            }, new List<Unit.Tag>()));
+        //TODO: combat map stealth-abilities
+        //TODO: world map detectability-stat
 
         initialized = true;
     }

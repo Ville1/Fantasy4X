@@ -104,9 +104,9 @@ public partial class Factions
         County.Link(Dukedom, 3);
 
         faction.Improvements.Add(new Improvement("Aboveground Farm", "dwarven_farm", "dwarven_farm_inactive", new Yields(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 11, 0, false, new List<string>() { "Grassland", "Plains", "Flower Field", "Hill" }, null, null));
-        faction.Improvements.Add(new Improvement("Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 9, 0, false, HexPrototypes.Instance.Choppable_Forests, null, null));
-        faction.Improvements.Add(new Improvement("Tunnel", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, -0.5f, 19, 0, true, HexPrototypes.Instance.All_Non_Structures.Concat(new List<string>() { "Mountain", "Volcano" }).ToList(), null, null));
-        faction.Improvements.Add(new Improvement("Deep Mine", "mine", "mine_inactive", new Yields(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 25, 0, true, new List<string>() { "Hill", "Forest Hill", "Mountain", "Volcano" }, Deep_Mines, delegate (Improvement improvement) {
+        faction.Improvements.Add(new Improvement("Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 9, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Timber }), null, null));
+        faction.Improvements.Add(new Improvement("Tunnel", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, -0.5f, 19, 0, true, HexPrototypes.Instance.All_Non_Structures.Concat(new List<string>() { "Mountain", "Volcano"}).ToList(), null, null));
+        faction.Improvements.Add(new Improvement("Deep Mine", "mine", "mine_inactive", new Yields(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 25, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), Deep_Mines, delegate (Improvement improvement) {
             if (improvement.Hex.Mineral != null) {
                 improvement.Special_Yield_Delta = new Yields(0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f);
             } else {
@@ -339,11 +339,12 @@ public partial class Factions
             4.0f, 4.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.05f),
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.15f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("city attack bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.25f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("no high shots")
-            }, new List<Unit.Tag>()));
+            }, new List<Unit.Tag>() { Unit.Tag.Blocks_Hex_Working }));
         faction.Units.Add(new Unit("Militia", Unit.UnitType.Infantry, "dwarf_militia", 2.0f, 80, 70, 1.0f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 85.0f, 150.0f,
             3.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.5f }, { Unit.DamageType.Thrust, 0.5f } }, 0.1f,
             0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,
@@ -351,6 +352,7 @@ public partial class Factions
             8.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("increases order", 0.25f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
@@ -361,6 +363,7 @@ public partial class Factions
             27.0f, 27.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 1.1f }, { Unit.DamageType.Thrust, 0.9f }, { Unit.DamageType.Impact, 1.0f } },
             11.0f, 8.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.20f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
@@ -371,6 +374,7 @@ public partial class Factions
             15.0f, 12.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 1.1f }, { Unit.DamageType.Thrust, 0.85f }, { Unit.DamageType.Impact, 1.0f } },
             11.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.05f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.25f),
@@ -383,10 +387,11 @@ public partial class Factions
             25.0f, 27.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 1.1f }, { Unit.DamageType.Thrust, 0.9f }, { Unit.DamageType.Impact, 1.0f } },
             11.0f, 12.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.35f),
-                AbilityPrototypes.Instance.Get("armor piercing ranged", 0.25f),
+                AbilityPrototypes.Instance.Get("armor piercing ranged", 0.20f),
                 AbilityPrototypes.Instance.Get("straight shot bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("increases order", 1.00f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
@@ -398,6 +403,7 @@ public partial class Factions
             14.0f, 12.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 1.1f }, { Unit.DamageType.Thrust, 0.85f }, { Unit.DamageType.Impact, 1.0f } },
             15.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.05f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.05f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("anti infantry ranged", 0.10f),
@@ -412,6 +418,7 @@ public partial class Factions
             15.0f, 12.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 1.1f }, { Unit.DamageType.Thrust, 0.85f }, { Unit.DamageType.Impact, 1.0f } },
             15.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.05f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.05f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("anti infantry ranged", 0.25f),
@@ -426,6 +433,7 @@ public partial class Factions
             14.0f, 12.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 1.1f }, { Unit.DamageType.Thrust, 0.85f }, { Unit.DamageType.Impact, 1.0f } },
             16.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.05f),
+                AbilityPrototypes.Instance.Get("underground combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.05f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("shield piercing ranged", 0.25f),

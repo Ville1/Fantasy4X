@@ -116,6 +116,9 @@ public class City : Ownable, Influencable, TradePartner
             }
         }
         
+        foreach(WorldMapHex hex_in_los in Get_Hexes_In_LoS()) {
+            hex_in_los.Set_Explored(Owner);
+        }
         Auto_Apply_Unemployed_Pops();
 
         Id = current_id;
@@ -900,10 +903,8 @@ public class City : Ownable, Influencable, TradePartner
     public List<WorldMapHex> Hexes_That_Can_Be_Worked
     {
         get {
-            if (Main.Instance.Other_Players_Turn) {
-                return Hexes_In_Work_Range.Where(x => x.City == null && x.Owner == null && (x.Entity == null || x.Entity.Owner.Id == Owner.Id)).ToList();
-            }
-            return Hexes_In_Work_Range.Where(x => x.City == null && x.Owner == null && x.Current_LoS == WorldMapHex.LoS_Status.Visible).ToList();
+            return Hexes_In_Work_Range.Where(x => x.City == null && x.Village == null && x.Owner == null &&
+                x.Is_Explored_By(Owner) && (x.Army == null || x.Army.Owner.Id == Owner.Id || !x.Army.Blocks_Hex_Working)).ToList();
         }
     }
 
@@ -914,7 +915,7 @@ public class City : Ownable, Influencable, TradePartner
     /// <returns></returns>
     public bool Assing_Pop(WorldMapHex hex)
     {
-        if(Unemployed_Pops <= 0 || hex.Owner != null || hex.Distance(Hex) > Work_Range || hex.City != null || hex.Village != null) {
+        if(Unemployed_Pops <= 0 || !Hexes_In_Work_Range.Contains(hex)) {
             return false;
         }
         hex.Owner = Owner;

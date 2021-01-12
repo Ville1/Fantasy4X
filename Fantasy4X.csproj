@@ -78,7 +78,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\src\AI.cs" />
+    <Compile Include="Assets\src\AI\AI.cs" />
+    <Compile Include="Assets\src\AI\BanditAI.cs" />
+    <Compile Include="Assets\src\AI\I_AI.cs" />
+    <Compile Include="Assets\src\AI\WildLifeAI.cs" />
     <Compile Include="Assets\src\Armies\Ability.cs" />
     <Compile Include="Assets\src\Armies\AbilityPrototypes.cs" />
     <Compile Include="Assets\src\Armies\Army.cs" />

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public class AbilityPrototypes {
     private static AbilityPrototypes instance;
@@ -260,29 +261,53 @@ public class AbilityPrototypes {
                 return ability.Potency * 0.1f;
             }
         });
-        prototypes.Add("city defence bonus", new Ability("City Defence Bonus", true, true) {
+        prototypes.Add("underground combat bonus", new Ability("Underground Combat Bonus", true, true) {
             On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_2.Id == attacker.Army.Id ? ability.Potency : 0.0f
+                    Attack_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Underground) ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Melee_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_2.Id == target.Army.Id ? ability.Potency : 0.0f
+                    Defence_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Underground) ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_2.Id == attacker.Army.Id ? ability.Potency : 0.0f
+                    Attack_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Underground) ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Ranged_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_2.Id == target.Army.Id ? ability.Potency : 0.0f
+                    Defence_Multiplier = target.Hex.Tags.Contains(CombatMapHex.Tag.Underground) ? ability.Potency : 0.0f
+                };
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Underground) ? ability.Potency : 0.0f;
+            },
+            Get_Relative_Strength_Multiplier_Bonus = delegate (Ability ability) {
+                return ability.Potency * 0.1f;
+            }
+        });
+        prototypes.Add("city defence bonus", new Ability("City Defence Bonus", true, true) {
+            On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Hex.City && CombatManager.Instance.Army_2.Id == attacker.Army.Id ? ability.Potency : 0.0f
+                };
+            },
+            On_Calculate_Melee_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Defence_Multiplier = target.Hex.City && CombatManager.Instance.Army_2.Id == target.Army.Id ? ability.Potency : 0.0f
+                };
+            },
+            On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Hex.City && CombatManager.Instance.Army_2.Id == attacker.Army.Id ? ability.Potency : 0.0f
+                };
+            },
+            On_Calculate_Ranged_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Defence_Multiplier = target.Hex.City && CombatManager.Instance.Army_2.Id == target.Army.Id ? ability.Potency : 0.0f
                 };
             },
             Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
@@ -292,26 +317,22 @@ public class AbilityPrototypes {
         prototypes.Add("city attack bonus", new Ability("City Attack Bonus", true, true) {
             On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_1.Id == attacker.Army.Id ? ability.Potency : 0.0f
+                    Attack_Multiplier = target.Hex.City && CombatManager.Instance.Army_1.Id == attacker.Army.Id ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Melee_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_1.Id == target.Army.Id ? ability.Potency : 0.0f
+                    Defence_Multiplier = target.Hex.City && CombatManager.Instance.Army_1.Id == target.Army.Id ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_1.Id == attacker.Army.Id ? ability.Potency : 0.0f
+                    Attack_Multiplier = target.Hex.City && CombatManager.Instance.Army_1.Id == attacker.Army.Id ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Ranged_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Tags.Contains(WorldMapHex.Tag.Urban) &&
-                        CombatManager.Instance.Army_1.Id == target.Army.Id ? ability.Potency : 0.0f
+                    Defence_Multiplier = target.Hex.City && CombatManager.Instance.Army_1.Id == target.Army.Id ? ability.Potency : 0.0f
                 };
             },
             Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
@@ -321,25 +342,25 @@ public class AbilityPrototypes {
         prototypes.Add("village defence bonus", new Ability("Village Defence Bonus", true, true) {
             On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null &&
+                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null && target.Hex.City &&
                         CombatManager.Instance.Army_2.Id == attacker.Army.Id ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Melee_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null &&
+                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null && target.Hex.City &&
                         CombatManager.Instance.Army_2.Id == target.Army.Id ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null &&
+                    Attack_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null && target.Hex.City &&
                         CombatManager.Instance.Army_2.Id == attacker.Army.Id ? ability.Potency : 0.0f
                 };
             },
             On_Calculate_Ranged_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
-                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null &&
+                    Defence_Multiplier = CombatManager.Instance.Map.WorldMapHex.Village != null && target.Hex.City &&
                         CombatManager.Instance.Army_2.Id == target.Army.Id ? ability.Potency : 0.0f
                 };
             },
@@ -454,6 +475,43 @@ public class AbilityPrototypes {
         prototypes.Add("city faith", new Ability("City Faith", false, true) {
             Get_City_Effects = delegate (Ability ability, City city) {
                 return new Ability.CityEffects() { Yields = new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, ability.Potency) };
+            }
+        });
+        prototypes.Add("thief", new Ability("Thief", false, true) {
+            On_Worked_Hex_Raid = delegate (Ability ability, Unit unit, WorldMapHex hex) {
+                float cash_stolen = Math.Max(Math.Min(ability.Potency, hex.Yields.Cash), 0.0f);
+                hex.Apply_Status_Effect(new HexStatusEffect("Thieves", 1) { Yield_Delta = new Yields(0.0f, 0.0f, -cash_stolen, 0.0f, 0.0f, 0.0f, 0.0f),
+                    Happiness = -ability.Potency, Order = -ability.Potency }, true);
+                return new Yields(0.0f, 0.0f, cash_stolen, 0.0f, 0.0f, 0.0f, 0.0f);
+            }
+        });
+        prototypes.Add("marauder", new Ability("Marauder", false, true) {
+            On_Worked_Hex_Raid = delegate (Ability ability, Unit unit, WorldMapHex hex) {
+                float food_destroyed = Math.Max(Math.Min(ability.Potency, hex.Yields.Food), 0.0f);
+                float production_destroyed = Math.Max(Math.Min(ability.Potency, hex.Yields.Production), 0.0f);
+                float cash_stolen = Math.Max(Math.Min(ability.Potency, hex.Yields.Cash), 0.0f);
+                float science_destroyed = Math.Max(Math.Min(ability.Potency, hex.Yields.Science), 0.0f);
+                float culture_destroyed = Math.Max(Math.Min(ability.Potency, hex.Yields.Culture), 0.0f);
+                float mana_destroyed = Math.Max(Math.Min(ability.Potency, hex.Yields.Mana), 0.0f);
+                float faith_destroyed = Math.Max(Math.Min(ability.Potency, hex.Yields.Faith), 0.0f);
+                hex.Apply_Status_Effect(new HexStatusEffect("Marauders", 1) {
+                    Yield_Delta = new Yields(-food_destroyed, -production_destroyed, -cash_stolen, -science_destroyed, -culture_destroyed, -mana_destroyed, -faith_destroyed),
+                    Happiness = -2.0f * ability.Potency,
+                    Order = -2.0f * ability.Potency
+                }, true);
+                return new Yields(0.0f, 0.0f, cash_stolen * 0.5f, 0.0f, 0.0f, 0.0f, 0.0f);
+            }
+        });
+        prototypes.Add("wild animal", new Ability("Wild Animal", false, true) {
+            On_Worked_Hex_Raid = delegate (Ability ability, Unit unit, WorldMapHex hex) {
+                float food_destroyed = Math.Max(Math.Min(ability.Potency * 0.1f, hex.Yields.Food), 0.0f);
+                float production_destroyed = Math.Max(Math.Min(ability.Potency * 0.1f, hex.Yields.Production), 0.0f);
+                float cash_destroyed = Math.Max(Math.Min(ability.Potency * 0.1f, hex.Yields.Cash), 0.0f);
+                hex.Apply_Status_Effect(new HexStatusEffect("Wild animals", 1) {
+                    Yield_Delta = new Yields(-food_destroyed, -production_destroyed, -cash_destroyed, 0.0f, 0.0f, 0.0f, 0.0f),
+                    Happiness = -ability.Potency
+                }, true);
+                return new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
             }
         });
         //TODO: rough terrain penalty & ranged attacks

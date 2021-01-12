@@ -21,6 +21,7 @@ public class Map
     public bool Reveal_All { get; set; }
     public List<City> Cities { get; private set; }
     public List<Village> Villages { get; private set; }
+    public int Hex_Count { get; private set; }
     
     private List<List<WorldMapHex>> hexes;
     private bool visible;
@@ -50,6 +51,7 @@ public class Map
 
         //Generate
         Stopwatch stopwatch = Stopwatch.StartNew();
+        Hex_Count = 0;
         for (int x = 0; x < width; x++) {
             hexes.Add(new List<WorldMapHex>());
             for (int y = 0; y < height; y++) {
@@ -63,6 +65,7 @@ public class Map
                         }
                     }
                     hexes[x].Add(new WorldMapHex(x, y, GameObject, HexPrototypes.Instance.Get_World_Map_Hex(prototype_name), this));
+                    Hex_Count++;
                 } else {
                     hexes[x].Add(null);
                 }
@@ -142,6 +145,7 @@ public class Map
             Base_Chance = 0,
             Chance_Delta = new Dictionary<string, int>() {
                 { "hill", 5 },
+                { "hill with a cave", 5 },
                 { "mountain", 10 },
                 { "flower field", -10 },
                 { "swamp", -25 },
@@ -172,6 +176,14 @@ public class Map
                 { "forest hill", 10 }
             }
         });
+        alter["hill"].Add(new TerrainAlterationData() {
+            New_Terrain = "hill with a cave",
+            Base_Chance = 5,
+            Chance_Delta = new Dictionary<string, int>() {
+                { "haunted forest", 5 },
+                { "grave yard", 5 }
+            }
+        });
 
         alter.Add("forest", new List<TerrainAlterationData>());
         alter["forest"].Add(new TerrainAlterationData() {
@@ -180,7 +192,8 @@ public class Map
             Chance_Delta = new Dictionary<string, int>() {
                 { "hill", 10 },
                 { "forest hill", 10 },
-                { "mountain", 25 }
+                { "mountain", 25 },
+                { "hill with a cave", 10 }
             }
         });
         alter["forest"].Add(new TerrainAlterationData() {
@@ -189,6 +202,7 @@ public class Map
             Chance_Delta = new Dictionary<string, int>() {
                 { "enchanted forest", 20 },
                 { "flower field", 5 },
+                { "grave yard", -50 },
                 { "haunted forest", -100 }
             }
         });
@@ -197,6 +211,8 @@ public class Map
             Base_Chance = 1,
             Chance_Delta = new Dictionary<string, int>() {
                 { "haunted forest", 20 },
+                { "grave yard", 10 },
+                { "swamp", 5 },
                 { "flower field", -10 },
                 { "enchanted forest", -100 }
             }
@@ -206,6 +222,14 @@ public class Map
             Base_Chance = 1,
             Chance_Delta = new Dictionary<string, int>() {
                 { "mushroom forest", 20 }
+            }
+        });
+        alter["forest"].Add(new TerrainAlterationData() {
+            New_Terrain = "swamp",
+            Base_Chance = 0,
+            Chance_Delta = new Dictionary<string, int>() {
+                { "swamp", 10 },
+                { "water", 5 }
             }
         });
 
@@ -378,7 +402,7 @@ public class Map
                 }
                 //Check distance to already spawned neutral cities
                 if (!too_close) {
-                    foreach (City already_spawned_city in Main.Instance.Neutral_Player.Cities) {
+                    foreach (City already_spawned_city in Main.Instance.Neutral_Cities_Player.Cities) {
                         if (already_spawned_city.Hex.Distance(random_hex) <= no_cities_radius_neutral) {
                             too_close = true;
                             break;
@@ -386,15 +410,15 @@ public class Map
                     }
                 }
                 if (!too_close) {
-                    City city = new City(random_hex, Main.Instance.Neutral_Player, HexPrototypes.Instance.Get_World_Map_Hex("water"));
-                    Main.Instance.Neutral_Player.Cities.Add(city);
+                    City city = new City(random_hex, Main.Instance.Neutral_Cities_Player, HexPrototypes.Instance.Get_World_Map_Hex("water"));
+                    Main.Instance.Neutral_Cities_Player.Cities.Add(city);
                     random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex("small city"));
                     city.Update_Hex_Yields();
-                    random_hex.Owner = Main.Instance.Neutral_Player;
+                    random_hex.Owner = Main.Instance.Neutral_Cities_Player;
                     int defenders = RNG.Instance.Next(2, 5);
-                    Army garrison = new Army(random_hex, Main.Instance.Neutral_Player.Faction.Army_Prototype, Main.Instance.Neutral_Player, null);
+                    Army garrison = new Army(random_hex, Main.Instance.Neutral_Cities_Player.Faction.Army_Prototype, Main.Instance.Neutral_Cities_Player, null);
                     for(int j = 0; j < defenders; j++) {
-                        garrison.Add_Unit(new Unit(Main.Instance.Neutral_Player.Faction.Units.First(x => x.Name == "Town Guard") as Unit));
+                        garrison.Add_Unit(new Unit(Main.Instance.Neutral_Cities_Player.Faction.Units.First(x => x.Name == "Town Guard") as Unit));
                     }
                     Cities.Add(city);
                     break;
@@ -430,7 +454,7 @@ public class Map
             }
             //Check distance to neutral cities
             if (!too_close) {
-                foreach (City already_spawned_city in Main.Instance.Neutral_Player.Cities) {
+                foreach (City already_spawned_city in Main.Instance.Neutral_Cities_Player.Cities) {
                     if (already_spawned_city.Hex.Distance(random_hex) <= no_cities_radius_village) {
                         too_close = true;
                         break;
@@ -439,7 +463,7 @@ public class Map
             }
             //Check distance to already spawned villages
             if (!too_close) {
-                foreach (Village already_spawned_village in Main.Instance.Neutral_Player.Villages) {
+                foreach (Village already_spawned_village in Main.Instance.Neutral_Cities_Player.Villages) {
                     if (already_spawned_village.Hex.Distance(random_hex) <= no_cities_radius_village) {
                         too_close = true;
                         break;
@@ -458,9 +482,9 @@ public class Map
             if (too_close) {
                 continue;
             }
-            Village village = new Village(random_hex, Main.Instance.Neutral_Player);
+            Village village = new Village(random_hex, Main.Instance.Neutral_Cities_Player);
             random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex("village"));
-            Main.Instance.Neutral_Player.Villages.Add(village);
+            Main.Instance.Neutral_Cities_Player.Villages.Add(village);
             Villages.Add(village);
         }
         CustomLogger.Instance.Debug(string.Format("Villages spawned in: {0} ms", stopwatch.ElapsedMilliseconds));
@@ -572,7 +596,7 @@ public class Map
             }
         }
     }
-
+    
     private List<WorldMapHex> All_Hexes
     {
         get {

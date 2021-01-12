@@ -314,7 +314,7 @@ public class BottomGUIManager : MonoBehaviour
                 Action_GameObject.transform.position.y, Action_GameObject.transform.position.z);
             go.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get_Sprite(Current_Entity.Actions[i].Texture, Current_Entity.Actions[i].Texture_Type);
             go.GetComponentInChildren<Text>().text = Current_Entity.Actions[i].Name;
-            go.GetComponentInChildren<Button>().interactable = Current_Entity.Actions[i].Can_Be_Activated(Current_Entity);
+            go.GetComponentInChildren<Button>().interactable = Current_Entity.Actions[i].Can_Be_Activated(Current_Entity) && Current_Entity.Is_Owned_By(Main.Instance.Viewing_Player);
             Button.ButtonClickedEvent on_click_event = new Button.ButtonClickedEvent();
             int index = i;
             on_click_event.AddListener(new UnityEngine.Events.UnityAction(delegate () {

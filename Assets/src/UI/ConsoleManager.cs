@@ -255,6 +255,41 @@ public class ConsoleManager : MonoBehaviour
             return string.Format("AI-Players: Show_Moves = {0}", b);
         });
 
+        commands.Add("follow_ai_moves", (string[] arguments) => {
+            if (arguments.Length != 2 && arguments.Length != 3) {
+                return "Invalid number of arguments";
+            }
+            bool b;
+            if (!bool.TryParse(arguments[1], out b)) {
+                return "Invalid argument";
+            }
+            int index = -1;
+            if (arguments.Length == 3) {
+                if (!int.TryParse(arguments[2], out index)) {
+                    return "Invalid argument";
+                } else {
+                    if (index < 0 || index >= Main.Instance.Players.Count) {
+                        return "Invalid argument";
+                    }
+                    Player p = Main.Instance.Players[index];
+                    if (p.AI == null) {
+                        return string.Format("Player {0} is not an AI", index);
+                    }
+                    p.AI.Follow_Moves = b;
+                    return string.Format("Player {0}: Follow_Moves = {1}", index, b);
+                }
+            }
+            foreach (Player p in Main.Instance.Players) {
+                if (p.AI != null) {
+                    p.AI.Follow_Moves = b;
+                }
+            }
+            Config config = ConfigManager.Instance.Current_Config;
+            config.AI_Follow_Moves = b;
+            ConfigManager.Instance.Save(config);
+            return string.Format("AI-Players: Follow_Moves = {0}", b);
+        });
+
         commands.Add("pause_ai", (string[] arguments) => {
             if (arguments.Length != 1 && arguments.Length != 2) {
                 return "Invalid number of arguments";
@@ -297,6 +332,16 @@ public class ConsoleManager : MonoBehaviour
                 }
             }
             return string.Format("AI-Players: Log_Actions = {0}", b);
+        });
+
+        commands.Add("check_hex", (string[] arguments) => {
+            if(HexPanelManager.Instance.Hex == null) {
+                return "Select a hex";
+            }
+            if(HexPanelManager.Instance.Hex.In_Work_Range_Of.Any(x => !x.Owner.Is_Neutral)) {
+                return "In work range of player city: TRUE";
+            }
+            return "In work range of player city: FALSE";
         });
 
         commands.Add("generate_faction_csv", (string[] arguments) => {

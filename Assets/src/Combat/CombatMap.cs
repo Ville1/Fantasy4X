@@ -16,9 +16,9 @@ public class CombatMap {
     private List<List<CombatMapHex>> hexes;
     private bool visible;
     private Dictionary<int, string> seed;
-    private Dictionary<int, string> defenders_side_seed;
+    private Dictionary<int, string> city_seed;
     private int seed_max;
-    private int defenders_side_seed_max;
+    private int city_seed_max;
 
     public CombatMap(int width, int height, WorldMapHex world_map_hex)
     {
@@ -33,38 +33,17 @@ public class CombatMap {
         visible = true;
 
         seed_max = 0;
-        defenders_side_seed_max = 0;
+        city_seed_max = 0;
         seed = new Dictionary<int, string>();
-        defenders_side_seed = new Dictionary<int, string>();
+        city_seed = new Dictionary<int, string>();
 
-        if(world_map_hex.Terrain == "City" || world_map_hex.Terrain == "Small City") {
-            Add_To_Seed("grass", 100);
-            Add_To_Seed("scrubs", 25);
-            Add_To_Seed("trees", 15);
-            Add_To_Seed("houses", 5);
-            Add_To_Defender_Side_Seed("grass", 50);
-            Add_To_Defender_Side_Seed("scrubs", 5);
-            Add_To_Defender_Side_Seed("trees", 15);
-            Add_To_Defender_Side_Seed("street", 200);
-            Add_To_Defender_Side_Seed("houses", 250);
-        } else if (world_map_hex.Terrain == "Village") {
-            Add_To_Seed("grass", 100);
-            Add_To_Seed("scrubs", 25);
-            Add_To_Seed("trees", 25);
-            Add_To_Seed("houses", 10);
-            Add_To_Defender_Side_Seed("grass", 65);
-            Add_To_Defender_Side_Seed("scrubs", 20);
-            Add_To_Defender_Side_Seed("trees", 15);
-            Add_To_Defender_Side_Seed("street", 75);
-            Add_To_Defender_Side_Seed("houses", 100);
-        } else if(world_map_hex.Terrain == "Forest" || world_map_hex.Terrain == "Forest Hill") {
-            Add_To_Seed("grass", 50);
-            Add_To_Seed("scrubs", 75);
-            Add_To_Seed("trees", 200);
-        } else {
-            Add_To_Seed("grass", 100);
-            Add_To_Seed("scrubs", 25);
-            Add_To_Seed("trees", 15);
+        foreach(KeyValuePair<string, int> hex_seed in world_map_hex.CombatMap_Seed) {
+            Add_To_Seed(hex_seed.Key, hex_seed.Value);
+        }
+        if(world_map_hex.CombatMap_City_Seed != null && world_map_hex.CombatMap_City_Seed.Count != 0) {
+            foreach (KeyValuePair<string, int> hex_seed in world_map_hex.CombatMap_City_Seed) {
+                Add_To_City_Seed(hex_seed.Key, hex_seed.Value);
+            }
         }
 
         //Generate
@@ -72,11 +51,11 @@ public class CombatMap {
             hexes.Add(new List<CombatMapHex>());
             for (int y = 0; y < height; y++) {
                 if (x + y + 1 > width / 2 && x < width * 1.5f && !((x - (height - y) + 1) > width / 2 && y > height / 2)) {
-                    bool use_defenders_side = y > Space_Height_1 && defenders_side_seed_max != 0;
-                    int random = RNG.Instance.Next(use_defenders_side ? defenders_side_seed_max : seed_max);
+                    bool use_defenders_side = y > Space_Height_1 && city_seed_max != 0;
+                    int random = RNG.Instance.Next(use_defenders_side ? city_seed_max : seed_max);
                     string prototype_name = null;
                     if (use_defenders_side) {
-                        foreach (KeyValuePair<int, string> seed_pair in defenders_side_seed) {
+                        foreach (KeyValuePair<int, string> seed_pair in city_seed) {
                             if (seed_pair.Key >= random) {
                                 prototype_name = seed_pair.Value;
                                 break;
@@ -90,7 +69,9 @@ public class CombatMap {
                             }
                         }
                     }
-                    hexes[x].Add(new CombatMapHex(x, y, GameObject, HexPrototypes.Instance.Get_Combat_Map_Hex(prototype_name), this));
+                    CombatMapHex hex = new CombatMapHex(x, y, GameObject, HexPrototypes.Instance.Get_Combat_Map_Hex(prototype_name), this);
+                    hex.City = use_defenders_side;
+                    hexes[x].Add(hex);
                 } else {
                     hexes[x].Add(null);
                 }
@@ -118,7 +99,15 @@ public class CombatMap {
         spread.Add("houses", new Dictionary<string, float[]>());
         spread["houses"].Add("street", new float[2] { 5.0f, 1.0f });
         spread["houses"].Add("houses", new float[2] { 5.0f, 1.0f });
-        
+
+        spread.Add("cave street", new Dictionary<string, float[]>());
+        spread["cave street"].Add("cave street", new float[2] { 5.0f, 1.0f });
+        spread["cave street"].Add("cave houses", new float[2] { 5.0f, 1.0f });
+
+        spread.Add("cave houses", new Dictionary<string, float[]>());
+        spread["cave houses"].Add("cave street", new float[2] { 5.0f, 1.0f });
+        spread["cave houses"].Add("cave houses", new float[2] { 5.0f, 1.0f });
+
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (hexes[x][y] != null && spread.ContainsKey(hexes[x][y].Terrain.ToLower())) {
@@ -173,10 +162,10 @@ public class CombatMap {
         seed.Add(seed_max, prototype);
     }
 
-    private void Add_To_Defender_Side_Seed(string prototype, int weight)
+    private void Add_To_City_Seed(string prototype, int weight)
     {
-        defenders_side_seed_max += weight;
-        defenders_side_seed.Add(defenders_side_seed_max, prototype);
+        city_seed_max += weight;
+        city_seed.Add(city_seed_max, prototype);
     }
 
     /// <summary>
