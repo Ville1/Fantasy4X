@@ -165,7 +165,7 @@ public partial class Factions {
             { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
         }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f, false, null,
-        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "default_unit", 10), new EmpireModifiers() {
+        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "flag_bearer", 10, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
             Passive_Income = 3.0f,
             Max_Mana = 100.0f,
             Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f)
@@ -508,7 +508,7 @@ public partial class Factions {
             Cultural_Influence_Range = 5.0f
         });
 
-        Kingdom.Spells.Add(new Spell("Vision", 0.0f, 0, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
+        Kingdom.Spells.Add(new Spell("Vision", 10.0f, 5, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
             if (hex.Is_Explored_By(caster)) {
                 return new Spell.SpellResult(false, "Select a unexplored hex");
             }
@@ -567,7 +567,7 @@ public partial class Factions {
             AI_Casting_Guidance = new Blessing.AIBlessingCastingGuidance(Blessing.AIBlessingCastingGuidance.TargetType.Caster, null, new Dictionary<AI.Tag, float>() { { AI.Tag.Food, 1.0f }, { AI.Tag.Production, 1.0f }, { AI.Tag.Cash, 1.0f } })
         });
 
-        Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
+        Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant_2", new List<string>() { "peasant_working_2_1", "peasant_working_2_2" }, 3.0f, new List<Improvement>()
             { Kingdom.Improvements.First(x => x.Name == "Farm"), Kingdom.Improvements.First(x => x.Name == "Plantation"), Kingdom.Improvements.First(x => x.Name == "Hunting Lodge"),
             Kingdom.Improvements.First(x => x.Name == "Logging Camp"), Kingdom.Improvements.First(x => x.Name == "Quarry"), Kingdom.Improvements.First(x => x.Name == "Mine"),
             Kingdom.Improvements.First(x => x.Name == "Windmill"), Kingdom.Improvements.First(x => x.Name == "Lumber Mill"), Kingdom.Improvements.First(x => x.Name == "Forester's Lodge")},
@@ -576,18 +576,17 @@ public partial class Factions {
         Kingdom.Units.Add(new Worker("Civilian Ship", 3.0f, Map.MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
             1.0f, 50, 100, 1.0f, null, 0.0f));
 
-        Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, Education, 10, 0.0f));
+        Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector_2", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, Education, 10, 0.0f));
 
         ///Vanguard deployment units?
-        Kingdom.Units.Add(new Unit("Scout", Unit.UnitType.Infantry, "scout", 3.0f, 50, 50, 0.5f, 0.0f, 3, null, null, 2.0f, true, 9.0f, 75.0f, 100.0f,
+        Kingdom.Units.Add(new Unit("Scout", Unit.UnitType.Infantry, "scout_2", 3.0f, 50, 50, 0.5f, 0.0f, 3, null, null, 2.0f, true, 9.0f, 75.0f, 100.0f,
             9.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.5f }, { Unit.DamageType.Thrust, 0.5f } }, 0.1f,
             0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,
             10.0f, 7.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Slash, 0.50f }, { Unit.DamageType.Thrust, 0.75f }, { Unit.DamageType.Impact, 1.0f } },
             7.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
-                AbilityPrototypes.Instance.Get("forest combat bonus", 0.10f),
-                AbilityPrototypes.Instance.Get("wild animal", 1.00f)
+                AbilityPrototypes.Instance.Get("forest combat bonus", 0.10f)
             }, new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Peasant Militia", Unit.UnitType.Infantry, "default_spear_unit_2", 2.0f, 35, 20, 0.25f, 0.0f, 2, null, new List<Building>(),
+        Kingdom.Units.Add(new Unit("Peasant Militia", Unit.UnitType.Infantry, "peasant_militia", 2.0f, 35, 20, 0.25f, 0.0f, 2, null, new List<Building>(),
             2.0f, true, 10.0f, 50.0f, 90.0f,
             10.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Thrust, 0.95f }, { Unit.DamageType.Slash, 0.05f } }, 0.25f,
             0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,
@@ -599,7 +598,7 @@ public partial class Factions {
                 AbilityPrototypes.Instance.Get("village defence bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("upkeep reduction on village", 1.00f)
             }, new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Levy Spearman", Unit.UnitType.Infantry, "default_spear_unit", 2.0f, 100, 75, 0.5f, 0.0f, 2, Conscription, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
+        Kingdom.Units.Add(new Unit("Levy Spearman", Unit.UnitType.Infantry, "levy_spearman", 2.0f, 100, 75, 0.5f, 0.0f, 2, Conscription, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 75.0f, 100.0f,
             10.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Thrust, 0.95f }, { Unit.DamageType.Slash, 0.05f } }, 0.25f,
             0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,

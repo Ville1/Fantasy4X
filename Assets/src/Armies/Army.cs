@@ -22,6 +22,8 @@ public class Army : WorldMapEntity {
     public int Max_Size { get; private set; }
     public List<Unit> Units { get; private set; }
     public float Raiding_Income { get; private set; }
+    public List<string> Camp_Animation { get; private set; }
+    public float Camp_Animation_FPS { get; private set; }
 
     private bool text_initialized;
     private GameObject TextMesh_game_object;
@@ -32,6 +34,8 @@ public class Army : WorldMapEntity {
     {
         text_initialized = false;
         Max_Size = prototype.Max_Size;
+        Camp_Animation = prototype.Camp_Animation != null ? Helper.Copy_List(prototype.Camp_Animation) : null;
+        Camp_Animation_FPS = prototype.Camp_Animation_FPS;
         if(first_unit != null) {
             first_unit.Army = this;
             Units = new List<Unit>() { first_unit };
@@ -150,6 +154,15 @@ public class Army : WorldMapEntity {
     public Army(string name, string texture, int max_size) : base(name, -1, Map.MovementType.Land, -1, texture)
     {
         Max_Size = max_size;
+        Camp_Animation = null;
+        Camp_Animation_FPS = -1.0f;
+    }
+
+    public Army(string name, string texture, int max_size, List<string> camp_animation, float camp_animation_fps) : base(name, -1, Map.MovementType.Land, -1, texture)
+    {
+        Max_Size = max_size;
+        Camp_Animation = camp_animation;
+        Camp_Animation_FPS = camp_animation_fps;
     }
 
     public override float Max_Movement
@@ -586,7 +599,11 @@ public class Army : WorldMapEntity {
                 if (!Sleep) {
                     Stop_Animation();
                 } else {
-                    Start_Animation(CAMP_ANIMATION, CAMP_ANIMATION_FPS);
+                    if(Camp_Animation == null) {
+                        Start_Animation(CAMP_ANIMATION, CAMP_ANIMATION_FPS);
+                    } else {
+                        Start_Animation(Camp_Animation, Camp_Animation_FPS);
+                    }
                 }
             }
         }
