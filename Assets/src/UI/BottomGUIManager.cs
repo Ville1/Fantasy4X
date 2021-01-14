@@ -15,6 +15,7 @@ public class BottomGUIManager : MonoBehaviour
     public Button Next_Button;
     public Button Wait_Button;
     public Button Sleep_Button;
+    public Button Info_Button;
 
     public GameObject Action_GameObject;
 
@@ -172,7 +173,7 @@ public class BottomGUIManager : MonoBehaviour
                 selected_image.gameObject.SetActive(Selected_Units.Contains(army.Units[i]));
 
                 Button button = go.GetComponentInChildren<Button>();
-                button.image.overrideSprite = SpriteManager.Instance.Get_Sprite(army.Units[i].Texture, SpriteManager.SpriteType.Unit);
+                button.image.overrideSprite = SpriteManager.Instance.Get(army.Units[i].Texture, SpriteManager.SpriteType.Unit);
 
                 Button.ButtonClickedEvent on_click_event = new Button.ButtonClickedEvent();
                 Unit u = army.Units[i];
@@ -181,7 +182,7 @@ public class BottomGUIManager : MonoBehaviour
                 }));
                 button.onClick = on_click_event;
 
-                TooltipManager.Instance.Register_Tooltip(button.gameObject, army.Units[i].Tooltip, gameObject);
+                TooltipManager.Instance.Register_Tooltip(button.gameObject, army.Units[i].Simple_Tooltip, gameObject);
 
                 units.Add(go);
             }
@@ -198,7 +199,7 @@ public class BottomGUIManager : MonoBehaviour
 
         Update_Next_Turn_Button_Text();
 
-        Current_Entity_Image.overrideSprite = SpriteManager.Instance.Get_Sprite(current_entity.Texture, SpriteManager.SpriteType.Unit);
+        Current_Entity_Image.overrideSprite = SpriteManager.Instance.Get(current_entity.Texture, SpriteManager.SpriteType.Unit);
         Current_Entity_Name_Text.text = Current_Entity.Is_Owned_By_Current_Player ? current_entity.Name : string.Format("Enemy {0}", current_entity.Name);
         Current_Entity_Name_Text.color = Current_Entity.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
         Current_Entity_Movement_Text.text = string.Format("Movement: {0} / {1}{2}{3}", Helper.Float_To_String(current_entity.Current_Movement, 1), current_entity.Max_Movement, current_entity.Wait_Turn ? " (wait)" : "",
@@ -270,7 +271,7 @@ public class BottomGUIManager : MonoBehaviour
 
     public void Wait_Turn()
     {
-        if (!Active || Main.Instance.Other_Players_Turn || Current_Entity == null) {
+        if (!Active || Main.Instance.Other_Players_Turn || Current_Entity == null || !Current_Entity.Is_Owned_By_Current_Player) {
             return;
         }
         Current_Entity.Wait_Turn = !Current_Entity.Wait_Turn;
@@ -279,11 +280,19 @@ public class BottomGUIManager : MonoBehaviour
 
     public void Sleep()
     {
-        if (!Active || Main.Instance.Other_Players_Turn || Current_Entity == null) {
+        if (!Active || Main.Instance.Other_Players_Turn || Current_Entity == null || !Current_Entity.Is_Owned_By_Current_Player) {
             return;
         }
         Current_Entity.Sleep = !Current_Entity.Sleep;
         Update_Entity_Info();
+    }
+
+    public void Open_Info()
+    {
+        if(!Active || Main.Instance.Other_Players_Turn || Current_Entity == null || !(Current_Entity is Army)) {
+            return;
+        }
+        UnitInfoGUIManager.Instance.Open(Selected_Units.Count != 0 ? Selected_Units[0] : (Current_Entity as Army).Units[0], false);
     }
 
     public void Update_Next_Turn_Button_Text()
@@ -312,7 +321,7 @@ public class BottomGUIManager : MonoBehaviour
             go.name = "Action" + i;
             go.transform.position = new Vector3(Action_GameObject.transform.position.x + (go.GetComponent<RectTransform>().rect.width * i),
                 Action_GameObject.transform.position.y, Action_GameObject.transform.position.z);
-            go.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get_Sprite(Current_Entity.Actions[i].Texture, Current_Entity.Actions[i].Texture_Type);
+            go.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get(Current_Entity.Actions[i].Texture, Current_Entity.Actions[i].Texture_Type);
             go.GetComponentInChildren<Text>().text = Current_Entity.Actions[i].Name;
             go.GetComponentInChildren<Button>().interactable = Current_Entity.Actions[i].Can_Be_Activated(Current_Entity) && Current_Entity.Is_Owned_By(Main.Instance.Viewing_Player);
             Button.ButtonClickedEvent on_click_event = new Button.ButtonClickedEvent();
@@ -350,6 +359,7 @@ public class BottomGUIManager : MonoBehaviour
         Next_Button.interactable = interactable;
         Wait_Button.interactable = interactable;
         Sleep_Button.interactable = interactable;
+        Info_Button.interactable = interactable && Current_Entity != null && Current_Entity is Army;
         Next_Turn_Button.interactable = interactable;
         Update_Next_Turn_Button_Text();
     }

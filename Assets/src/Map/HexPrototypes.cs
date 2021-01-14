@@ -20,46 +20,46 @@ public class HexPrototypes {
         default_forest_seed.Add("scrubs", 75);
         default_forest_seed.Add("trees", 200);
 
-        world_map_hex_prototypes.Add("grassland", new WorldMapHex("Grassland", "hex_grass", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
+        world_map_hex_prototypes.Add("grassland", new WorldMapHex("Grassland", "grass", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }, default_grassland_seed, null));
-        world_map_hex_prototypes.Add("plains", new WorldMapHex("Plains", "hex_plain", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
+        world_map_hex_prototypes.Add("plains", new WorldMapHex("Plains", "plains", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 25 }, { "trees", 3 } }, null));
-        world_map_hex_prototypes.Add("hill", new WorldMapHex("Hill", "hex_hill", new Yields(1, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true,
+        world_map_hex_prototypes.Add("hill", new WorldMapHex("Hill", "hills", new Yields(1, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill, WorldMapHex.Tag.Arid }, default_grassland_seed, null));
-        world_map_hex_prototypes.Add("hill with a cave", new WorldMapHex("Hill with a Cave", "hex_hill_cave", new Yields(1, 1, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true,
+        world_map_hex_prototypes.Add("hill with a cave", new WorldMapHex("Hill with a Cave", "cave_hills", new Yields(1, 1, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Underground }, new Dictionary<string, int>() { { "cave", 100 }, { "cave rocks", 50 } }, null));
-        world_map_hex_prototypes.Add("mountain", new WorldMapHex("Mountain", "hex_mountain", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true,
+        world_map_hex_prototypes.Add("mountain", new WorldMapHex("Mountain", "mountain", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill, WorldMapHex.Tag.Arid }, default_grassland_seed, null));
-        world_map_hex_prototypes.Add("volcano", new WorldMapHex("Volcano", "hex_volcano", new Yields(0, 2, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true,
+        world_map_hex_prototypes.Add("volcano", new WorldMapHex("Volcano", "volcano", new Yields(0, 2, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill, WorldMapHex.Tag.Arid }, default_grassland_seed, null));
-        world_map_hex_prototypes.Add("swamp", new WorldMapHex("Swamp", "hex_swamp", new Yields(2, 0, 0, 1, 0, 0, 0), 0.0f, -1.0f, 0.0f, 3.0f, 0, 1, false,
+        world_map_hex_prototypes.Add("swamp", new WorldMapHex("Swamp", "swamp", new Yields(2, 0, 0, 1, 0, 0, 0), 0.0f, -1.0f, 0.0f, 3.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Game }, new Dictionary<string, int>() { { "grass", 50 }, { "scrubs", 200 }, { "trees", 85 } }, null));
-        world_map_hex_prototypes.Add("flower field", new WorldMapHex("Flower Field", "hex_flowers", new Yields(2, 0, 0, 0, 1, 0, 0), 1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
+        world_map_hex_prototypes.Add("flower field", new WorldMapHex("Flower Field", "flower_field", new Yields(2, 0, 0, 0, 1, 0, 0), 1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 5 }, { "trees", 5 } }, null));
-        world_map_hex_prototypes.Add("forest", new WorldMapHex("Forest", "hex_forest", new Yields(2, 0.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 2.0f, 0, 1, false,
+        world_map_hex_prototypes.Add("forest", new WorldMapHex("Forest", "forest", new Yields(2, 0.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 2.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Timber, WorldMapHex.Tag.Game }, default_forest_seed, null));
-        world_map_hex_prototypes.Add("forest hill", new WorldMapHex("Forest Hill", "hex_forest_hill", new Yields(1.5f, 1.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 3.0f, 1, 2,
+        world_map_hex_prototypes.Add("forest hill", new WorldMapHex("Forest Hill", "forest_hill", new Yields(1.5f, 1.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 3.0f, 1, 2,
             true, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Hill, WorldMapHex.Tag.Timber, WorldMapHex.Tag.Game }, default_forest_seed, null));
-        world_map_hex_prototypes.Add("mushroom forest", new WorldMapHex("Mushroom Forest", "hex_mushrooms", new Yields(2.5f, 0.5f, 0, 1, 0, 1, 0), 0.0f, 0.0f, 0.0f, 2.0f, 0, 1, false,
+        world_map_hex_prototypes.Add("mushroom forest", new WorldMapHex("Mushroom Forest", "mushrooms", new Yields(2.5f, 0.5f, 0, 1, 0, 1, 0), 0.0f, 0.0f, 0.0f, 2.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Game }, default_grassland_seed, null));
-        world_map_hex_prototypes.Add("enchanted forest", new WorldMapHex("Enchanted Forest", "hex_enc_forest", new Yields(2, 0.5f, 0, 0, 0, 2, 0), 1.0f, 0.5f, 0.0f, 2.0f, 0, 1, false,
+        world_map_hex_prototypes.Add("enchanted forest", new WorldMapHex("Enchanted Forest", "enchanted_forest", new Yields(2, 0.5f, 0, 0, 0, 2, 0), 1.0f, 0.5f, 0.0f, 2.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Timber, WorldMapHex.Tag.Game }, default_forest_seed, null));
-        world_map_hex_prototypes.Add("haunted forest", new WorldMapHex("Haunted Forest", "hex_haunted_forest", new Yields(0, 1, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 2.0f, 0, 1, false,
+        world_map_hex_prototypes.Add("haunted forest", new WorldMapHex("Haunted Forest", "haunted_forest", new Yields(0, 1, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 2.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Special }, default_grassland_seed, null));
-        world_map_hex_prototypes.Add("water", new WorldMapHex("Water", "hex_water", new Yields(3, 0, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 1.0f, 0, -1, false,
+        world_map_hex_prototypes.Add("water", new WorldMapHex("Water", "water", new Yields(3, 0, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 1.0f, 0, -1, false,
             new List<WorldMapHex.Tag>(), default_grassland_seed, null) { Is_Water = true });
-        world_map_hex_prototypes.Add("city ruins", new WorldMapHex("City Ruins", "hex_ruins", new Yields(1, 0, 0, 2, 1, 1, 1), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
+        world_map_hex_prototypes.Add("city ruins", new WorldMapHex("City Ruins", "ruins", new Yields(1, 0, 0, 2, 1, 1, 1), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Special }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 35 }, { "trees", 15 }, { "houses", 15 }, { "street", 5 } }, null));
-        world_map_hex_prototypes.Add("grave yard", new WorldMapHex("Grave Yard", "hex_grave_yard", new Yields(0, 0, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
+        world_map_hex_prototypes.Add("grave yard", new WorldMapHex("Grave Yard", "graveyard", new Yields(0, 0, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open, WorldMapHex.Tag.Special }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 50 }, { "trees", 15 }, { "houses", 3 } }, null));
 
-        world_map_hex_prototypes.Add("small city", new WorldMapHex("Small City", "city_small", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
+        world_map_hex_prototypes.Add("small city", new WorldMapHex("Small City", "small_city", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 25 }, { "trees", 15 }, { "houses", 5 } },
             new Dictionary<string, int>() { { "grass", 50 }, { "scrubs", 5 }, { "trees", 15 }, { "street", 180 }, { "houses", 225 } }));
-        world_map_hex_prototypes.Add("city", new WorldMapHex("City", "hex_castle", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
+        world_map_hex_prototypes.Add("city", new WorldMapHex("City", "kingdom_city", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 25 }, { "trees", 15 }, { "houses", 5 } },
             new Dictionary<string, int>() { { "grass", 50 }, { "scrubs", 5 }, { "trees", 15 }, { "street", 200 }, { "houses", 250 } }));
-        world_map_hex_prototypes.Add("village", new WorldMapHex("Village", "hex_village", new Yields(1, 1, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
+        world_map_hex_prototypes.Add("village", new WorldMapHex("Village", "village", new Yields(1, 1, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 25 }, { "trees", 25 }, { "houses", 10 } },
             new Dictionary<string, int>() { { "grass", 65 }, { "scrubs", 20 }, { "trees", 15 }, { "street", 75 }, { "houses", 100 } }));
         world_map_hex_prototypes.Add("dwarven city", new WorldMapHex("Dwarven City", "hex_dwarven_city", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 1, false,
@@ -67,15 +67,15 @@ public class HexPrototypes {
             new Dictionary<string, int>() { { "cave", 50 }, { "cave rocks", 5 }, { "cave street", 200 }, { "cave houses", 250 } }));
 
         combat_map_hex_prototypes = new Dictionary<string, CombatMapHex>();
-        combat_map_hex_prototypes.Add("grass", new CombatMapHex("Grass", "cm_hex_grass", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
-        combat_map_hex_prototypes.Add("scrubs", new CombatMapHex("Scrubs", "cm_hex_scrubs", 1.0f, 1.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
-        combat_map_hex_prototypes.Add("trees", new CombatMapHex("Trees", "cm_hex_forest", 2.0f, 2.0f, 0, 1, 0.50f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Forest }));
-        combat_map_hex_prototypes.Add("houses", new CombatMapHex("Houses", "cm_hex_houses", 2.0f, 0.0f, 0, 1, 1.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
-        combat_map_hex_prototypes.Add("street", new CombatMapHex("Street", "cm_hex_paving", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
-        combat_map_hex_prototypes.Add("cave", new CombatMapHex("Cave", "cm_hex_cave", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open, CombatMapHex.Tag.Underground }));
-        combat_map_hex_prototypes.Add("cave rocks", new CombatMapHex("Cave Rocks", "cm_hex_cave_rocks", 2.0f, 2.0f, 0, 0, 0.25f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Underground }));
-        combat_map_hex_prototypes.Add("cave houses", new CombatMapHex("Cave Houses", "cm_hex_cave_houses", 2.0f, 0.0f, 0, 1, 1.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban, CombatMapHex.Tag.Underground }));
-        combat_map_hex_prototypes.Add("cave street", new CombatMapHex("Cave Street", "cm_hex_cave_paving", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban, CombatMapHex.Tag.Underground }));
+        combat_map_hex_prototypes.Add("grass", new CombatMapHex("Grass", "combat_grass", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
+        combat_map_hex_prototypes.Add("scrubs", new CombatMapHex("Scrubs", "combat_scrubs", 1.0f, 1.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
+        combat_map_hex_prototypes.Add("trees", new CombatMapHex("Trees", "forest", 2.0f, 2.0f, 0, 1, 0.50f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Forest }));
+        combat_map_hex_prototypes.Add("houses", new CombatMapHex("Houses", "combat_houses", 2.0f, 0.0f, 0, 1, 1.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
+        combat_map_hex_prototypes.Add("street", new CombatMapHex("Street", "combat_paving", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban }));
+        combat_map_hex_prototypes.Add("cave", new CombatMapHex("Cave", "combat_cave", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open, CombatMapHex.Tag.Underground }));
+        combat_map_hex_prototypes.Add("cave rocks", new CombatMapHex("Cave Rocks", "combat_cave_rocks", 2.0f, 2.0f, 0, 0, 0.25f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Underground }));
+        combat_map_hex_prototypes.Add("cave houses", new CombatMapHex("Cave Houses", "combat_cave_houses", 2.0f, 0.0f, 0, 1, 1.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban, CombatMapHex.Tag.Underground }));
+        combat_map_hex_prototypes.Add("cave street", new CombatMapHex("Cave Street", "combat_cave_paving", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Urban, CombatMapHex.Tag.Underground }));
 
 
         road_prototypes = new Dictionary<string, Road>();

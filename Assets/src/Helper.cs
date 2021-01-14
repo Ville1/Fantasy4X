@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Helper {
+    public delegate void ButtonClickDelegate();
+
     /// <summary>
     /// input < min
     /// min * multiplier_1
@@ -124,9 +127,16 @@ public class Helper {
         return "s";
     }
 
-    public static string Parse_To_Human_Readable(string s)
+    public static string Snake_Case_To_UI(string snake_case, bool capitalize = false)
     {
-        return s.Replace('_', ' ');
+        if (string.IsNullOrEmpty(snake_case)) {
+            return string.Empty;
+        }
+        snake_case = snake_case.ToLower().Replace('_', ' ');
+        if (capitalize) {
+            snake_case = snake_case[0].ToString().ToUpper() + snake_case.Substring(1);
+        }
+        return snake_case;
     }
 
     public static Map.Direction Rotate(Map.Direction direction, int rotation)
@@ -148,5 +158,54 @@ public class Helper {
             GameObject.Destroy(go);
         }
         list.Clear();
+    }
+
+    public static void Delete_All(List<GameObject> list)
+    {
+        foreach (GameObject obj in list) {
+            GameObject.Destroy(obj);
+        }
+        list.Clear();
+    }
+
+    public static void Delete_All<T>(Dictionary<T, GameObject> dictionary)
+    {
+        foreach (KeyValuePair<T, GameObject> pair in dictionary) {
+            GameObject.Destroy(pair.Value);
+        }
+        dictionary.Clear();
+    }
+
+    public static void Set_Text(string parent_game_object_name, string text_game_object_name, string text, Color? color = null)
+    {
+        GameObject text_game_object = GameObject.Find(string.Format("{0}/{1}", parent_game_object_name, text_game_object_name));
+        text_game_object.GetComponentInChildren<Text>().text = text;
+        if (color.HasValue) {
+            text_game_object.GetComponentInChildren<Text>().color = color.Value;
+        }
+    }
+    
+    public static void Set_Image(string parent_game_object_name, string text_game_object_name, string sprite_name, SpriteManager.SpriteType sprite_type)
+    {
+        GameObject image_game_object = GameObject.Find(string.Format("{0}/{1}", parent_game_object_name, text_game_object_name));
+        image_game_object.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get(sprite_name, sprite_type);
+    }
+    
+    public static void Set_Image(string parent_game_object_name, string text_game_object_name, string sprite_name, SpriteManager.SpriteType sprite_type, Color color)
+    {
+        GameObject image_game_object = GameObject.Find(string.Format("{0}/{1}", parent_game_object_name, text_game_object_name));
+        Image image = image_game_object.GetComponentInChildren<Image>();
+        image.sprite = SpriteManager.Instance.Get(sprite_name, sprite_type);
+        image.color = color;
+    }
+
+    public static void Set_Button_On_Click(string parent_game_object_name, string button_game_object_name, ButtonClickDelegate delegate_p)
+    {
+        GameObject button_game_object = GameObject.Find(string.Format("{0}/{1}", parent_game_object_name, button_game_object_name));
+        Button.ButtonClickedEvent on_click = new Button.ButtonClickedEvent();
+        on_click.AddListener(delegate () {
+            delegate_p();
+        });
+        button_game_object.GetComponentInChildren<Button>().onClick = on_click;
     }
 }

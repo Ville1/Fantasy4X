@@ -21,7 +21,7 @@ public class WildLifeAI : IConfigListener, I_AI
     private float act_cooldown;
     private bool last_action_was_visible;
     private Dictionary<Army, ArmyWaitData> waiting_armies;
-
+    private int performance_heavy_actions_taken;
 
     public WildLifeAI(Player player)
     {
@@ -44,6 +44,7 @@ public class WildLifeAI : IConfigListener, I_AI
     {
         //TODO: This call should not be needed
         Main.Instance.Update_Flags();
+        performance_heavy_actions_taken = 0;
 
         Log(string.Format("---- {0}: starting turn ----", Player.Name), AI.LogType.General);
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -177,63 +178,68 @@ public class WildLifeAI : IConfigListener, I_AI
                     }
                 }
             } else {
-                List<WorldMapHex> hexes_in_los = army.Get_Hexes_In_LoS();
-                Dictionary<WorldMapHex, List<PathfindingNode>> reachable_hexes = new Dictionary<WorldMapHex, List<PathfindingNode>>();
-                foreach (WorldMapHex hex_in_los in hexes_in_los) {
-                    if (!hex_in_los.Passable_For(army) || (hex_in_los.Entity != null && hex_in_los.Entity.Is_Owned_By(Player)) || !Can_Enter_Hex(hex_in_los)) {
-                        continue;
-                    }
-                    List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), hex_in_los.Get_Specific_PathfindingNode(army));
-                    if (path.Count != 0) {
-                        reachable_hexes.Add(hex_in_los, path);
-                    }
-                }
-                if (reachable_hexes.Count == 0) {
+                if (performance_heavy_actions_taken > 0) {
                     army.Wait_Turn = true;
-                    Log("Can't reach any hexes", AI.LogType.Military);
-                    waiting_armies.Add(army, new ArmyWaitData() { Turns_Left = 20 });
                 } else {
-                    WorldMapHex target = null;
-                    List<WorldMapHex> empty_reachable_hexes = new List<WorldMapHex>();
-
-                    foreach (KeyValuePair<WorldMapHex, List<PathfindingNode>> reachable_hex in reachable_hexes) {
-                        if (reachable_hex.Key.Civilian == null && reachable_hex.Key.Entity == null) {
-                            empty_reachable_hexes.Add(reachable_hex.Key);
+                    List<WorldMapHex> hexes_in_los = army.Get_Hexes_In_LoS();
+                    Dictionary<WorldMapHex, List<PathfindingNode>> reachable_hexes = new Dictionary<WorldMapHex, List<PathfindingNode>>();
+                    foreach (WorldMapHex hex_in_los in hexes_in_los) {
+                        if (!hex_in_los.Passable_For(army) || (hex_in_los.Entity != null && hex_in_los.Entity.Is_Owned_By(Player)) || !Can_Enter_Hex(hex_in_los)) {
+                            continue;
                         }
-                        if (reachable_hex.Key.Civilian != null && !reachable_hex.Key.Civilian.Is_Owned_By(Player) &&
-                                reachable_hex.Key.Army == null && Main.Instance.Round > WOLF_CHASE_TRUCE) {
-                            target = reachable_hex.Key;
-                            Log(string.Format("Targeting civilian #{0}", target.Civilian.Id), AI.LogType.Military);
-                            break;
+                        List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), hex_in_los.Get_Specific_PathfindingNode(army));
+                        if (path.Count != 0) {
+                            reachable_hexes.Add(hex_in_los, path);
                         }
                     }
+                    performance_heavy_actions_taken++;
+                    if (reachable_hexes.Count == 0) {
+                        army.Wait_Turn = true;
+                        Log("Can't reach any hexes", AI.LogType.Military);
+                        waiting_armies.Add(army, new ArmyWaitData() { Turns_Left = 20 });
+                    } else {
+                        WorldMapHex target = null;
+                        List<WorldMapHex> empty_reachable_hexes = new List<WorldMapHex>();
 
-                    if (target == null && Main.Instance.Round > WOLF_CHASE_TRUCE) {
                         foreach (KeyValuePair<WorldMapHex, List<PathfindingNode>> reachable_hex in reachable_hexes) {
-                            if (reachable_hex.Key.Army != null && !reachable_hex.Key.Army.Is_Owned_By(Player) &&
-                                    army.Get_Relative_Strenght_When_On_Hex(target, true, true) * WOLF_AGGRESSION > reachable_hex.Key.Army.Get_Relative_Strenght_When_On_Hex(target, true, false)) {
+                            if (reachable_hex.Key.Civilian == null && reachable_hex.Key.Entity == null) {
+                                empty_reachable_hexes.Add(reachable_hex.Key);
+                            }
+                            if (reachable_hex.Key.Civilian != null && !reachable_hex.Key.Civilian.Is_Owned_By(Player) &&
+                                    reachable_hex.Key.Army == null && Main.Instance.Round > WOLF_CHASE_TRUCE) {
                                 target = reachable_hex.Key;
-                                Log(string.Format("Targeting army #{0}", target.Army.Id), AI.LogType.Military);
+                                Log(string.Format("Targeting civilian #{0}", target.Civilian.Id), AI.LogType.Military);
                                 break;
                             }
                         }
-                    }
 
-                    if (target == null && empty_reachable_hexes.Count != 0) {
-                        target = empty_reachable_hexes[RNG.Instance.Next(0, empty_reachable_hexes.Count - 1)];
-                        Log(string.Format("Targeting random hex {0}", target.Coordinates.ToString()), AI.LogType.Military);
-                    }
-                    if (target == null) {
-                        army.Wait_Turn = true;
-                        Log("Failed to find a target", AI.LogType.Military);
-                    } else {
-                        army.Create_Stored_Path(reachable_hexes[target]);
-                        if (!army.Follow_Stored_Path()) {
+                        if (target == null && Main.Instance.Round > WOLF_CHASE_TRUCE) {
+                            foreach (KeyValuePair<WorldMapHex, List<PathfindingNode>> reachable_hex in reachable_hexes) {
+                                if (reachable_hex.Key.Army != null && !reachable_hex.Key.Army.Is_Owned_By(Player) &&
+                                        army.Get_Relative_Strenght_When_On_Hex(target, true, true) * WOLF_AGGRESSION > reachable_hex.Key.Army.Get_Relative_Strenght_When_On_Hex(target, true, false)) {
+                                    target = reachable_hex.Key;
+                                    Log(string.Format("Targeting army #{0}", target.Army.Id), AI.LogType.Military);
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (target == null && empty_reachable_hexes.Count != 0) {
+                            target = empty_reachable_hexes[RNG.Instance.Next(0, empty_reachable_hexes.Count - 1)];
+                            Log(string.Format("Targeting random hex {0}", target.Coordinates.ToString()), AI.LogType.Military);
+                        }
+                        if (target == null) {
                             army.Wait_Turn = true;
-                            CustomLogger.Instance.Error("Failed to move");
+                            Log("Failed to find a target", AI.LogType.Military);
                         } else {
-                            last_action_was_visible = army.Hex.Visible_To_Viewing_Player;
-                            Update_Spectator_View_On_Move(army);
+                            army.Create_Stored_Path(reachable_hexes[target]);
+                            if (!army.Follow_Stored_Path()) {
+                                army.Wait_Turn = true;
+                                CustomLogger.Instance.Error("Failed to move");
+                            } else {
+                                last_action_was_visible = army.Hex.Visible_To_Viewing_Player;
+                                Update_Spectator_View_On_Move(army);
+                            }
                         }
                     }
                 }

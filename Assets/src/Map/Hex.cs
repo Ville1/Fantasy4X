@@ -2,7 +2,8 @@
 
 public class Hex : Ownable {
     public static readonly string GAME_OBJECT_NAME_PREFIX = "Hex";
-    static readonly float WIDTH_MULTIPLIER = Mathf.Sqrt(3.0f) / 2.0f;
+    static readonly float WIDTH_MULTIPLIER = 0.86f;// Mathf.Sqrt(3.0f) / 2.0f;
+    static readonly float HEIGHT_MULTIPLIER = 0.595f;
 
     /// <summary>
     /// Column
@@ -27,7 +28,7 @@ public class Hex : Ownable {
     protected Color? border_color;
     protected GameObject border_game_object;
 
-    public Hex(int q, int r, GameObject parent)
+    public Hex(int q, int r, GameObject parent, int map_height)
     {
         Q = q;
         R = r;
@@ -41,6 +42,7 @@ public class Hex : Ownable {
         );
         GameObject.name = string.Format("{0}({1},{2})", GAME_OBJECT_NAME_PREFIX, Q, R);
         GameObject.AddComponent<SphereCollider>();
+        SpriteRenderer.sortingOrder = (3 * map_height) - (R * 3);
 
         highlight_color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
         Destroyed = false;
@@ -61,7 +63,7 @@ public class Hex : Ownable {
             float radius = 1.0f;
             float height = radius * 2.0f;
             float width = WIDTH_MULTIPLIER * height;
-            float vertical = height * 0.64f;
+            float vertical = height * HEIGHT_MULTIPLIER;
             float horizontal = width;
             return new Vector3(
                 horizontal * (Q + R / 2.0f),
@@ -144,7 +146,7 @@ public class Hex : Ownable {
                     border_game_object.transform.position = GameObject.transform.position;
                     border_game_object.transform.parent = GameObject.transform.transform;
                     SpriteRenderer renderer = border_game_object.AddComponent<SpriteRenderer>();
-                    renderer.sprite = SpriteManager.Instance.Get_Sprite("hex_borders", SpriteManager.SpriteType.UI);
+                    renderer.sprite = SpriteManager.Instance.Get("hex_borders", SpriteManager.SpriteType.UI);
                     renderer.sortingLayerName = "Borders";
                 }
                 border_game_object.GetComponent<SpriteRenderer>().color = border_color.Value;

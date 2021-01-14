@@ -72,7 +72,7 @@ public class WorldMapEntity : Ownable {
         GameObject.transform.position = Hex.GameObject.transform.position;
         GameObject.transform.parent = Hex.GameObject.transform.transform;
         GameObject.AddComponent<SpriteRenderer>();
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Unit);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Unit);
         GameObject.SetActive(Hex.Visible_To_Viewing_Player);
     }
 
@@ -200,7 +200,7 @@ public class WorldMapEntity : Ownable {
         Animation_Index = 0;
         Animation_FPS = animation_fps;
         foreach (string t in textures) {
-            Current_Animation.Add(SpriteManager.Instance.Get_Sprite(t, SpriteManager.SpriteType.Unit_Animation));
+            Current_Animation.Add(SpriteManager.Instance.Get(t, SpriteManager.SpriteType.Unit_Animation));
         }
         animation_frame_time_left = 1.0f / Animation_FPS;
     }
@@ -210,7 +210,7 @@ public class WorldMapEntity : Ownable {
         Current_Animation = null;
         Animation_Index = 0;
         Animation_FPS = 0.0f;
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Unit);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Unit);
     }
 
     public void Update(float delta_s)

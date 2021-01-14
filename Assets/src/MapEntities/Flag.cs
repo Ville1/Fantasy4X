@@ -59,7 +59,7 @@ public class Flag {
         }
         has_spawnd = true;
         Type = new_type;
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(textures[Type], SpriteManager.SpriteType.UI);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(textures[Type], SpriteManager.SpriteType.UI);
     }
 
     public void Delete()

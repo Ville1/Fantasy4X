@@ -69,9 +69,10 @@ public class Improvement {
         GameObject.transform.position = hex.GameObject.transform.position;
         GameObject.transform.parent = hex.GameObject.transform;
         GameObject.AddComponent<SpriteRenderer>();
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(!Is_Active && !string.IsNullOrEmpty(Inactive_Texture) ? Inactive_Texture : Texture,
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(!Is_Active && !string.IsNullOrEmpty(Inactive_Texture) ? Inactive_Texture : Texture,
             SpriteManager.SpriteType.Improvement);
-        SpriteRenderer.sortingLayerName = SortingLayer.IMPROVEMENTS;
+        SpriteRenderer.sortingLayerName = SortingLayer.HEXES;
+        SpriteRenderer.sortingOrder = Hex.SpriteRenderer.sortingOrder + 2;
         Destroyed = false;
         GameObject.SetActive(Hex.Visible_To_Viewing_Player);
     }
@@ -222,7 +223,7 @@ public class Improvement {
         if (string.IsNullOrEmpty(Inactive_Texture)) {
             return;
         }
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Is_Active ? Texture : Inactive_Texture, SpriteManager.SpriteType.Improvement);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(Is_Active ? Texture : Inactive_Texture, SpriteManager.SpriteType.Improvement);
     }
 
     public static Improvement Default

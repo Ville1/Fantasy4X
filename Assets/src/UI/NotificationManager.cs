@@ -81,7 +81,7 @@ public class NotificationManager : MonoBehaviour {
         go.transform.position = new Vector3(Notification_Panel.transform.position.x + (go.GetComponent<RectTransform>().rect.width * active_notifications.Count),
             Notification_Panel.transform.position.y, Notification_Panel.transform.position.z);
         Button button = go.GetComponentInChildren<Button>();
-        button.image.overrideSprite = SpriteManager.Instance.Get_Sprite(notification.Texture, notification.Sprite_Type);
+        button.image.overrideSprite = SpriteManager.Instance.Get(notification.Texture, notification.Sprite_Type);
 
         TooltipManager.Instance.Register_Tooltip(go, notification.Name, Parent_GameObject);
 

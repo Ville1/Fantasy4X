@@ -91,7 +91,7 @@ public class Unit : Trainable
     public float Charge { get; private set; }
     public float Run_Stamina_Cost { get; private set; }
     public Dictionary<DamageType, float> Melee_Attack_Types { get; private set; }
-    public Dictionary<DamageProperty, float> Melee_Attack_Properties { get; private set; }
+    public Dictionary<DamageProperty, float> Melee_Attack_Properties { get; private set; }//TODO: Unused?
     public float Ranged_Attack { get; private set; }
     public Dictionary<DamageType, float> Ranged_Attack_Types { get; private set; }
     public Dictionary<DamageProperty, float> Ranged_Attack_Properties { get; private set; }
@@ -320,7 +320,7 @@ public class Unit : Trainable
             GameObject.transform.position = Hex.GameObject.transform.position;
             GameObject.transform.SetParent(Hex.Map.Units_GameObject.transform);
             GameObject.AddComponent<SpriteRenderer>();
-            SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Unit);
+            SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Unit);
             SpriteRenderer.sortingLayerName = SortingLayer.UNITS;
         }
 
@@ -1094,7 +1094,7 @@ public class Unit : Trainable
             if(Tags.Count != 0) {
                 tooltip.Append(Environment.NewLine).Append("Tags: ");
                 foreach(Tag t in Tags) {
-                    tooltip.Append(Helper.Parse_To_Human_Readable(t.ToString())).Append(", ");
+                    tooltip.Append(Helper.Snake_Case_To_UI(t.ToString())).Append(", ");
                 }
                 tooltip.Remove(tooltip.Length - 2, 2);
             }
@@ -1150,6 +1150,25 @@ public class Unit : Trainable
         }
     }
 
+    public string Simple_Tooltip
+    {
+        get {
+            StringBuilder tooltip = new StringBuilder();
+            tooltip.Append(Name);
+            if (Type != UnitType.Undefined) {
+                tooltip.Append(" (").Append(Type.ToString()).Append(")");
+            }
+            tooltip.Append(Environment.NewLine).Append("Melee Attack: ").Append(Mathf.RoundToInt(Melee_Attack));
+            if (Ranged_Attack > 0.0f) {
+                tooltip.Append(Environment.NewLine).Append("Ranged Attack: ").Append(Mathf.RoundToInt(Ranged_Attack)).Append(" (");
+                tooltip.Append(Environment.NewLine).Append("Range: ").Append(Range);
+            }
+            tooltip.Append(Environment.NewLine).Append("Melee Defence: ").Append(Mathf.RoundToInt(Melee_Defence));
+            tooltip.Append(Environment.NewLine).Append("Ranged Defence: ").Append(Mathf.RoundToInt(Ranged_Defence));
+            return tooltip.ToString();
+        }
+    }
+
     public AttackArch Get_Attack_Arch(CombatMapHex target_hex)
     {
         float height = 0.0f;
@@ -1185,7 +1204,7 @@ public class Unit : Trainable
         Animation_Index = 0;
         Animation_FPS = animation_fps;
         foreach (string t in textures) {
-            Current_Animation.Add(SpriteManager.Instance.Get_Sprite(t, SpriteManager.SpriteType.Unit_Animation));
+            Current_Animation.Add(SpriteManager.Instance.Get(t, SpriteManager.SpriteType.Unit_Animation));
         }
         animation_frame_time_left = 1.0f / Animation_FPS;
         repeat_animation = repeat;
@@ -1196,7 +1215,7 @@ public class Unit : Trainable
         Current_Animation = null;
         Animation_Index = 0;
         Animation_FPS = 0.0f;
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Unit);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Unit);
     }
 
     public void Update(float delta_s)

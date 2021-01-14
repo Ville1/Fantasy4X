@@ -301,7 +301,7 @@ public class CombatUIManager : MonoBehaviour {
         Unit_Image.gameObject.SetActive(true);
         Deploy_Button.gameObject.SetActive(CombatManager.Instance.Deployment_Mode);
         Deploy_Button.GetComponentInChildren<Text>().text = Current_Unit.Hex == null ? "Deploy" : "Undeploy";
-        Unit_Image.overrideSprite = SpriteManager.Instance.Get_Sprite(Current_Unit.Texture, SpriteManager.SpriteType.Unit);
+        Unit_Image.overrideSprite = SpriteManager.Instance.Get(Current_Unit.Texture, SpriteManager.SpriteType.Unit);
         Unit_Name_Text.text = Current_Unit.Name;
         Unit_Name_Text.color = Current_Unit.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
         Unit_Movement_Text.text = string.Format("Movement: {0} / {1}", Math.Round(Current_Unit.Current_Movement, 1), Current_Unit.Max_Movement);

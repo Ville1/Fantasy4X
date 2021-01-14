@@ -88,7 +88,7 @@ public class SpriteManager
     /// <param name="sprite_name"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public Sprite Get_Sprite(string sprite_name, SpriteType type)
+    public Sprite Get(string sprite_name, SpriteType type)
     {
         if (sprites.ContainsKey(prefixes[type] + "_" + sprite_name)) {
             return sprites[prefixes[type] + "_" + sprite_name];

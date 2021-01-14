@@ -69,7 +69,7 @@ public class StatusBar {
         gameObject.transform.parent = Unit.GameObject.transform.transform;
         gameObject.transform.localScale = new Vector3(SCALE_X, SCALE_Y, SCALE_Z);
         gameObject.AddComponent<SpriteRenderer>();
-        gameObject.GetComponent<SpriteRenderer>().sprite = SpriteManager.Instance.Get_Sprite(TEXTURES[Type][texture_index], SpriteManager.SpriteType.UI);
+        gameObject.GetComponent<SpriteRenderer>().sprite = SpriteManager.Instance.Get(TEXTURES[Type][texture_index], SpriteManager.SpriteType.UI);
         gameObject.GetComponent<SpriteRenderer>().sortingLayerName = sorting_layer;
         return gameObject;
     }

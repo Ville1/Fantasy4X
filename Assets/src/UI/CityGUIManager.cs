@@ -32,8 +32,9 @@ public class CityGUIManager : MonoBehaviour {
     public Image Unit_Under_Production_Production_Image;
 
     public GameObject Select_Unit_Panel;
-    public Button Select_Unit_Panel_Up_Button;
-    public Button Select_Unit_Panel_Down_Button;
+    public GameObject Select_Unit_Content;
+    public GameObject Select_Unit_Row_Prototype;
+
     public GameObject Select_Building_Panel;
     public Button Select_Building_Panel_Up_Button;
     public Button Select_Building_Panel_Down_Button;
@@ -78,15 +79,14 @@ public class CityGUIManager : MonoBehaviour {
 
     public Color Cant_Be_Worked_Highlight;
     public Color Worked_Hex_Highlight;
-
-    private List<GameObject> unit_game_objects;
+    
     private List<GameObject> building_game_objects;
     private List<GameObject> building_list_game_objects;
     private int building_list_offset;
     private int select_building_list_offset;
-    private int select_unit_list_offset;
     private List<WorldMapHex> highlighted_hexes;
     private List<GameObject> trade_route_gos;
+    private RowScrollView<Trainable> unit_selection_options;
 
     /// <summary>
     /// Initializiation
@@ -111,6 +111,7 @@ public class CityGUIManager : MonoBehaviour {
         Trade_Panel.SetActive(false);
 
         highlighted_hexes = new List<WorldMapHex>();
+        unit_selection_options = new RowScrollView<Trainable>("unit_selection_options", Select_Unit_Content, Select_Unit_Row_Prototype, 20.0f);
     }
 
     /// <summary>
@@ -151,7 +152,6 @@ public class CityGUIManager : MonoBehaviour {
                 
                 building_list_offset = 0;
                 select_building_list_offset = 0;
-                select_unit_list_offset = 0;
                 if (building_list_game_objects == null) {
                     building_list_game_objects = new List<GameObject>();
                     int i = 1;
@@ -213,7 +213,7 @@ public class CityGUIManager : MonoBehaviour {
         //Unit training
         if (current_city.Unit_Under_Production != null) {
             Unit_Under_Production_Image.gameObject.SetActive(true);
-            Unit_Under_Production_Image.overrideSprite = SpriteManager.Instance.Get_Sprite(current_city.Unit_Under_Production.Texture, SpriteManager.SpriteType.Unit);
+            Unit_Under_Production_Image.overrideSprite = SpriteManager.Instance.Get(current_city.Unit_Under_Production.Texture, SpriteManager.SpriteType.Unit);
             Unit_Under_Production_Name_Text.text = current_city.Unit_Under_Production.Name;
             Unit_Under_Production_Progress_Text.text = string.Format("{0} / {1}", Math.Round(current_city.Unit_Production_Acquired, 1), current_city.Unit_Under_Production.Production_Required);
             Unit_Under_Production_Turns_Text.text = string.Format("{0} turns", current_city.Unit_Under_Production_Turns_Left > 0 ? current_city.Unit_Under_Production_Turns_Left.ToString() : "N/A");
@@ -232,7 +232,7 @@ public class CityGUIManager : MonoBehaviour {
         //Building construction
         if (current_city.Building_Under_Production != null) {
             Building_Under_Production_Image.gameObject.SetActive(true);
-            Building_Under_Production_Image.overrideSprite = SpriteManager.Instance.Get_Sprite(current_city.Building_Under_Production.Texture, SpriteManager.SpriteType.Building);
+            Building_Under_Production_Image.overrideSprite = SpriteManager.Instance.Get(current_city.Building_Under_Production.Texture, SpriteManager.SpriteType.Building);
             Building_Under_Production_Name_Text.text = current_city.Building_Under_Production.Name;
             Building_Under_Production_Progress_Text.text = string.Format("{0} / {1}", Math.Round(current_city.Building_Production_Acquired, 1), current_city.Building_Under_Production.Production_Required);
             Building_Under_Production_Turns_Text.text = string.Format("{0} turns", current_city.Building_Under_Production_Turns_Left > 0 ? current_city.Building_Under_Production_Turns_Left.ToString() : "N/A");
@@ -315,11 +315,11 @@ public class CityGUIManager : MonoBehaviour {
             GameObject go = building_list_game_objects[i - building_list_offset];
             Building building = Current_City.Buildings[i];
             go.SetActive(true);
-            go.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get_Sprite(building.Texture, SpriteManager.SpriteType.Building);
+            go.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get(building.Texture, SpriteManager.SpriteType.Building);
             go.GetComponentInChildren<Text>().text = building.Name;
             foreach(Button button in go.GetComponentsInChildren<Button>()) {
                 if (button.name == "PauseButton") {
-                    button.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get_Sprite(building.Paused ? "resume" : "pause", SpriteManager.SpriteType.UI);
+                    button.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get(building.Paused ? "resume" : "pause", SpriteManager.SpriteType.UI);
                     button.interactable = building.Can_Be_Paused;
                     Button.ButtonClickedEvent button_event = new Button.ButtonClickedEvent();
                     button_event.AddListener(new UnityEngine.Events.UnityAction(delegate () {
@@ -512,7 +512,7 @@ public class CityGUIManager : MonoBehaviour {
             Building building = available_buildings[i];
             building_game_objects[i - select_building_list_offset].SetActive(true);
             string path = Select_Building_Panel.gameObject.name + "/" + building_game_objects[i - select_building_list_offset].name + "/";
-            GameObject.Find(path + "Image").GetComponent<Image>().overrideSprite = SpriteManager.Instance.Get_Sprite(building.Texture, SpriteManager.SpriteType.Building);
+            GameObject.Find(path + "Image").GetComponent<Image>().overrideSprite = SpriteManager.Instance.Get(building.Texture, SpriteManager.SpriteType.Building);
             GameObject.Find(path + "NameText").GetComponent<Text>().text = building.Name;
             GameObject.Find(path + "CashCostText").GetComponent<Text>().text = string.Format("{0}({1})", building.Cost.ToString(), Math.Round(building.Upkeep, 2).ToString("0.00"));
             GameObject.Find(path + "ProductionCostText").GetComponent<Text>().text = building.Production_Required.ToString();
@@ -555,10 +555,7 @@ public class CityGUIManager : MonoBehaviour {
         select_building_list_offset++;
         Update_Select_Build_List();
     }
-
-    /// <summary>
-    /// TODO: List scrolling
-    /// </summary>
+    
     public void Select_Unit_On_Click()
     {
         if (Select_Unit_Panel.activeSelf) {
@@ -572,81 +569,41 @@ public class CityGUIManager : MonoBehaviour {
 
     private void Update_Select_Unit_List()
     {
-        if (unit_game_objects == null) {
-            unit_game_objects = new List<GameObject>();
-            int index = 1;
-            while (true) {
-                GameObject obj = GameObject.Find(Select_Unit_Panel.gameObject.name + "/Unit" + index);
-                if (obj == null) {
-                    break;
-                }
-                obj.SetActive(false);
-                unit_game_objects.Add(obj);
-                index++;
-            }
-        }
-
-        foreach (GameObject go in unit_game_objects) {
-            go.SetActive(false);
-        }
-
         List<Trainable> available_units = Current_City.Get_Unit_Options(true);
-        for (int i = select_unit_list_offset; i < available_units.Count; i++) {
-            if (i - select_unit_list_offset >= unit_game_objects.Count) {
-                break;
-            }
-            Trainable unit = available_units[i];
-            unit_game_objects[i - select_unit_list_offset].SetActive(true);
-            string path = Select_Unit_Panel.gameObject.name + "/" + unit_game_objects[i - select_unit_list_offset].name + "/";
-            GameObject.Find(path + "Image").GetComponent<Image>().overrideSprite = SpriteManager.Instance.Get_Sprite(unit.Texture, SpriteManager.SpriteType.Unit);
-            GameObject.Find(path + "NameText").GetComponent<Text>().text = unit.Name;
-            GameObject.Find(path + "CashCostText").GetComponent<Text>().text = string.Format("{0}({1})", unit.Cost.ToString(), Math.Round(unit.Upkeep, 2).ToString("0.00"));
-            GameObject.Find(path + "ProductionCostText").GetComponent<Text>().text = unit.Production_Required.ToString();
-            GameObject.Find(path + "TurnsText").GetComponent<Text>().text = string.Format("{0} turns", Current_City.Production_Time_Estimate(unit) != -1 ?
-                Current_City.Production_Time_Estimate(unit).ToString() : "N/A");
+        unit_selection_options.Clear();
 
-            Button.ButtonClickedEvent button_event = new Button.ButtonClickedEvent();
-            button_event.AddListener(new UnityEngine.Events.UnityAction(delegate () {
-                Trainable u = unit;
-                Select_Unit(u);
-                Select_Unit_Panel.SetActive(false);
-            }));
-            GameObject.Find(path + "SelectButton").GetComponent<Button>().onClick = button_event;
-            GameObject.Find(path + "SelectButton").GetComponent<Button>().interactable = Current_City.Can_Train(unit);
-
-            TooltipManager.Instance.Register_Tooltip(GameObject.Find(path + "Image").GetComponent<Image>().gameObject, unit.Tooltip, gameObject);
-            TooltipManager.Instance.Register_Tooltip(GameObject.Find(path + "NameText").GetComponent<Text>().gameObject, unit.Tooltip, gameObject);
-        }
-
-        if (available_units.Count <= unit_game_objects.Count) {
-            Select_Unit_Panel_Up_Button.interactable = false;
-            Select_Unit_Panel_Down_Button.interactable = false;
-        } else {
-            Select_Unit_Panel_Up_Button.interactable = select_building_list_offset != 0;
-            Select_Unit_Panel_Down_Button.interactable = true;
+        foreach(Trainable available_unit in available_units) {
+            int turns = Current_City.Production_Time_Estimate(available_unit);
+            unit_selection_options.Add(available_unit, new List<UIElementData>() {
+                new UIElementData("Image", available_unit.Texture, SpriteManager.SpriteType.Unit),
+                new UIElementData("NameText", available_unit.Name, Current_City.Can_Train(available_unit) ? (Color?)null : Color.red),
+                new UIElementData("CashCostText", string.Format("{0}({1})", available_unit.Cost, Helper.Float_To_String(available_unit.Upkeep, 2))),
+                new UIElementData("ProductionCostText", available_unit.Production_Required.ToString()),
+                new UIElementData("TurnsText", string.Format("{0} turn{1}", turns, Helper.Plural(turns))),
+                new UIElementData("SelectButton", null, delegate() {
+                    if(available_unit is Unit) {
+                        UnitInfoGUIManager.Instance.Open(available_unit as Unit, true);
+                    } else {
+                        Select_Unit(available_unit);
+                    }
+                })
+            });
         }
     }
-
-    public void Select_Unit_Up_On_Click()
+    
+    public void Clear_Unit_Selection()
     {
-        if (select_unit_list_offset == 0) {
-            return;
-        }
-        select_unit_list_offset--;
-        Update_Select_Unit_List();
-    }
-
-    public void Select_Unit_Down_On_Click()
-    {
-        select_unit_list_offset++;
-        Update_Select_Unit_List();
+        Select_Unit(null);
     }
 
     public void Select_Unit(Trainable unit)
     {
-        Current_City.Change_Production(unit);
-        Update_GUI();
-        TopGUIManager.Instance.Update_GUI();
+        if (unit == null || Current_City.Can_Train(unit)) {
+            Current_City.Change_Production(unit);
+            Update_GUI();
+            TopGUIManager.Instance.Update_GUI();
+        }
+        Select_Unit_Panel.SetActive(false);
     }
 
     public void Select_Building(Building building)
@@ -760,6 +717,6 @@ public class CityGUIManager : MonoBehaviour {
             return;
         }
         image.gameObject.SetActive(true);
-        image.sprite = SpriteManager.Instance.Get_Sprite(value <= very_low_threshold ? very_low_texture : low_texture, SpriteManager.SpriteType.UI);
+        image.sprite = SpriteManager.Instance.Get(value <= very_low_threshold ? very_low_texture : low_texture, SpriteManager.SpriteType.UI);
     }
 }

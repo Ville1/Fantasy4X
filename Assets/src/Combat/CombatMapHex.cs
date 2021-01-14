@@ -24,7 +24,7 @@ public class CombatMapHex : Hex {
 
     private bool hidden;
 
-    public CombatMapHex(int q, int r, GameObject parent, CombatMapHex prototype, CombatMap map) : base(q, r, parent)
+    public CombatMapHex(int q, int r, GameObject parent, CombatMapHex prototype, CombatMap map) : base(q, r, parent, map.Height)
     {
         Change_To(prototype);
         Map = map;
@@ -55,7 +55,7 @@ public class CombatMapHex : Hex {
         Height = prototype.Height;
         Cover = prototype.Cover;
         Tags = Helper.Copy_List(prototype.Tags);
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
     }
 
     public bool Hidden
@@ -65,7 +65,7 @@ public class CombatMapHex : Hex {
         }
         set {
             hidden = value;
-            SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(hidden ? "hex_clouds" : Texture, SpriteManager.SpriteType.Terrain);
+            SpriteRenderer.sprite = SpriteManager.Instance.Get(hidden ? "hex_clouds" : Texture, SpriteManager.SpriteType.Terrain);
             if(Unit != null) {
                 Unit.GameObject.SetActive(!hidden);
             }

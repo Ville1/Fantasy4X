@@ -48,24 +48,27 @@ public class Road {
         North_East_GameObject.transform.parent = Base_GameObject.transform;
         North_East_GameObject.transform.position = Base_GameObject.transform.position;
         SpriteRenderer renderer = North_East_GameObject.AddComponent<SpriteRenderer>();
-        renderer.sortingLayerName = SortingLayer.ROADS;
-        renderer.sprite = SpriteManager.Instance.Get_Sprite(North_East_Texture, SpriteManager.SpriteType.Improvement);
+        renderer.sortingLayerName = SortingLayer.HEXES;
+        renderer.sortingOrder = Hex.SpriteRenderer.sortingOrder + 1;
+        renderer.sprite = SpriteManager.Instance.Get(North_East_Texture, SpriteManager.SpriteType.Improvement);
 
         //East
         East_GameObject = new GameObject("E-part");
         East_GameObject.transform.parent = Base_GameObject.transform;
         East_GameObject.transform.position = Base_GameObject.transform.position;
         renderer = East_GameObject.AddComponent<SpriteRenderer>();
-        renderer.sortingLayerName = SortingLayer.ROADS;
-        renderer.sprite = SpriteManager.Instance.Get_Sprite(East_Texture, SpriteManager.SpriteType.Improvement);
+        renderer.sortingLayerName = SortingLayer.HEXES;
+        renderer.sortingOrder = Hex.SpriteRenderer.sortingOrder + 1;
+        renderer.sprite = SpriteManager.Instance.Get(East_Texture, SpriteManager.SpriteType.Improvement);
 
         //South east
         South_East_GameObject = new GameObject("SE-part");
         South_East_GameObject.transform.parent = Base_GameObject.transform;
         South_East_GameObject.transform.position = Base_GameObject.transform.position;
         renderer = South_East_GameObject.AddComponent<SpriteRenderer>();
-        renderer.sortingLayerName = SortingLayer.ROADS;
-        renderer.sprite = SpriteManager.Instance.Get_Sprite(North_East_Texture, SpriteManager.SpriteType.Improvement);
+        renderer.sortingLayerName = SortingLayer.HEXES;
+        renderer.sortingOrder = Hex.SpriteRenderer.sortingOrder + 1;
+        renderer.sprite = SpriteManager.Instance.Get(North_East_Texture, SpriteManager.SpriteType.Improvement);
         renderer.flipY = true;
 
         //South west
@@ -73,8 +76,9 @@ public class Road {
         South_West_GameObject.transform.parent = Base_GameObject.transform;
         South_West_GameObject.transform.position = Base_GameObject.transform.position;
         renderer = South_West_GameObject.AddComponent<SpriteRenderer>();
-        renderer.sortingLayerName = SortingLayer.ROADS;
-        renderer.sprite = SpriteManager.Instance.Get_Sprite(North_East_Texture, SpriteManager.SpriteType.Improvement);
+        renderer.sortingLayerName = SortingLayer.HEXES;
+        renderer.sortingOrder = Hex.SpriteRenderer.sortingOrder + 1;
+        renderer.sprite = SpriteManager.Instance.Get(North_East_Texture, SpriteManager.SpriteType.Improvement);
         renderer.flipX = true;
         renderer.flipY = true;
 
@@ -83,8 +87,9 @@ public class Road {
         West_GameObject.transform.parent = Base_GameObject.transform;
         West_GameObject.transform.position = Base_GameObject.transform.position;
         renderer = West_GameObject.AddComponent<SpriteRenderer>();
-        renderer.sortingLayerName = SortingLayer.ROADS;
-        renderer.sprite = SpriteManager.Instance.Get_Sprite(East_Texture, SpriteManager.SpriteType.Improvement);
+        renderer.sortingLayerName = SortingLayer.HEXES;
+        renderer.sortingOrder = Hex.SpriteRenderer.sortingOrder + 1;
+        renderer.sprite = SpriteManager.Instance.Get(East_Texture, SpriteManager.SpriteType.Improvement);
         renderer.flipX = true;
 
         //North west
@@ -92,8 +97,9 @@ public class Road {
         North_West_GameObject.transform.parent = Base_GameObject.transform;
         North_West_GameObject.transform.position = Base_GameObject.transform.position;
         renderer = North_West_GameObject.AddComponent<SpriteRenderer>();
-        renderer.sortingLayerName = SortingLayer.ROADS;
-        renderer.sprite = SpriteManager.Instance.Get_Sprite(North_East_Texture, SpriteManager.SpriteType.Improvement);
+        renderer.sortingLayerName = SortingLayer.HEXES;
+        renderer.sortingOrder = Hex.SpriteRenderer.sortingOrder + 1;
+        renderer.sprite = SpriteManager.Instance.Get(North_East_Texture, SpriteManager.SpriteType.Improvement);
         renderer.flipX = true;
     }
 

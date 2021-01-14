@@ -57,7 +57,7 @@ public class PathRenderer {
             game_object.transform.parent = parent.transform;
             game_object.AddComponent<BoxCollider>();
             SpriteRenderer renderer = game_object.AddComponent<SpriteRenderer>();
-            renderer.sprite = SpriteManager.Instance.Get_Sprite(SPRITE_NAME, SpriteManager.SpriteType.UI);
+            renderer.sprite = SpriteManager.Instance.Get(SPRITE_NAME, SpriteManager.SpriteType.UI);
             current_path_gos.Add(game_object);
         }
     }

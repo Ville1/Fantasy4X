@@ -168,12 +168,14 @@
     <Compile Include="Assets\src\UI\Notification.cs" />
     <Compile Include="Assets\src\UI\NotificationManager.cs" />
     <Compile Include="Assets\src\UI\PathRenderer.cs" />
+    <Compile Include="Assets\src\UI\RowScrollView.cs" />
     <Compile Include="Assets\src\UI\ScoresGUIManager.cs" />
     <Compile Include="Assets\src\UI\SelectTechnologyPanelManager.cs" />
     <Compile Include="Assets\src\UI\SpellGUIManager.cs" />
     <Compile Include="Assets\src\UI\TechnologyPanelManager.cs" />
     <Compile Include="Assets\src\UI\TooltipManager.cs" />
     <Compile Include="Assets\src\UI\TopGUIManager.cs" />
+    <Compile Include="Assets\src\UI\UnitInfoGUIManager.cs" />
     <Compile Include="Assets\src\UI\WaitingForPlayerGUIManager.cs" />
     <Compile Include="Assets\src\World.cs" />
   </ItemGroup>

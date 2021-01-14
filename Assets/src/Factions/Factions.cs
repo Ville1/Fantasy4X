@@ -711,13 +711,13 @@ public partial class Factions {
                 { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
                 { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f, true, null,
-            new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "default_unit", 100), new EmpireModifiers() {
+            new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "neutral_guard", 100), new EmpireModifiers() {
                 Passive_Income = 5.0f,
                 Max_Mana = 1000.0f,
                 Population_Growth_Bonus = -0.95f
             });
 
-        neutral_cities.Units.Add(new Unit("Town Guard", Unit.UnitType.Infantry, "town_guard", 2.0f, 200, 200, 0.25f, 0.0f, 2, null, null,
+        neutral_cities.Units.Add(new Unit("Town Guard", Unit.UnitType.Infantry, "neutral_guard", 2.0f, 200, 200, 0.25f, 0.0f, 2, null, null,
             2.0f, true, 10.0f, 100.0f, 100.0f,
             13.0f, new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Thrust, 0.60f }, { Unit.DamageType.Slash, 0.35f }, { Unit.DamageType.Impact, 0.05f } }, 0.15f,
             0.0f, new Dictionary<Unit.DamageType, float>(), 0, 0, null, null,

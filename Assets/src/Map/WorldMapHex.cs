@@ -7,7 +7,7 @@ using UnityEngine;
 public class WorldMapHex : Hex {
     private static readonly Color EXPLORED_TINT = new Color(0.5f, 0.5f, 0.5f, 1.0f);
     private static readonly float UNEXPLORED_MOVEMENT_COST = 10.0f;
-    private static string not_explored_texture = "hex_clouds";
+    private static string not_explored_texture = "clouds";
 
     public enum InfoText { None, Coordinates, Yields, Minerals }
     public enum LoS_Status { Visible, Explored, Unexplored }
@@ -49,7 +49,7 @@ public class WorldMapHex : Hex {
     private List<Player> prospected_by;
     private float movement_cost;
 
-    public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent)
+    public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent, map.Height)
     {
         Change_To(prototype);
         this.map = map;
@@ -101,7 +101,7 @@ public class WorldMapHex : Hex {
         Tags = Helper.Copy_List(prototype.Tags);
         CombatMap_Seed = Helper.Copy_Dictionary(prototype.CombatMap_Seed);
         CombatMap_City_Seed = prototype.CombatMap_City_Seed != null ? Helper.Copy_Dictionary(prototype.CombatMap_City_Seed) : null;
-        SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
     }
     
     public float Movement_Cost
@@ -389,7 +389,7 @@ public class WorldMapHex : Hex {
             }
             switch (current_los) {
                 case LoS_Status.Visible:
-                    SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
+                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
                     Clear_Highlight();
                     if(Entity != null) {
                         Entity.GameObject.SetActive(true);
@@ -405,7 +405,7 @@ public class WorldMapHex : Hex {
                     }
                     break;
                 case LoS_Status.Explored:
-                    SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(Texture, SpriteManager.SpriteType.Terrain);
+                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
                     Clear_Highlight();
                     Highlight = EXPLORED_TINT;
                     if (Entity != null) {
@@ -422,7 +422,7 @@ public class WorldMapHex : Hex {
                     }
                     break;
                 case LoS_Status.Unexplored:
-                    SpriteRenderer.sprite = SpriteManager.Instance.Get_Sprite(not_explored_texture, SpriteManager.SpriteType.Terrain);
+                    SpriteRenderer.sprite = SpriteManager.Instance.Get(not_explored_texture, SpriteManager.SpriteType.Terrain);
                     Clear_Highlight();
                     if (Entity != null) {
                         Entity.GameObject.SetActive(false);

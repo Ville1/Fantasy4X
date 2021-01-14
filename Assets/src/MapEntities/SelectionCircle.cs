@@ -17,9 +17,9 @@ public class SelectionCircle {
     private SelectionCircle()
     {
         sprites = new List<Sprite>() {
-            SpriteManager.Instance.Get_Sprite("selection_circle_1", SpriteManager.SpriteType.UI),
-            SpriteManager.Instance.Get_Sprite("selection_circle_2", SpriteManager.SpriteType.UI),
-            SpriteManager.Instance.Get_Sprite("selection_circle_3", SpriteManager.SpriteType.UI)
+            SpriteManager.Instance.Get("selection_circle_1", SpriteManager.SpriteType.UI),
+            SpriteManager.Instance.Get("selection_circle_2", SpriteManager.SpriteType.UI),
+            SpriteManager.Instance.Get("selection_circle_3", SpriteManager.SpriteType.UI)
         };
 
         GameObject = new GameObject();
