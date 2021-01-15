@@ -84,7 +84,7 @@ public class HexPanelManager : MonoBehaviour
             CityOrVillageOverviewGUIManager.Instance.Current = hex.Trade_Partner;
             TooltipManager.Instance.Unregister_Tooltips_By_Owner(gameObject);
             Terrain_Text.text = hex.Terrain + " " + hex.Coordinates.X + "," + hex.Coordinates.Y;
-            Hex_Image.overrideSprite = SpriteManager.Instance.Get(hex.Texture, SpriteManager.SpriteType.Terrain);
+            Hex_Image.overrideSprite = SpriteManager.Instance.Get(hex.Sprite, SpriteManager.SpriteType.Terrain);
             Food_Text.text = Helper.Float_To_String(hex.Yields.Food, 1, false, false);
             Production_Text.text = Helper.Float_To_String(hex.Yields.Production, 1, false, false);
             Cash_Text.text = Helper.Float_To_String(hex.Yields.Cash, 1, false, false);

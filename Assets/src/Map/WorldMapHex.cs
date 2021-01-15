@@ -15,8 +15,9 @@ public class WorldMapHex : Hex {
     public delegate bool Hex_Requirements(WorldMapHex hex);
 
     public string Terrain { get; set; }
+    public string Internal_Name { get; private set; }
     public Yields Base_Yields { get; set; }
-    public string Texture { get; private set; }
+    public string Sprite { get; private set; }
     public int Elevation { get; private set; }
     public int Height { get; private set; }
     public WorldMapEntity Entity { get; set; }
@@ -66,11 +67,12 @@ public class WorldMapHex : Hex {
     /// <summary>
     /// Prototype constructor
     /// </summary>
-    public WorldMapHex(string terrain, string texture, Yields yields, float happiness, float health, float order, float movement_cost, int elevation, int height,
+    public WorldMapHex(string internal_name, string terrain, string texture, Yields yields, float happiness, float health, float order, float movement_cost, int elevation, int height,
         bool can_spawn_minerals, List<Tag> tags, Dictionary<string, int> combatMap_seed, Dictionary<string, int> combatMap_City_Seed) : base()
     {
+        Internal_Name = internal_name;
         Terrain = terrain;
-        Texture = texture;
+        Sprite = texture;
         Base_Yields = new Yields(yields);
         Base_Movement_Cost = movement_cost;
         Elevation = elevation;
@@ -87,8 +89,9 @@ public class WorldMapHex : Hex {
 
     public void Change_To(WorldMapHex prototype)
     {
+        Internal_Name = prototype.Internal_Name;
         Terrain = prototype.Terrain;
-        Texture = prototype.Texture;
+        Sprite = prototype.Sprite;
         Base_Yields = new Yields(prototype.Base_Yields);
         Base_Movement_Cost = prototype.Base_Movement_Cost;
         Elevation = prototype.Elevation;
@@ -101,7 +104,18 @@ public class WorldMapHex : Hex {
         Tags = Helper.Copy_List(prototype.Tags);
         CombatMap_Seed = Helper.Copy_Dictionary(prototype.CombatMap_Seed);
         CombatMap_City_Seed = prototype.CombatMap_City_Seed != null ? Helper.Copy_Dictionary(prototype.CombatMap_City_Seed) : null;
-        SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(Sprite, SpriteManager.SpriteType.Terrain);
+    }
+
+    public void Load(WorldMapHexSaveData data)
+    {
+        Change_To(HexPrototypes.Instance.Get_World_Map_Hex(data.Internal_Name));
+        CombatMap_City_Seed = data.CombatMap_City_Seed.ToDictionary(x => x.Key, x => x.Value);
+        Mineral = !string.IsNullOrEmpty(data.Mineral) ? Mineral.Get_Prototype(data.Mineral) : null;
+        Current_LoS = (LoS_Status)data.Current_Los;
+        explored_by = data.Explored_By.Select(x => SaveManager.Get_Player(x)).ToList();
+        prospected_by = data.Prospected_By.Select(x => SaveManager.Get_Player(x)).ToList();
+        owner = SaveManager.Get_Player(data.Owner);
     }
     
     public float Movement_Cost
@@ -389,7 +403,7 @@ public class WorldMapHex : Hex {
             }
             switch (current_los) {
                 case LoS_Status.Visible:
-                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
+                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Sprite, SpriteManager.SpriteType.Terrain);
                     Clear_Highlight();
                     if(Entity != null) {
                         Entity.GameObject.SetActive(true);
@@ -405,7 +419,7 @@ public class WorldMapHex : Hex {
                     }
                     break;
                 case LoS_Status.Explored:
-                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
+                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Sprite, SpriteManager.SpriteType.Terrain);
                     Clear_Highlight();
                     Highlight = EXPLORED_TINT;
                     if (Entity != null) {
@@ -444,7 +458,7 @@ public class WorldMapHex : Hex {
     public bool Visible_To_Viewing_Player
     {
         get {
-            return Highlight.r == 1.0f && Highlight.g == 1.0f && Highlight.b == 1.0f && Highlight.a == 1.0f && SpriteRenderer.sprite.name == Texture;
+            return Highlight.r == 1.0f && Highlight.g == 1.0f && Highlight.b == 1.0f && Highlight.a == 1.0f && SpriteRenderer.sprite.name == Sprite;
         }
     }
 
@@ -665,6 +679,13 @@ public class WorldMapHex : Hex {
             data.Q = Q;
             data.R = R;
             data.S = S;
+            data.Internal_Name = Internal_Name;
+            data.Mineral = Mineral != null ? Mineral.Internal_Name : null;
+            data.CombatMap_City_Seed = CombatMap_City_Seed == null ? null : CombatMap_City_Seed.Select(x => new WorldMapHexSeedSaveData() { Key = x.Key, Value = x.Value }).ToList();
+            data.Current_Los = (int)current_los;
+            data.Explored_By = explored_by.Select(x => SaveManager.Get_Player_Id(x)).ToList();
+            data.Owner = SaveManager.Get_Player_Id(Owner);
+            data.Prospected_By = prospected_by.Select(x => SaveManager.Get_Player_Id(x)).ToList();
             return data;
         }
     }

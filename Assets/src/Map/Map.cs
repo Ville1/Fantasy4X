@@ -29,8 +29,9 @@ public class Map
     private int seed_max;
     private List<WorldMapHex> edge_hexes;
     private WorldMapEntity dummy_boat;
-    private int saving_index;
-    private List<WorldMapHex> save_hexes;
+    private int serialization_phase;
+    private int serialization_index;
+    private List<WorldMapHex> serialization_hexes;
 
     public Map(int width, int height, float mineral_spawn_rate)
     {
@@ -281,8 +282,57 @@ public class Map
 
         //Map_Mode = WorldMapHex.InfoText.Coordinates;
 
-        saving_index = 0;
-        save_hexes = null;
+        serialization_phase = 0;
+        serialization_index = 0;
+        serialization_hexes = null;
+    }
+
+    public Map(MapSaveData data)
+    {
+        CustomLogger.Instance.Debug("Loading Map");
+        Stopwatch stopwatch_total = Stopwatch.StartNew();
+
+        Width = data.Width;
+        Height = data.Height;
+        Mineral_Spawn_Rate = data.Mineral_Spawn_Rate;
+        GameObject = GameObject.Find(GAME_OBJECT_NAME);
+
+        Cities = new List<City>();
+        Villages = new List<Village>();
+
+        hexes = new List<List<WorldMapHex>>();
+        edge_hexes = new List<WorldMapHex>();
+        visible = true;
+
+        //Generate
+        Hex_Count = 0;
+        for (int x = 0; x < Width; x++) {
+            hexes.Add(new List<WorldMapHex>());
+            for (int y = 0; y < Height; y++) {
+                //TODO: Duplicated code
+                if (x + y + 1 > Width / 2 && x < Width * 1.5f && !((x - (Height - y) + 1) > Width / 2 && y > Height / 2)) {
+                    hexes[x].Add(new WorldMapHex(x, y, GameObject, HexPrototypes.Instance.Get_World_Map_Hex("grassland"), this));
+                    Hex_Count++;
+                } else {
+                    hexes[x].Add(null);
+                }
+            }
+
+        }
+
+        //List edges
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        foreach (WorldMapHex hex in All_Hexes) {
+            if (hex.Is_At_Map_Edge(this)) {
+                edge_hexes.Add(hex);
+            }
+        }
+        CustomLogger.Instance.Debug(string.Format("Edges listed in: {0} ms", stopwatch.ElapsedMilliseconds));
+        CustomLogger.Instance.Debug(string.Format("Blank map initialized in: {0} ms", stopwatch_total.ElapsedMilliseconds));
+
+        serialization_phase = 0;
+        serialization_index = 0;
+        serialization_hexes = All_Hexes;
     }
 
     private class TerrainAlterationData
@@ -679,17 +729,102 @@ public class Map
 
     public void Start_Saving()
     {
-        saving_index = 0;
-        save_hexes = All_Hexes;
+        serialization_phase = 0;
+        serialization_index = 0;
+        serialization_hexes = All_Hexes;
+        SaveManager.Instance.Data.Map.Width = Width;
+        SaveManager.Instance.Data.Map.Height = Height;
+        SaveManager.Instance.Data.Map.Mineral_Spawn_Rate = Mineral_Spawn_Rate;
     }
 
     public float Process_Saving()
     {
-        if(saving_index < save_hexes.Count) {
-            SaveManager.Instance.Add(save_hexes[saving_index]);
-            saving_index++;
+        float progress = 1.0f;
+        switch (serialization_phase) {
+            case 0:
+                if (serialization_index < serialization_hexes.Count) {
+                    SaveManager.Instance.Add(serialization_hexes[serialization_index]);
+                    serialization_index++;
+                } else {
+                    serialization_index = 0;
+                    serialization_phase++;
+                }
+                progress += serialization_index;
+                break;
+            case 1:
+                progress += serialization_hexes.Count;
+                if (serialization_index < Cities.Count) {
+                    SaveManager.Instance.Add(Cities[serialization_index]);
+                    serialization_index++;
+                } else {
+                    serialization_index = 0;
+                    serialization_phase++;
+                }
+                progress += serialization_index;
+                break;
+            case 2:
+                progress += (serialization_hexes.Count + Cities.Count);
+                if (serialization_index < Villages.Count) {
+                    SaveManager.Instance.Add(Villages[serialization_index]);
+                    serialization_index++;
+                } else {
+                    serialization_index = 0;
+                    serialization_phase++;
+                }
+                progress += serialization_index;
+                break;
+            default:
+                return -1.0f;
         }
-        return (saving_index + 1.0f) / save_hexes.Count;
+        return progress / (serialization_hexes.Count + Cities.Count + Villages.Count);
+    }
+    
+    public float Process_Loading()
+    {
+        float progress = 1.0f;
+        switch (serialization_phase) {
+            case 0:
+                if (serialization_index < serialization_hexes.Count) {
+                    serialization_hexes[serialization_index].Load(SaveManager.Instance.Data.Map.Hexes[serialization_index]);
+                    serialization_index++;
+                } else {
+                    serialization_index = 0;
+                    serialization_phase++;
+                }
+                progress += serialization_index;
+                break;
+            case 1:
+                progress += serialization_hexes.Count;
+                if (serialization_index < SaveManager.Instance.Data.Map.Cities.Count) {
+                    CitySaveData data = SaveManager.Instance.Data.Map.Cities[serialization_index];
+                    City city = new City(Get_Hex_At(data.Hex_X, data.Hex_Y), SaveManager.Get_Player(data.Owner), null);
+                    city.Load(data);
+                    Cities.Add(city);
+                    serialization_index++;
+                    progress += serialization_index;
+                } else {
+                    serialization_index = 0;
+                    serialization_phase++;
+                }
+                break;
+            case 2:
+                progress += (serialization_hexes.Count + Cities.Count);
+                if (serialization_index < SaveManager.Instance.Data.Map.Villages.Count) {
+                    VillageSaveData data = SaveManager.Instance.Data.Map.Villages[serialization_index];
+                    Village village = new Village(Get_Hex_At(data.Hex_X, data.Hex_Y), SaveManager.Get_Player(data.Owner));
+                    village.Load(data);
+                    Villages.Add(village);
+                    serialization_index++;
+                    progress += serialization_index;
+                } else {
+                    serialization_index = 0;
+                    serialization_phase++;
+                }
+                break;
+            default:
+                return -1.0f;
+        }
+        return progress / (serialization_hexes.Count + SaveManager.Instance.Data.Map.Cities.Count + SaveManager.Instance.Data.Map.Villages.Count);
     }
 
     /// <summary>

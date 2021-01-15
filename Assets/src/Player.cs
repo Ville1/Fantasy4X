@@ -93,7 +93,7 @@ public class Player {
             AI = ai != null ? new AI(ai.Value, this) : null;
         }
     }
-
+    
     public void End_Turn()
     {
         foreach(WorldMapEntity entity in WorldMapEntitys) {
@@ -490,6 +490,31 @@ public class Player {
         T data = (T)temp_data[key];
         temp_data.Remove(key);
         return data;
+    }
+
+    public void Load(PlayerSaveData data)
+    {
+        Id = data.Id;
+        Team = data.Team != -1 ? data.Team : (int?)null;
+        Cash = data.Cash;
+        mana = data.Mana;
+    }
+
+    public PlayerSaveData Save_Data
+    {
+        get {
+            PlayerSaveData data = new PlayerSaveData();
+            data.Id = Id;
+            data.Name = Name;
+            data.AI_Level = AI != null ? (int)AI.AI_Level : -1;
+            data.Faction = Faction.Name;
+            data.Team = Team.HasValue ? Team.Value : -1;
+            data.Cash = Cash;
+            data.Mana = mana;
+            data.Villages = Villages.Select(x => x.Id).ToList();
+            data.Cities = Cities.Select(x => x.Id).ToList();
+            return data;
+        }
     }
 
     public class NewPlayerData

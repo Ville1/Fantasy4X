@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -80,41 +81,47 @@ public class Main : MonoBehaviour {
     /// </summary>
     public void Start_New_Game(List<Player.NewPlayerData> player_data, int max_rounds, int neutral_cities, int max_villages)
     {
-        Game_Is_Running = true;
-        MasterUIManager.Instance.Show_UI = true;
-        GameEndedGUIManager.Instance.Active = false;
-        NotificationManager.Instance.Clear_Notifications();
-        NameManager.Instance.Reset();
-        foreach (Player p in Players) {
-            if(p.AI != null) {
-                p.AI.On_Delete();
-            }
-        }
-        Players.Clear();
+        Initialize_New_Game();
+        
         foreach(Player.NewPlayerData data in player_data) {
             Players.Add(new Player(data.Name, data.AI, data.Faction));
         }
-        Neutral_Cities_Player = new Player("Neutral Cities", (!Average_AI_Level.HasValue || Average_AI_Level == AI.Level.Inactive) ? AI.Level.Easy : Average_AI_Level,
-            Factions.Neutral_Cities, true);
-        Wild_Life_Player = new Player("???", AI.Level.Inactive, Factions.Wild_Life, true);
-        Bandit_Player = new Player("Bandits", (!Average_AI_Level.HasValue || Average_AI_Level == AI.Level.Inactive) ? AI.Level.Easy : Average_AI_Level,
-            Factions.Bandits, true);
         Current_Player = Players[0];
         Viewing_Player = Current_Player;
         player_index = 0;
         Round = 0;
         Max_Rounds = max_rounds;
         World.Instance.Map.Spawn_Cities_Villages_And_Roads(neutral_cities, max_villages);
-        EffectManager.Instance.Update_Target_Map();
-        Turn_Start_Update_GUI();
         World.Instance.Map.Start_Game();
-        Update_Flags();
-        BottomGUIManager.Instance.Current_Entity = null;
-        CameraManager.Instance.Set_Camera_Location(Current_Player.Capital.Hex);
-        AudioManager.Instance.Play_Music(CAMPAIGN_MAP_MUSIC);
-        foreach(Player player in Players) {
+        EffectManager.Instance.Update_Target_Map();
+        foreach (Player player in Players) {
             player.Update_Score();
         }
+        Turn_Start_Update_GUI();
+        Update_Flags();
+        CameraManager.Instance.Set_Camera_Location(Current_Player.Capital.Hex);
+    }
+
+    private void Initialize_New_Game()
+    {
+        Game_Is_Running = true;
+        MasterUIManager.Instance.Show_UI = true;
+        GameEndedGUIManager.Instance.Active = false;
+        NotificationManager.Instance.Clear_Notifications();
+        NameManager.Instance.Reset();
+        foreach (Player p in Players) {
+            if (p.AI != null) {
+                p.AI.On_Delete();
+            }
+        }
+        Players.Clear();
+        Neutral_Cities_Player = new Player("Neutral Cities", (!Average_AI_Level.HasValue || Average_AI_Level == AI.Level.Inactive) ? AI.Level.Easy : Average_AI_Level,
+            Factions.Neutral_Cities, true);
+        Wild_Life_Player = new Player("???", AI.Level.Inactive, Factions.Wild_Life, true);
+        Bandit_Player = new Player("Bandits", (!Average_AI_Level.HasValue || Average_AI_Level == AI.Level.Inactive) ? AI.Level.Easy : Average_AI_Level,
+            Factions.Bandits, true);
+        BottomGUIManager.Instance.Current_Entity = null;
+        AudioManager.Instance.Play_Music(CAMPAIGN_MAP_MUSIC);
     }
 
     public void Next_Turn()
@@ -288,5 +295,48 @@ public class Main : MonoBehaviour {
                 village.Flag.Update_Type();
             }
         }
+    }
+
+    public void Start_Saving(string path)
+    {
+        ProgressBarManager.Instance.Active = true;
+        SaveManager.Instance.Start_Saving(path);
+        SaveManager.Instance.Data.Players = Players.Select(x => x.Save_Data).ToList();
+        SaveManager.Instance.Data.Max_Rounds = Max_Rounds;
+        SaveManager.Instance.Data.Round = Round;
+        SaveManager.Instance.Data.Current_Player = SaveManager.Get_Player_Id(Current_Player);
+        World.Instance.Start_Saving();
+    }
+
+    public void Start_Loading(string path)
+    {
+        ProgressBarManager.Instance.Active = true;
+        Initialize_New_Game();
+        SaveManager.Instance.Start_Loading(path);
+        
+        foreach (PlayerSaveData data in SaveManager.Instance.Data.Players) {
+            Player player = new Player(data.Name, data.AI_Level != -1 ? (AI.Level?)data.AI_Level : (AI.Level?)null, Factions.All.First(x => x.Name == data.Faction));
+            player.Load(data);
+            Players.Add(player);
+        }
+
+        Current_Player = SaveManager.Get_Player(SaveManager.Instance.Data.Current_Player);
+        Viewing_Player = Current_Player;
+        player_index = All_Players.IndexOf(Current_Player);
+        Round = SaveManager.Instance.Data.Round;
+        Max_Rounds = SaveManager.Instance.Data.Max_Rounds;
+
+        World.Instance.Start_Loading();
+    }
+
+    public void Finish_Loading()
+    {
+        World.Instance.Map.Update_LoS();
+        foreach (Player player in Players) {
+            player.Update_Score();
+        }
+        Turn_Start_Update_GUI();
+        Update_Flags();
+        CameraManager.Instance.Set_Camera_Location(Current_Player.Capital.Hex);
     }
 }

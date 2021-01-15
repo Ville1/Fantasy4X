@@ -120,4 +120,26 @@ public class Village : Ownable, Influencable, TradePartner
             return trade_value;
         }
     }
+
+    public void Load(VillageSaveData data)
+    {
+        Id = data.Id;
+        Name = data.Name;
+        if (Has_Owner) {
+            Owner.Villages.Add(this);
+        }
+    }
+
+    public VillageSaveData Save_Data
+    {
+        get {
+            VillageSaveData data = new VillageSaveData();
+            data.Id = Id;
+            data.Name = Name;
+            data.Hex_X = Hex.Coordinates.X;
+            data.Hex_Y = Hex.Coordinates.Y;
+            data.Owner = SaveManager.Get_Player_Id(Owner);
+            return data;
+        }
+    }
 }

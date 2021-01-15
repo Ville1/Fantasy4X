@@ -117,11 +117,11 @@ public class SaveGUIManager : MonoBehaviour
             file = file + ".json";
         }
         if (files.Contains(file)) {
-            ConfirmationDialogManager.Instance.Show("Overwrite?", delegate () { World.Instance.Start_Saving(Path.Combine(path, file)); });
+            ConfirmationDialogManager.Instance.Show("Overwrite?", delegate () { Main.Instance.Start_Saving(Path.Combine(path, file)); });
             Active = false;
             return;
         }
         Active = false;
-        World.Instance.Start_Saving(Path.Combine(path, file));
+        Main.Instance.Start_Saving(Path.Combine(path, file));
     }
 }

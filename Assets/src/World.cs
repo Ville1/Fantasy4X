@@ -9,7 +9,7 @@ public class World : MonoBehaviour
     public Map Map { get; private set; }
     public GameState State { get; private set; }
 
-    private bool map_saved;
+    private bool map_processed;
     private float progress;
 
     /// <summary>
@@ -53,24 +53,24 @@ public class World : MonoBehaviour
         Map = new Map(width, height, 0.35f);
     }
 
-    public void Start_Saving(string path)
+    public void Start_Saving()
     {
-        map_saved = false;
+        map_processed = false;
         progress = 0.0f;
         State = GameState.Saving;
-        ProgressBarManager.Instance.Active = true;
-        SaveManager.Instance.Start_Saving(path);
         Map.Start_Saving();
         Update_Progress();
     }
 
     public void Process_Saving()
     {
-        if (!map_saved) {
+        if (!map_processed) {
             float map_progress = Map.Process_Saving();
-            progress = map_progress;
-            if(map_progress == 1.0f) {
-                map_saved = true;
+            if(map_progress == -1.0f) {
+                map_processed = true;
+                progress = 1.0f;
+            } else {
+                progress = map_progress;
             }
             Update_Progress();
         } else {
@@ -85,18 +85,33 @@ public class World : MonoBehaviour
         ProgressBarManager.Instance.Active = false;
     }
 
-    public void Start_Loading(string path)
+    public void Start_Loading()
     {
+        map_processed = false;
         progress = 0.0f;
-        SaveManager.Instance.Start_Loading(path);
         State = GameState.Loading;
-        ProgressBarManager.Instance.Active = true;
+        if (Map != null) {
+            Map.Delete();
+        }
+        Map = new Map(SaveManager.Instance.Data.Map);
+        EffectManager.Instance.Update_Target_Map();
         Update_Progress();
     }
 
     public void Process_Loading()
     {
-        Update_Progress();
+        if (!map_processed) {
+            float map_progress = Map.Process_Loading();
+            if (map_progress == -1.0f) {
+                map_processed = true;
+                progress = 1.0f;
+            } else {
+                progress = map_progress;
+            }
+            Update_Progress();
+        } else {
+            Finish_Loading();
+        }
     }
 
     private void Finish_Loading()
@@ -104,6 +119,7 @@ public class World : MonoBehaviour
         SaveManager.Instance.Finish_Loading();
         State = GameState.Normal;
         ProgressBarManager.Instance.Active = false;
+        Main.Instance.Finish_Loading();
     }
 
     private void Update_Progress()

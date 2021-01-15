@@ -819,7 +819,7 @@ public class City : Ownable, Influencable, TradePartner
             Population++;
             Update_Hex_Yields();
             Auto_Apply_Unemployed_Pops();
-            Owner.Queue_Notification(new Notification(string.Format("{0} has grown to {1} population units", Name, Population), Hex.Texture, SpriteManager.SpriteType.Terrain, null, delegate () {
+            Owner.Queue_Notification(new Notification(string.Format("{0} has grown to {1} population units", Name, Population), Hex.Sprite, SpriteManager.SpriteType.Terrain, null, delegate () {
                 CityGUIManager.Instance.Current_City = this;
             }));
         }
@@ -1364,7 +1364,7 @@ public class City : Ownable, Influencable, TradePartner
         if(Owner.Cities.Count == 0 && !Owner.Is_Neutral) {
             Owner.Defeated = true;
         }
-        Owner.Queue_Notification(new Notification("{0} has been conquered!", Hex.Texture, SpriteManager.SpriteType.Terrain, null, delegate() {
+        Owner.Queue_Notification(new Notification("{0} has been conquered!", Hex.Sprite, SpriteManager.SpriteType.Terrain, null, delegate() {
             CameraManager.Instance.Set_Camera_Location(Hex);
         }));
         Owner = conqueror;
@@ -1422,6 +1422,26 @@ public class City : Ownable, Influencable, TradePartner
                 }
             }
             return improvements;
+        }
+    }
+
+    public void Load(CitySaveData data)
+    {
+        Id = data.Id;
+        Name = data.Name;
+        Owner.Cities.Add(this);
+    }
+
+    public CitySaveData Save_Data
+    {
+        get {
+            CitySaveData data = new CitySaveData();
+            data.Id = Id;
+            data.Name = Name;
+            data.Hex_X = Hex.Coordinates.X;
+            data.Hex_Y = Hex.Coordinates.Y;
+            data.Owner = SaveManager.Get_Player_Id(Owner);
+            return data;
         }
     }
 }

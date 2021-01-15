@@ -109,6 +109,6 @@ public class LoadGUIManager : MonoBehaviour
             return;
         }
         Active = false;
-        World.Instance.Start_Loading(Path.Combine(path, Input.text));
+        Main.Instance.Start_Loading(Path.Combine(path, Input.text));
     }
 }

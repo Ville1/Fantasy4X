@@ -50,7 +50,7 @@ public class Blessing : ICooldown {
             foreach(WorldMapHex hex in result.Affected_Hexes) {
                 if (hex.Owner != null && !hex.Is_Owned_By(caster) && !notifications_send.Contains(hex.Owner)) {
                     hex.Owner.Queue_Notification(new Notification(string.Format("{0} casted {1} on {2}", caster.Name, Name, hex.City != null ? hex.City.Name : hex.ToString()),
-                        hex.Texture, SpriteManager.SpriteType.Terrain, null, delegate () {
+                        hex.Sprite, SpriteManager.SpriteType.Terrain, null, delegate () {
                             CameraManager.Instance.Set_Camera_Location(hex);
                         }
                     ));
