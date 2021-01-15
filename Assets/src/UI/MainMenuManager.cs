@@ -42,7 +42,9 @@ public class MainMenuManager : MonoBehaviour {
 
     public void Toggle()
     {
-        Active = !Active;
+        if (!ProgressBarManager.Instance.Active) {
+            Active = !Active;
+        }
     }
 
     public void New_Game_Button_On_Click()
@@ -54,5 +56,17 @@ public class MainMenuManager : MonoBehaviour {
     public void Exit_Button_On_Click()
     {
         Main.Quit();
+    }
+
+    public void Save_Button_On_Click()
+    {
+        SaveGUIManager.Instance.Active = true;
+        Active = false;
+    }
+
+    public void Load_Button_On_Click()
+    {
+        LoadGUIManager.Instance.Active = true;
+        Active = false;
     }
 }

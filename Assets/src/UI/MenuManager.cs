@@ -34,6 +34,16 @@ public class MenuManager : MonoBehaviour {
         }
     }
 
+    public bool Interactable
+    {
+        get {
+            return Menu_Button.interactable;
+        }
+        set {
+            Menu_Button.interactable = value;
+        }
+    }
+
     public void Menu_On_Click()
     {
         MainMenuManager.Instance.Toggle();

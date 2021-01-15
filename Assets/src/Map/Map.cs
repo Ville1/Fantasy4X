@@ -29,6 +29,8 @@ public class Map
     private int seed_max;
     private List<WorldMapHex> edge_hexes;
     private WorldMapEntity dummy_boat;
+    private int saving_index;
+    private List<WorldMapHex> save_hexes;
 
     public Map(int width, int height, float mineral_spawn_rate)
     {
@@ -278,6 +280,9 @@ public class Map
         CustomLogger.Instance.Debug(string.Format("Map generated in: {0} ms", stopwatch_total.ElapsedMilliseconds));
 
         //Map_Mode = WorldMapHex.InfoText.Coordinates;
+
+        saving_index = 0;
+        save_hexes = null;
     }
 
     private class TerrainAlterationData
@@ -670,6 +675,21 @@ public class Map
             }
         }
         return nodes;
+    }
+
+    public void Start_Saving()
+    {
+        saving_index = 0;
+        save_hexes = All_Hexes;
+    }
+
+    public float Process_Saving()
+    {
+        if(saving_index < save_hexes.Count) {
+            SaveManager.Instance.Add(save_hexes[saving_index]);
+            saving_index++;
+        }
+        return (saving_index + 1.0f) / save_hexes.Count;
     }
 
     /// <summary>

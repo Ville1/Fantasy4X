@@ -35,22 +35,51 @@ public class MasterUIManager : MonoBehaviour {
     /// </summary>
     public void Close_All()
     {
-        ConsoleManager.Instance.Close_Console();
-        MainMenuManager.Instance.Active = false;
-        HexPanelManager.Instance.Active = false;
-        CityGUIManager.Instance.Active = false;
-        TechnologyPanelManager.Instance.Active = false;
-        SelectTechnologyPanelManager.Instance.Active = false;
-        NewGameGUIManager.Instance.Active = false;
-        SpellGUIManager.Instance.Active = false;
-        BlessingGUIManager.Instance.Active = false;
+        Close_Others(string.Empty);
+    }
+
+    public void Close_Others(string type_name)
+    {
+        if (ConsoleManager.Instance != null && typeof(ConsoleManager).Name != type_name) {
+            ConsoleManager.Instance.Close_Console();
+        }
+        if (MainMenuManager.Instance != null && typeof(MainMenuManager).Name != type_name) {
+            MainMenuManager.Instance.Active = false;
+        }
+        if (SaveGUIManager.Instance != null && typeof(SaveGUIManager).Name != type_name) {
+            SaveGUIManager.Instance.Active = false;
+        }
+        if (LoadGUIManager.Instance != null && typeof(LoadGUIManager).Name != type_name) {
+            LoadGUIManager.Instance.Active = false;
+        }
+        if (HexPanelManager.Instance != null && typeof(HexPanelManager).Name != type_name) {
+            HexPanelManager.Instance.Active = false;
+        }
+        if (CityGUIManager.Instance != null && typeof(CityGUIManager).Name != type_name) {
+            CityGUIManager.Instance.Active = false;
+        }
+        if (TechnologyPanelManager.Instance != null && typeof(TechnologyPanelManager).Name != type_name) {
+            TechnologyPanelManager.Instance.Active = false;
+        }
+        if (SelectTechnologyPanelManager.Instance != null && typeof(SelectTechnologyPanelManager).Name != type_name) {
+            SelectTechnologyPanelManager.Instance.Active = false;
+        }
+        if (NewGameGUIManager.Instance != null && typeof(NewGameGUIManager).Name != type_name) {
+            NewGameGUIManager.Instance.Active = false;
+        }
+        if (SpellGUIManager.Instance != null && typeof(SpellGUIManager).Name != type_name) {
+            SpellGUIManager.Instance.Active = false;
+        }
+        if (BlessingGUIManager.Instance != null && typeof(BlessingGUIManager).Name != type_name) {
+            BlessingGUIManager.Instance.Active = false;
+        }
         MouseManager.Instance.Set_Select_Hex_Mode(false);
     }
 
     public bool Intercept_Keyboard_Input
     {
         get {
-            return ConsoleManager.Instance.Is_Open();
+            return ConsoleManager.Instance.Is_Open() || SaveGUIManager.Instance.Active || LoadGUIManager.Instance.Active || ProgressBarManager.Instance.Active;
         }
     }
 

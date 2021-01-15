@@ -657,4 +657,15 @@ public class WorldMapHex : Hex {
             return Entity as Army;
         }
     }
+
+    public WorldMapHexSaveData Save_Data
+    {
+        get {
+            WorldMapHexSaveData data = new WorldMapHexSaveData();
+            data.Q = Q;
+            data.R = R;
+            data.S = S;
+            return data;
+        }
+    }
 }
