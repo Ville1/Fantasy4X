@@ -119,6 +119,49 @@ public class Helper {
         return copy;
     }
 
+    public static Dictionary<T, float> Add_Dictionary<T>(Dictionary<T, float> dictionary_1, Dictionary<T, float> dictionary_2)
+    {
+        Dictionary<T, float> dictionary_3 = new Dictionary<T, float>();
+        foreach (KeyValuePair<T, float> pair in dictionary_1) {
+            dictionary_3.Add(pair.Key, pair.Value);
+        }
+        foreach (KeyValuePair<T, float> pair in dictionary_2) {
+            if (!dictionary_3.ContainsKey(pair.Key)) {
+                dictionary_3.Add(pair.Key, pair.Value);
+            } else {
+                dictionary_3[pair.Key] += pair.Value;
+            }
+        }
+        return dictionary_3;
+    }
+
+    public static Dictionary<T, float> Clamp_Dictionary<T>(Dictionary<T, float> dictionary, float min, float max)
+    {
+        Dictionary<T, float> new_dictionary = new Dictionary<T, float>();
+        foreach (KeyValuePair<T, float> pair in dictionary) {
+            new_dictionary.Add(pair.Key, Mathf.Clamp(pair.Value, min, max));
+        }
+        return new_dictionary;
+    }
+
+    public static Dictionary<T, float> Instantiate_Dictionary<T>(float value)
+    {
+        Dictionary<T, float> dictionary = new Dictionary<T, float>();
+        foreach (T type in Enum.GetValues(typeof(T))) {
+            dictionary.Add(type, value);
+        }
+        return dictionary;
+    }
+
+    public static Dictionary<T, int> Instantiate_Dictionary<T>(int value)
+    {
+        Dictionary<T, int> dictionary = new Dictionary<T, int>();
+        foreach (T type in Enum.GetValues(typeof(T))) {
+            dictionary.Add(type, value);
+        }
+        return dictionary;
+    }
+
     public static string Plural(int i)
     {
         if(i == 1) {

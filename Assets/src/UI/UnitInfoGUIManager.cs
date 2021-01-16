@@ -52,6 +52,7 @@ public class UnitInfoGUIManager : MonoBehaviour
     private float bottom_position_y;
     private RowScrollView<Unit.DamageType> resistances_scroll_view;
     private RowScrollView<Ability> abilities_scroll_view;
+    private float panel_position_x;
 
     /// <summary>
     /// Initializiation
@@ -68,6 +69,7 @@ public class UnitInfoGUIManager : MonoBehaviour
         bottom_position_y = Bottom_Container.gameObject.transform.position.y;
         resistances_scroll_view = new RowScrollView<Unit.DamageType>("resistances_scroll_view", Resistances_Content, Resistances_Row_Prototype, 15.0f);
         abilities_scroll_view = new RowScrollView<Ability>("abilities_scroll_view", Abilities_Content, Abilities_Row_Prototype, 15.0f);
+        panel_position_x = Panel.gameObject.transform.position.x;
     }
 
     /// <summary>
@@ -114,6 +116,12 @@ public class UnitInfoGUIManager : MonoBehaviour
 
     public void Update_Info()
     {
+        Panel.gameObject.transform.position = new Vector3(
+            panel_position_x + (Is_Preview ? 150.0f : 0.0f),
+            Panel.gameObject.transform.position.y,
+            Panel.gameObject.transform.position.z
+        );
+
         Name_Text.text = Unit.Name;
         Image.sprite = SpriteManager.Instance.Get(Unit.Texture, SpriteManager.SpriteType.Unit);
 
@@ -141,7 +149,7 @@ public class UnitInfoGUIManager : MonoBehaviour
         Relative_Strenght_Text.text = Helper.Float_To_String(Is_Preview ? Unit.Relative_Strenght : Unit.Current_Relative_Strenght, 0);
         Manpower_Image.gameObject.SetActive(!Is_Preview);
         Manpower_Text.gameObject.SetActive(!Is_Preview);
-        Manpower_Text.text = Helper.Float_To_String(100.0f * Unit.Manpower, 0);
+        Manpower_Text.text = Helper.Float_To_String(100.0f * Unit.Manpower, 0) + "%";
         Manpower_Text.color = Unit.Manpower <= 0.5f ? Color.red : (Unit.Manpower == 1.0f ? default_text_color : Color.yellow);
         Relative_Strenght_Text.color = Is_Preview ? default_text_color : Manpower_Text.color;
         Cost_Text.text = string.Format("{0} ({1}/turn)", Unit.Cost, Helper.Float_To_String(Unit.Upkeep, 2));
@@ -184,7 +192,7 @@ public class UnitInfoGUIManager : MonoBehaviour
         foreach(Ability ability in Unit.Abilities) {
             abilities_scroll_view.Add(ability, new List<UIElementData>() {
                 new UIElementData("NameText", ability.Name),
-                new UIElementData("ValueText", ability.Uses_Potency ? (ability.Potency_As_Percent ? string.Format("{0}%", Helper.Float_To_String(ability.Potency * 100.0f, 0)) : Helper.Float_To_String(ability.Potency, 1)) : string.Empty)
+                new UIElementData("ValueText", ability.Uses_Potency ? (ability.Potency_As_Percent ? string.Format("{0}%", Helper.Float_To_String(ability.Potency * 100.0f, 0)) : Helper.Float_To_String(ability.Potency, 2)) : string.Empty)
             });
         }
     }

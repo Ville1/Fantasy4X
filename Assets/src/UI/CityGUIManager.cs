@@ -171,6 +171,7 @@ public class CityGUIManager : MonoBehaviour {
                     hex.Clear_Highlight();
                 }
                 highlighted_hexes.Clear();
+                UnitInfoGUIManager.Instance.Active = false;
             }
             if(World.Instance.Map != null) {
                 World.Instance.Map.Map_Mode = Active ? WorldMapHex.InfoText.Yields :

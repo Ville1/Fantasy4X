@@ -706,7 +706,7 @@ public class Unit : Trainable
             target.Apply(defender_result);
             StatusBar.Update_Bars(this);
             StatusBar.Update_Bars(target);
-            CombatLogManager.Instance.Print_Log(string.Format("{0} {1} {2} ({3}/{4} dmg dealt, {5}/{6} dmg taken)", Name, Last_Move_This_Turn_Was_Running ? "charges" : "melee attacks",
+            CombatLogManager.Instance.Print_Log(string.Format("{0} {1} {2} ({3}/{4} dmg dealt, {5}/{6} dmg taken)", Name, Last_Move_This_Turn_Was_Running ? "charge" : "melee attack",
                 target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f), Mathf.RoundToInt(attacker_result.Manpower_Delta * -100.0f),
                 Mathf.RoundToInt(attacker_result.Morale_Delta * -1.0f)));
         }
@@ -857,7 +857,7 @@ public class Unit : Trainable
             if (Max_Ammo > 0) {
                 Current_Ammo--;
             }
-            CombatLogManager.Instance.Print_Log(string.Format("{0} ranged attacks {1} ({2}/{3} dmg dealt)", Name, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f),
+            CombatLogManager.Instance.Print_Log(string.Format("{0} ranged attack {1} ({2}/{3} dmg dealt)", Name, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f),
                 Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f)));
         }
 

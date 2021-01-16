@@ -514,6 +514,26 @@ public class AbilityPrototypes {
                 return new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
             }
         });
+        prototypes.Add("village influence", new Ability("Village Influence", false, true) {
+            On_Turn_End = delegate (Ability ability, Unit unit) {
+                if(unit.Army.Hex.Village != null) {
+                    if (unit.Army.Hex.Village.Cultural_Influence.ContainsKey(unit.Owner)) {
+                        unit.Army.Hex.Village.Cultural_Influence[unit.Owner] += ability.Potency;
+                    } else {
+                        unit.Army.Hex.Village.Cultural_Influence.Add(unit.Owner, ability.Potency);
+                    }
+                }
+            }
+        });
+        prototypes.Add("village yield bonus", new Ability("Village Yield Bonus", false, true) {
+            On_Turn_End = delegate (Ability ability, Unit unit) {
+                if (unit.Army.Hex.Village != null) {
+                    unit.Army.Hex.Apply_Status_Effect(new HexStatusEffect("Village yield bonus ability", 2) {//2 turns, because Army.End_Turn gets called before WorldMapHex.End_Turn
+                        Yield_Delta = new Yields(ability.Potency, ability.Potency, ability.Potency, 0.0f, 0.0f, 0.0f, 0.0f)
+                    }, true);
+                }
+            }
+        });
         //TODO: rough terrain penalty & ranged attacks
         //TODO: lance charge in urban? impassable houses?
         //TODO: stealth? Does not get destroyed when losing city defence?

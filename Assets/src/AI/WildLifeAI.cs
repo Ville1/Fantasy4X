@@ -71,7 +71,7 @@ public class WildLifeAI : IConfigListener, I_AI
             if (explored) {
                 continue;
             }
-            Unit wolf_prototype = Player.Faction.Units.First(x => x.Name == "Wolf") as Unit;
+            Unit wolf_prototype = Player.Faction.Units.First(x => x.Name == "Wolves") as Unit;
             Army army = new Army(random_hex, Player.Faction.Army_Prototype, Player, new Unit(wolf_prototype));
             random_hex.Entity = army;
             int wolves = 1;

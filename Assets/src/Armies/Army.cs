@@ -359,11 +359,12 @@ public class Army : WorldMapEntity {
         foreach (Unit unit in Units) {
             unit.Current_Campaing_Map_Movement = unit.Max_Campaing_Map_Movement;
             unit.Regen_Manpower(manpower_regen);
-            if (raid) {
-                foreach(Ability ability in unit.Abilities) {
-                    if(ability.On_Worked_Hex_Raid != null) {
-                        raided_yields.Add(ability.On_Worked_Hex_Raid(ability, unit, Hex));
-                    }
+            foreach(Ability ability in unit.Abilities) {
+                if(raid && ability.On_Worked_Hex_Raid != null) {
+                    raided_yields.Add(ability.On_Worked_Hex_Raid(ability, unit, Hex));
+                }
+                if(ability.On_Turn_End != null) {
+                    ability.On_Turn_End(ability, unit);
                 }
             }
         }
