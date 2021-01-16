@@ -1,0 +1,40 @@
+﻿using System;
+using System.Collections.Generic;
+
+[Serializable]
+public class WorkerSaveData
+{
+    public int Hex_X;
+    public int Hex_Y;
+    public string Name;
+    public float Movement;
+    public float Improvement_Progress;
+    public string Improvement_Under_Construction;
+}
+
+[Serializable]
+public class ProspectorSaveData
+{
+    public int Hex_X;
+    public int Hex_Y;
+    public string Name;
+    public float Movement;
+    public int Prospect_Progress;
+    public bool Prospecting;
+}
+
+[Serializable]
+public class ArmySaveData
+{
+    public int Hex_X;
+    public int Hex_Y;
+    public List<UnitSaveData> Units;
+}
+
+[Serializable]
+public class UnitSaveData
+{
+    public string Name;
+    public float Manpower;
+    public float Movement;
+}

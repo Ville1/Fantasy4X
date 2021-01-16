@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 public class Village : Ownable, Influencable, TradePartner
 {
@@ -128,6 +129,7 @@ public class Village : Ownable, Influencable, TradePartner
         if (Has_Owner) {
             Owner.Villages.Add(this);
         }
+        Cultural_Influence = data.Cultural_Influence.ToDictionary(x => SaveManager.Get_Player(x.Player), x => x.Influence);
     }
 
     public VillageSaveData Save_Data
@@ -139,6 +141,7 @@ public class Village : Ownable, Influencable, TradePartner
             data.Hex_X = Hex.Coordinates.X;
             data.Hex_Y = Hex.Coordinates.Y;
             data.Owner = SaveManager.Get_Player_Id(Owner);
+            data.Cultural_Influence = Cultural_Influence.Select(x => new CulturalInfluenceSaveData() { Player = SaveManager.Get_Player_Id(x.Key), Influence = x.Value }).ToList();
             return data;
         }
     }

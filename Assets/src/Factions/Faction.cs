@@ -28,6 +28,7 @@ public class Faction {
     public List<Blessing> Blessings { get; private set; }
     public string City_Hex { get; private set; }
     public bool Uses_Special_AI { get; set; }
+    public List<Technology> Technologies { get; private set; }
 
     public Faction(string name, int starting_cash, int capital_starting_population, Dictionary<City.CitySize, Yields> city_yields,
         float pop_food_consumption, int max_food_storage_per_city, float base_happiness, float happiness_from_pops,
@@ -58,6 +59,7 @@ public class Faction {
         Spells = new List<Spell>();
         Blessings = new List<Blessing>();
         Uses_Special_AI = false;
+        Technologies = new List<Technology>() { root_technology };
 
         Id = current_id;
         current_id++;

@@ -169,6 +169,17 @@ public class ConsoleManager : MonoBehaviour
             Main.Instance.Current_Player.Cash += amount;
             return string.Format("+{0} cash", amount);
         });
+        commands.Add("give_mana", (string[] arguments) => {
+            if (arguments.Length != 2) {
+                return "Invalid number of arguments";
+            }
+            float amount;
+            if (!float.TryParse(arguments[1], out amount)) {
+                return "Invalid argument";
+            }
+            Main.Instance.Current_Player.Mana += amount;
+            return string.Format("+{0} mana", amount);
+        });
 
         commands.Add("spawn_army", (string[] arguments) => {
             if (arguments.Length != 3) {

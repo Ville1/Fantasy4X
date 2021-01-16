@@ -821,10 +821,26 @@ public class Map
                     serialization_phase++;
                 }
                 break;
+            case 3:
+                progress += (serialization_hexes.Count + Cities.Count + Villages.Count);
+                if (serialization_index < serialization_hexes.Count) {
+                    if (serialization_hexes[serialization_index].Road != null) {
+                        serialization_hexes[serialization_index].Road.Update_Graphics();
+                    }
+                    serialization_index++;
+                    progress += serialization_index;
+                } else {
+                    serialization_index = 0;
+                    serialization_phase++;
+                }
+                break;
             default:
+                for(int i = 0; i < Cities.Count; i++) {
+                    Cities[i].Load_Trade_Routes(SaveManager.Instance.Data.Map.Cities[i]);
+                }
                 return -1.0f;
         }
-        return progress / (serialization_hexes.Count + SaveManager.Instance.Data.Map.Cities.Count + SaveManager.Instance.Data.Map.Villages.Count);
+        return progress / ((2.0f * serialization_hexes.Count) + SaveManager.Instance.Data.Map.Cities.Count + SaveManager.Instance.Data.Map.Villages.Count);
     }
 
     /// <summary>

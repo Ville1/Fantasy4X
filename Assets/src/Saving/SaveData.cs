@@ -33,4 +33,22 @@ public class PlayerSaveData
     public float Mana;
     public List<int> Cities;
     public List<int> Villages;
+    public List<WorkerSaveData> Workers;
+    public List<ProspectorSaveData> Prospectors;
+    public List<ArmySaveData> Armies;
+    public string Current_Technology;
+    public float Research_Acquired;
+    public List<string> Researched_Technologies;
+    public string Last_Technology_Researched;
+    public List<EmpireModifierStatusEffectSaveData> Status_Effects;
+    public List<CooldownSaveData> Spells_On_Cooldown;
+    public List<CooldownSaveData> Blessings_On_Cooldown;
+    public List<CooldownSaveData> Active_Blessings;
+}
+
+[Serializable]
+public class CooldownSaveData
+{
+    public string Name;
+    public int Value;
 }

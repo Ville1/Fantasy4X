@@ -10,103 +10,103 @@ public partial class Factions
             { City.CitySize.City,       new Yields(0.0f, 3.0f, 3.0f, 2.0f, 0.5f, 0.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(0.0f, 4.0f, 5.0f, 3.0f, 1.0f, 0.0f, 0.0f) }
         }, 3.0f, 100, 2.0f, -0.40f, 1.0f, -0.15f, 1.5f, -0.40f, 1.0f, false, "dwarven city",
-        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "default_dwarf_2", 10), new EmpireModifiers() {
+        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "default_dwarf_2", 10), new EmpireModifiers() {
             Passive_Income = 3.0f,
             Max_Mana = 100.0f
         });
 
-        Technology Advanced_Tunneling = new Technology("Advanced Tunneling", 30, new List<AI.Tag>() { });
+        Technology Advanced_Tunneling = new Technology(faction, "Advanced Tunneling", 30, new List<AI.Tag>() { });
         faction.Root_Technology.Link(Advanced_Tunneling, 1);
 
-        Technology Reinforced_Shafts = new Technology("Reinforced Shafts", 45, new List<AI.Tag>() { });
+        Technology Reinforced_Shafts = new Technology(faction, "Reinforced Shafts", 45, new List<AI.Tag>() { });
         Advanced_Tunneling.Link(Reinforced_Shafts, 3);
 
-        Technology Mechanization = new Technology("Mechanization", 105, new List<AI.Tag>() { });
+        Technology Mechanization = new Technology(faction, "Mechanization", 105, new List<AI.Tag>() { });
         Reinforced_Shafts.Link(Mechanization, 3);
 
-        Technology Siege_Engineering = new Technology("Siege Engineering", 175, new List<AI.Tag>() { });
+        Technology Siege_Engineering = new Technology(faction, "Siege Engineering", 175, new List<AI.Tag>() { });
         Mechanization.Link(Siege_Engineering, 4);
 
-        Technology Minecarts = new Technology("Minecarts", 220, new List<AI.Tag>() { });
+        Technology Minecarts = new Technology(faction, "Minecarts", 220, new List<AI.Tag>() { });
         Mechanization.Link(Minecarts, 3);
 
-        Technology Elevators = new Technology("Elevators", 420, new List<AI.Tag>() { });
+        Technology Elevators = new Technology(faction, "Elevators", 420, new List<AI.Tag>() { });
         Minecarts.Link(Elevators, 3);
 
-        Technology Mass_Smelting = new Technology("Mass Smelting", 400, new List<AI.Tag>() { });
+        Technology Mass_Smelting = new Technology(faction, "Mass Smelting", 400, new List<AI.Tag>() { });
         Minecarts.Link(Mass_Smelting, 4);
 
-        Technology Magma_Industry = new Technology("Magma Industry", 800, new List<AI.Tag>() { });
+        Technology Magma_Industry = new Technology(faction, "Magma Industry", 800, new List<AI.Tag>() { });
         Elevators.Link(Magma_Industry, 3);
         Mass_Smelting.Link(Magma_Industry);
 
-        Technology Sophisticated_Masonry = new Technology("Sophisticated Masonry", 60, new List<AI.Tag>() { });
+        Technology Sophisticated_Masonry = new Technology(faction, "Sophisticated Masonry", 60, new List<AI.Tag>() { });
         Sophisticated_Masonry.EmpireModifiers = new EmpireModifiers() { Building_Constuction_Speed_Bonus = 0.05f };
         Advanced_Tunneling.Link(Sophisticated_Masonry, 5);
 
-        Technology Aboveground_Construction = new Technology("Aboveground Construction", 90, new List<AI.Tag>() { });
+        Technology Aboveground_Construction = new Technology(faction, "Aboveground Construction", 90, new List<AI.Tag>() { });
         Sophisticated_Masonry.Link(Aboveground_Construction, 3);
         Aboveground_Construction.EmpireModifiers = new EmpireModifiers() { Improvement_Constuction_Speed_Bonus = 0.1f };
 
-        Technology Great_Halls = new Technology("Great Halls", 200, new List<AI.Tag>() { });
+        Technology Great_Halls = new Technology(faction, "Great Halls", 200, new List<AI.Tag>() { });
         Aboveground_Construction.Link(Great_Halls, 3);
         //Reinforced_Shafts.Link(Great_Halls);TODO: Tech tree bugs out with this connection
 
-        Technology Artifact_Reverence = new Technology("Artifact Reverence", 450, new List<AI.Tag>() { });
+        Technology Artifact_Reverence = new Technology(faction, "Artifact Reverence", 450, new List<AI.Tag>() { });
         Great_Halls.Link(Artifact_Reverence, 3);
 
-        Technology Deep_Mines = new Technology("Deep Mines", 400, new List<AI.Tag>() { });
+        Technology Deep_Mines = new Technology(faction, "Deep Mines", 400, new List<AI.Tag>() { });
         Minecarts.Link(Deep_Mines, 2);
         Deep_Mines.Link(Magma_Industry);
 
-        Technology Reservoirs = new Technology("Reservoirs", 55, new List<AI.Tag>() { });
+        Technology Reservoirs = new Technology(faction, "Reservoirs", 55, new List<AI.Tag>() { });
         Advanced_Tunneling.Link(Reservoirs, 1);
 
-        Technology Advanced_Waterworks = new Technology("Advanced Waterworks", 100, new List<AI.Tag>() { });
+        Technology Advanced_Waterworks = new Technology(faction, "Advanced Waterworks", 100, new List<AI.Tag>() { });
         Reservoirs.Link(Advanced_Waterworks, 3);
 
-        Technology Ventilation = new Technology("Ventilation", 105, new List<AI.Tag>() { });
+        Technology Ventilation = new Technology(faction, "Ventilation", 105, new List<AI.Tag>() { });
         Reinforced_Shafts.Link(Ventilation, 2);
 
-        Technology Hospitalization = new Technology("Hospitalization", 175, new List<AI.Tag>() { });
+        Technology Hospitalization = new Technology(faction, "Hospitalization", 175, new List<AI.Tag>() { });
         Advanced_Waterworks.Link(Hospitalization, 3);
         Ventilation.Link(Hospitalization);
 
-        Technology Noble_Traditions = new Technology("Noble Traditions", 35, new List<AI.Tag>() { });
+        Technology Noble_Traditions = new Technology(faction, "Noble Traditions", 35, new List<AI.Tag>() { });
         faction.Root_Technology.Link(Noble_Traditions, 4);
 
-        Technology Sheriffs = new Technology("Sheriffs", 50, new List<AI.Tag>() { });
+        Technology Sheriffs = new Technology(faction, "Sheriffs", 50, new List<AI.Tag>() { });
         Noble_Traditions.Link(Sheriffs, 3);
 
-        Technology Mayors = new Technology("Mayors", 60, new List<AI.Tag>() { });
+        Technology Mayors = new Technology(faction, "Mayors", 60, new List<AI.Tag>() { });
         Noble_Traditions.Link(Mayors, 5);
 
-        Technology Fortress_Guard = new Technology("Fortress Guard", 115, new List<AI.Tag>() { });
+        Technology Fortress_Guard = new Technology(faction, "Fortress Guard", 115, new List<AI.Tag>() { });
         Sheriffs.Link(Fortress_Guard, 3);
         Mayors.Link(Fortress_Guard);
 
-        Technology Hammerers = new Technology("Hammerers", 200, new List<AI.Tag>() { });
+        Technology Hammerers = new Technology(faction, "Hammerers", 200, new List<AI.Tag>() { });
         Fortress_Guard.Link(Hammerers, 3);
 
-        Technology Extensive_Militia_Forces = new Technology("Extensive Militia Forces", 70, new List<AI.Tag>() { });
+        Technology Extensive_Militia_Forces = new Technology(faction, "Extensive Militia Forces", 70, new List<AI.Tag>() { });
         Sheriffs.Link(Extensive_Militia_Forces, 4);
 
-        Technology Champions = new Technology("Champions", 100, new List<AI.Tag>() { });
+        Technology Champions = new Technology(faction, "Champions", 100, new List<AI.Tag>() { });
         Extensive_Militia_Forces.Link(Champions, 3);
 
-        Technology Barony = new Technology("Barony", 100, new List<AI.Tag>() { });
+        Technology Barony = new Technology(faction, "Barony", 100, new List<AI.Tag>() { });
         Mayors.Link(Barony, 4);
 
-        Technology County = new Technology("County", 200, new List<AI.Tag>() { });
+        Technology County = new Technology(faction, "County", 200, new List<AI.Tag>() { });
         Barony.Link(County, 3);
 
-        Technology Dukedom = new Technology("Dukedom", 400, new List<AI.Tag>() { });
+        Technology Dukedom = new Technology(faction, "Dukedom", 400, new List<AI.Tag>() { });
         County.Link(Dukedom, 3);
 
-        faction.Improvements.Add(new Improvement("Aboveground Farm", "dwarven_farm", "dwarven_farm_inactive", new Yields(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 11, 0, false, new List<string>() { "Grassland", "Plains", "Flower Field", "Hill" }, null, null));
-        faction.Improvements.Add(new Improvement("Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 9, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Timber }), null, null));
-        faction.Improvements.Add(new Improvement("Tunnel", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, -0.5f, 19, 0, true, HexPrototypes.Instance.All_Non_Structures.Concat(new List<string>() { "Mountain", "Volcano"}).ToList(), null, null));
-        faction.Improvements.Add(new Improvement("Deep Mine", "mine", "mine_inactive", new Yields(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 25, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), Deep_Mines, delegate (Improvement improvement) {
+        faction.Improvements.Add(new Improvement(faction, "Aboveground Farm", "dwarven_farm", "dwarven_farm_inactive", new Yields(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 11, 0, false, new List<string>() { "Grassland", "Plains", "Flower Field", "Hill" }, null, null));
+        faction.Improvements.Add(new Improvement(faction, "Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 9, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Timber }), null, null));
+        faction.Improvements.Add(new Improvement(faction, "Tunnel", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, -0.5f, 19, 0, true, HexPrototypes.Instance.All_Non_Structures.Concat(new List<string>() { "Mountain", "Volcano" }).ToList(), null, null));
+        faction.Improvements.Add(new Improvement(faction, "Deep Mine", "mine", "mine_inactive", new Yields(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 25, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), Deep_Mines, delegate (Improvement improvement) {
             if (improvement.Hex.Mineral != null) {
                 improvement.Special_Yield_Delta = new Yields(0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f);
             } else {
@@ -115,7 +115,7 @@ public partial class Factions
         }));
 
 
-        faction.Improvements.Add(new Improvement("Lumber Mill", "large_hut", "large_hut_inactive", new Yields(-1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.All_Non_Structures, Mechanization,
+        faction.Improvements.Add(new Improvement(faction, "Lumber Mill", "large_hut", "large_hut_inactive", new Yields(-1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.All_Non_Structures, Mechanization,
             delegate (Improvement improvement) {
                 int adjancent_lumber_camps = 0;
                 foreach (WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
@@ -137,7 +137,7 @@ public partial class Factions
             }
         ));
 
-        faction.Improvements.Add(new Improvement("Magma Extractor", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 50, 0, false, new List<string>() { "Volcano" }, Magma_Industry, null));
+        faction.Improvements.Add(new Improvement(faction, "Magma Extractor", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 50, 0, false, new List<string>() { "Volcano" }, Magma_Industry, null));
 
         faction.Buildings.Add(new Building("Mushroom Farm", "placeholder", 120, 50, 0.5f, new Yields(2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, delegate (Building building) {
             building.Yield_Delta = new Yields();

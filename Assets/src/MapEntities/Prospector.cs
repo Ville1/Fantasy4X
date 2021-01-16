@@ -141,4 +141,28 @@ public class Prospector : WorldMapEntity, Trainable
             return tooltip.ToString();
         }
     }
+
+    public ProspectorSaveData Save_Data
+    {
+        get {
+            ProspectorSaveData data = new ProspectorSaveData();
+            data.Name = Name;
+            data.Hex_X = Hex.Coordinates.X;
+            data.Hex_Y = Hex.Coordinates.Y;
+            data.Movement = Current_Movement;
+            data.Prospecting = prospecting;
+            data.Prospect_Progress = Prospect_Progress;
+            return data;
+        }
+    }
+
+    public void Load(ProspectorSaveData data)
+    {
+        Current_Movement = data.Movement;
+        prospecting = data.Prospecting;
+        Prospect_Progress = data.Prospect_Progress;
+        if (prospecting) {
+            Start_Animation(Working_Animation, Working_Animation_FPS);
+        }
+    }
 }

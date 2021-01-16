@@ -261,4 +261,21 @@ public class Building {
             return tooltip.ToString();
         }
     }
+
+    public void Load(BuildingSaveData data)
+    {
+        paused = data.Is_Paused;
+        Yield_Delta = data.Yield_Delta == null ? null : new Yields(data.Yield_Delta);
+    }
+
+    public BuildingSaveData Save_Data
+    {
+        get {
+            return new BuildingSaveData() {
+                Name = Name,
+                Is_Paused = paused,
+                Yield_Delta = Yield_Delta == null ? null : Yield_Delta.Save_Data
+            };
+        }
+    }
 }

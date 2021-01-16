@@ -42,6 +42,17 @@ public class Yields {
         Faith = yields.Faith;
     }
 
+    public Yields(YieldsSaveData yields)
+    {
+        Food = yields.Food;
+        Production = yields.Production;
+        Cash = yields.Cash;
+        Science = yields.Science;
+        Culture = yields.Culture;
+        Mana = yields.Mana;
+        Faith = yields.Faith;
+    }
+
     public void Add(Yields yields)
     {
         Food += yields.Food;
@@ -138,5 +149,20 @@ public class Yields {
         }
         Yields y = obj as Yields;
         return Food == y.Food && Production == y.Production && Cash == y.Cash && Science == y.Science && Culture == y.Culture && Mana == y.Mana && Faith == y.Faith;
+    }
+
+    public YieldsSaveData Save_Data
+    {
+        get {
+            return new YieldsSaveData() {
+                Food = Food,
+                Production = Production,
+                Cash = Cash,
+                Science = Science,
+                Culture = Culture,
+                Mana = Mana,
+                Faith = Faith
+            };
+        }
     }
 }

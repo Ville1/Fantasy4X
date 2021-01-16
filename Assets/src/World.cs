@@ -116,10 +116,10 @@ public class World : MonoBehaviour
 
     private void Finish_Loading()
     {
-        SaveManager.Instance.Finish_Loading();
         State = GameState.Normal;
         ProgressBarManager.Instance.Active = false;
         Main.Instance.Finish_Loading();
+        SaveManager.Instance.Finish_Loading();
     }
 
     private void Update_Progress()

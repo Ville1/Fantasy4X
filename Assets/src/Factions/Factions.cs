@@ -165,7 +165,7 @@ public partial class Factions {
             { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
         }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f, false, null,
-        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "flag_bearer", 10, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
+        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "flag_bearer", 10, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
             Passive_Income = 3.0f,
             Max_Mana = 100.0f,
             Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f)
@@ -173,121 +173,121 @@ public partial class Factions {
         Faction Kingdom = all[0];
 
 
-        Technology Conscription = new Technology("Conscription", 20, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Conscription = new Technology(Kingdom, "Conscription", 20, new List<AI.Tag>() { AI.Tag.Military });
         Kingdom.Root_Technology.Link(Conscription, 0);
-        Technology Professional_Army = new Technology("Professional Army", 50, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Professional_Army = new Technology(Kingdom, "Professional Army", 50, new List<AI.Tag>() { AI.Tag.Military });
         Conscription.Link(Professional_Army, 3);
-        Technology Military_Science = new Technology("Military Science", 105, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Military_Science = new Technology(Kingdom, "Military Science", 105, new List<AI.Tag>() { AI.Tag.Military });
         Professional_Army.Link(Military_Science, 3);
-        Technology Military_History = new Technology("Military History", 240, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Military_History = new Technology(Kingdom, "Military History", 240, new List<AI.Tag>() { AI.Tag.Military });
         Military_Science.Link(Military_History, 3);
 
-        Technology Combined_Arms = new Technology("Combined Arms", 85, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Combined_Arms = new Technology(Kingdom, "Combined Arms", 85, new List<AI.Tag>() { AI.Tag.Military });
         Professional_Army.Link(Combined_Arms, 2);
-        Technology Logistics = new Technology("Logistics", 220, new List<AI.Tag>() { AI.Tag.Military, AI.Tag.Food, AI.Tag.Production });
+        Technology Logistics = new Technology(Kingdom, "Logistics", 220, new List<AI.Tag>() { AI.Tag.Military, AI.Tag.Food, AI.Tag.Production });
         Logistics.EmpireModifiers = new EmpireModifiers() {
             Trade_Route_Yield_Bonus = new Yields(10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
         };
         Combined_Arms.Link(Logistics, 3);
         
-        Technology Topography = new Technology("Topography", 280, new List<AI.Tag>());
+        Technology Topography = new Technology(Kingdom, "Topography", 280, new List<AI.Tag>());
         Topography.EmpireModifiers = new EmpireModifiers() {
             Improvement_Constuction_Speed_Bonus = 0.05f
         };
         Logistics.Link(Topography, 3);
 
 
-        Technology Ballistics = new Technology("Ballistics", 450, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Ballistics = new Technology(Kingdom, "Ballistics", 450, new List<AI.Tag>() { AI.Tag.Military });
         Topography.Link(Ballistics, 3);
 
-        Technology Shock_Tactics = new Technology("Shock Tactics", 245, new List<AI.Tag>() { AI.Tag.Military });
+        Technology Shock_Tactics = new Technology(Kingdom, "Shock Tactics", 245, new List<AI.Tag>() { AI.Tag.Military });
         Combined_Arms.Link(Shock_Tactics, 2);
         
-        Technology Metal_Casting = new Technology("Metal Casting", 25, new List<AI.Tag>() { AI.Tag.Production });
+        Technology Metal_Casting = new Technology(Kingdom, "Metal Casting", 25, new List<AI.Tag>() { AI.Tag.Production });
         Kingdom.Root_Technology.Link(Metal_Casting, 3);
-        Technology Construction = new Technology("Construction", 45, new List<AI.Tag>() { AI.Tag.Production, AI.Tag.Order, AI.Tag.Happiness, AI.Tag.Health, AI.Tag.Food });
+        Technology Construction = new Technology(Kingdom, "Construction", 45, new List<AI.Tag>() { AI.Tag.Production, AI.Tag.Order, AI.Tag.Happiness, AI.Tag.Health, AI.Tag.Food });
         Metal_Casting.Link(Construction, 2);
-        Technology Alloys = new Technology("Alloys", 35, new List<AI.Tag>() { AI.Tag.Cash });
+        Technology Alloys = new Technology(Kingdom, "Alloys", 35, new List<AI.Tag>() { AI.Tag.Cash });
         Metal_Casting.Link(Alloys, 1);
 
-        Technology Heavy_Industry = new Technology("Heavy Industry", 90, new List<AI.Tag>());
+        Technology Heavy_Industry = new Technology(Kingdom, "Heavy Industry", 90, new List<AI.Tag>());
         Construction.Link(Heavy_Industry, 3);
-        Technology Metallurgy = new Technology("Metallurgy", 260, new List<AI.Tag>());
+        Technology Metallurgy = new Technology(Kingdom, "Metallurgy", 260, new List<AI.Tag>());
         Heavy_Industry.Link(Metallurgy, 3);
-        Technology Machinery = new Technology("Machinery", 340, new List<AI.Tag>() { AI.Tag.Cash, AI.Tag.Production, AI.Tag.Science, AI.Tag.Culture });
+        Technology Machinery = new Technology(Kingdom, "Machinery", 340, new List<AI.Tag>() { AI.Tag.Cash, AI.Tag.Production, AI.Tag.Science, AI.Tag.Culture });
         Metallurgy.Link(Machinery, 3);
 
-        Technology Forestry = new Technology("Forestry", 180, new List<AI.Tag>() { AI.Tag.Food, AI.Tag.Mana, AI.Tag.Science });
+        Technology Forestry = new Technology(Kingdom, "Forestry", 180, new List<AI.Tag>() { AI.Tag.Food, AI.Tag.Mana, AI.Tag.Science });
         Heavy_Industry.Link(Forestry, 2);
         Forestry.Link(Topography);
-        Technology Fertilizer = new Technology("Fertilizer", 300, new List<AI.Tag>());
+        Technology Fertilizer = new Technology(Kingdom, "Fertilizer", 300, new List<AI.Tag>());
         Forestry.Link(Fertilizer, 3);
 
-        Technology Public_Services = new Technology("Public Services", 20, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Science });
+        Technology Public_Services = new Technology(Kingdom, "Public Services", 20, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Science });
         Kingdom.Root_Technology.Link(Public_Services, 6);
-        Technology Education = new Technology("Education", 60, new List<AI.Tag>() { AI.Tag.Science, AI.Tag.Production });
+        Technology Education = new Technology(Kingdom, "Education", 60, new List<AI.Tag>() { AI.Tag.Science, AI.Tag.Production });
         Public_Services.Link(Education, 3);
         Education.Link(Military_Science);
         
-        Technology Chemistry = new Technology("Chemistry", 105, new List<AI.Tag>());
+        Technology Chemistry = new Technology(Kingdom, "Chemistry", 105, new List<AI.Tag>());
         Education.Link(Chemistry, 3);
         Chemistry.Link(Metallurgy);
-        Technology Biology = new Technology("Biology", 200, new List<AI.Tag>());
+        Technology Biology = new Technology(Kingdom, "Biology", 200, new List<AI.Tag>());
         Chemistry.Link(Biology, 3);
         Biology.Link(Fertilizer);
         
-        Technology Bureaucracy = new Technology("Bureaucracy", 115, new List<AI.Tag>() { AI.Tag.Cash });
+        Technology Bureaucracy = new Technology(Kingdom, "Bureaucracy", 115, new List<AI.Tag>() { AI.Tag.Cash });
         Education.Link(Bureaucracy, 4);
-        Technology Economics = new Technology("Economics", 175, new List<AI.Tag>() { AI.Tag.Cash });
+        Technology Economics = new Technology(Kingdom, "Economics", 175, new List<AI.Tag>() { AI.Tag.Cash });
         Economics.EmpireModifiers = new EmpireModifiers() {
             Trade_Route_Yield_Bonus = new Yields(0.0f, 0.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f)
         };
         Bureaucracy.Link(Economics, 3);
-        Technology Mercantilism = new Technology("Mercantilism", 315, new List<AI.Tag>());
+        Technology Mercantilism = new Technology(Kingdom, "Mercantilism", 315, new List<AI.Tag>());
         Mercantilism.EmpireModifiers = new EmpireModifiers() {
             Passive_Income = 1.0f,
             Village_Yield_Bonus = new Yields(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f)
         };
         Economics.Link(Mercantilism, 3);
 
-        Technology Law_and_Order = new Technology("Law and Order", 140, new List<AI.Tag>() { AI.Tag.Order });
+        Technology Law_and_Order = new Technology(Kingdom, "Law and Order", 140, new List<AI.Tag>() { AI.Tag.Order });
         Bureaucracy.Link(Law_and_Order, 4);
         Professional_Army.Link(Law_and_Order);
         
-        Technology Mysticism = new Technology("Mysticism", 65, new List<AI.Tag>());
+        Technology Mysticism = new Technology(Kingdom, "Mysticism", 65, new List<AI.Tag>());
         Public_Services.Link(Mysticism, 5);
-        Technology Theology = new Technology("Theology", 75, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Faith });
+        Technology Theology = new Technology(Kingdom, "Theology", 75, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Faith });
         Mysticism.Link(Theology, 4);
-        Technology Theocracy = new Technology("Theocracy", 190, new List<AI.Tag>());
+        Technology Theocracy = new Technology(Kingdom, "Theocracy", 190, new List<AI.Tag>());
         Theology.Link(Theocracy, 3);
         
-        Technology Wizardy = new Technology("Wizardy", 205, new List<AI.Tag>());
+        Technology Wizardy = new Technology(Kingdom, "Wizardy", 205, new List<AI.Tag>());
         Theology.Link(Wizardy, 4);
-        Technology Geomancy = new Technology("Geomancy", 240, new List<AI.Tag>());
+        Technology Geomancy = new Technology(Kingdom, "Geomancy", 240, new List<AI.Tag>());
         Wizardy.Link(Geomancy, 2);
-        Technology Destruction = new Technology("Destruction", 270, new List<AI.Tag>());
+        Technology Destruction = new Technology(Kingdom, "Destruction", 270, new List<AI.Tag>());
         Wizardy.Link(Destruction, 3);
         
-        Technology Engineering = new Technology("Engineering", 75, new List<AI.Tag>());
+        Technology Engineering = new Technology(Kingdom, "Engineering", 75, new List<AI.Tag>());
         Construction.Link(Engineering, 5);
         Education.Link(Engineering);
-        Technology Sanitation = new Technology("Sanitation", 190, new List<AI.Tag>() { AI.Tag.Health });
+        Technology Sanitation = new Technology(Kingdom, "Sanitation", 190, new List<AI.Tag>() { AI.Tag.Health });
         Engineering.Link(Sanitation, 4);
-        Technology Health_Care = new Technology("Health Care", 290, new List<AI.Tag>() { AI.Tag.Health });
+        Technology Health_Care = new Technology(Kingdom, "Health Care", 290, new List<AI.Tag>() { AI.Tag.Health });
         Sanitation.Link(Health_Care, 3);
 
-        Technology Highways = new Technology("Highways", 165, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Cash, AI.Tag.Food, AI.Tag.Production });
+        Technology Highways = new Technology(Kingdom, "Highways", 165, new List<AI.Tag>() { AI.Tag.Happiness, AI.Tag.Cash, AI.Tag.Food, AI.Tag.Production });
         Highways.EmpireModifiers = new EmpireModifiers() {
             Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f),
             Trade_Route_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f, 10.0f)
         };
         Engineering.Link(Highways, 3);
-        Technology Diplomatic_Missions = new Technology("Diplomatic Missions", 300, new List<AI.Tag>() { AI.Tag.Culture });
+        Technology Diplomatic_Missions = new Technology(Kingdom, "Diplomatic Missions", 300, new List<AI.Tag>() { AI.Tag.Culture });
         Highways.Link(Diplomatic_Missions, 3);
 
-        Technology Acoustics = new Technology("Acoustics", 220, new List<AI.Tag>() { AI.Tag.Culture, AI.Tag.Happiness });
+        Technology Acoustics = new Technology(Kingdom, "Acoustics", 220, new List<AI.Tag>() { AI.Tag.Culture, AI.Tag.Happiness });
         Engineering.Link(Acoustics, 2);
-        Technology Architecture = new Technology("Architecture", 325, new List<AI.Tag>() { AI.Tag.Production });
+        Technology Architecture = new Technology(Kingdom, "Architecture", 325, new List<AI.Tag>() { AI.Tag.Production });
         Architecture.EmpireModifiers = new EmpireModifiers() {
             Building_Constuction_Speed_Bonus = 0.05f
         };
@@ -296,14 +296,14 @@ public partial class Factions {
 
 
 
-        Kingdom.Improvements.Add(new Improvement("Farm", "farm", "farm_inactive", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open), null, null));
-        Kingdom.Improvements.Add(new Improvement("Plantation", "plantation", "plantation_inactive", new Yields(0, 0, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid), null, null));
-        Kingdom.Improvements.Add(new Improvement("Hunting Lodge", "hunting_lodge", "hunting_lodge_inactive", new Yields(1.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 7, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Game), null, null));
-        Kingdom.Improvements.Add(new Improvement("Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Timber), null, null));
-        Kingdom.Improvements.Add(new Improvement("Quarry", "quarry", "quarry_inactive", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 20, 0, false, new List<string>() { "Hill", "Plains", "Hill with a Cave" }, null, null));
-        Kingdom.Improvements.Add(new Improvement("Mine", "mine", "mine_inactive", new Yields(-1, 1, 0, 0, 0, 0, 0), 0.0f, -0.5f, 0.0f, 17, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Farm", "farm", "farm_inactive", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Plantation", "plantation", "plantation_inactive", new Yields(0, 0, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Hunting Lodge", "hunting_lodge", "hunting_lodge_inactive", new Yields(1.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 7, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Game), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Timber), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Quarry", "quarry", "quarry_inactive", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 20, 0, false, new List<string>() { "Hill", "Plains", "Hill with a Cave" }, null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Mine", "mine", "mine_inactive", new Yields(-1, 1, 0, 0, 0, 0, 0), 0.0f, -0.5f, 0.0f, 17, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), null, null));
 
-        Kingdom.Improvements.Add(new Improvement("Windmill", "windmill", "windmill_inactive", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, new List<string>() { "Hill", "Hill with a Cave" }, Engineering, 
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Windmill", "windmill", "windmill_inactive", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, new List<string>() { "Hill", "Hill with a Cave" }, Engineering, 
             delegate(Improvement improvement) {
                 int adjancent_agriculture = 0;
                 foreach(WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
@@ -324,7 +324,7 @@ public partial class Factions {
             }
         ));
 
-        Kingdom.Improvements.Add(new Improvement("Lumber Mill", "large_hut", "large_hut_inactive", new Yields(-1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, HexPrototypes.Instance.All_Non_Structures, Construction,
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Lumber Mill", "large_hut", "large_hut_inactive", new Yields(-1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, HexPrototypes.Instance.All_Non_Structures, Construction,
             delegate (Improvement improvement) {
                 int adjancent_lumber_camps = 0;
                 foreach (WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
@@ -346,7 +346,7 @@ public partial class Factions {
             }
         ));
 
-        Kingdom.Improvements.Add(new Improvement("Forester's Lodge", "forester", "forester_inactive", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false,
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Forester's Lodge", "forester", "forester_inactive", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false,
             HexPrototypes.Instance.All_Forests.Concat(new List<string>() { "Haunted Forest", "Swamp" }).ToList(), Forestry,
             delegate (Improvement improvement) {
                 improvement.Special_Yield_Delta = new Yields();
@@ -372,7 +372,7 @@ public partial class Factions {
         ));
 
         //Increases order!
-        Kingdom.Improvements.Add(new Improvement("Mansion", "large_hut", "large_hut_inactive", new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 20, 0, false,
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Mansion", "large_hut", "large_hut_inactive", new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 20, 0, false,
             HexPrototypes.Instance.All_Non_Structures, Architecture,
             delegate (Improvement improvement) {
                 int adjancent_agriculture = 0;
@@ -746,7 +746,7 @@ public partial class Factions {
                 { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
                 { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f, true, null,
-            new Technology("Root", 5, new List<AI.Tag>()), new Army("Garrison", "neutral_guard", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Garrison", "neutral_guard", 100), new EmpireModifiers() {
                 Passive_Income = 5.0f,
                 Max_Mana = 1000.0f,
                 Population_Growth_Bonus = -0.95f
@@ -771,7 +771,7 @@ public partial class Factions {
                 { City.CitySize.City,       new Yields(1.0f, 2.0f, 4.0f, 0.5f, 1.0f, 0.0f, 0.0f) },
                 { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 1.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 2.0f, -0.40f, 1.0f, -0.30f, 1.0f, -0.50f, 0.5f, true, null,
-            new Technology("Root", 5, new List<AI.Tag>()), new Army("Bandits", "default_unit", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Bandits", "default_unit", 100), new EmpireModifiers() {
                 Passive_Income = 3.0f,
                 Max_Mana = 100.0f,
                 Population_Growth_Bonus = -0.95f
@@ -824,7 +824,7 @@ public partial class Factions {
                 { City.CitySize.City,       new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) },
                 { City.CitySize.Metropolis, new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }
             }, 3.0f, 100, 1.0f, -0.10f, 1.0f, -0.10f, 1.0f, -0.10f, 0.5f, false, null,
-            new Technology("Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", 100), new EmpireModifiers() {
                 Max_Mana = 500.0f
             });
         wild_life.Uses_Special_AI = true;

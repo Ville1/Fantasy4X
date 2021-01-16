@@ -1430,6 +1430,39 @@ public class City : Ownable, Influencable, TradePartner
         Id = data.Id;
         Name = data.Name;
         Owner.Cities.Add(this);
+        Worked_Hexes = data.Worked_Hexes.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
+        Hexes_In_Work_Range = data.Hexes_In_Work_Range.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
+        LoS = data.LoS;
+        Work_Range = data.Work_Range;
+        Unit_Under_Production = string.IsNullOrEmpty(data.Unit_Under_Production) ? null : Owner.Faction.Units.First(x => x.Name == data.Unit_Under_Production);
+        Building_Under_Production = string.IsNullOrEmpty(data.Building_Under_Production) ? null : Owner.Faction.Buildings.First(x => x.Name == data.Building_Under_Production);
+        Unit_Production_Acquired = data.Unit_Production_Acquired;
+        Building_Production_Acquired = data.Building_Production_Acquired;
+        Population = data.Population;
+        Base_Max_Food_Storage = data.Base_Max_Food_Storage;
+        Food_Stored = data.Food_Stored;
+        Full_LoS = data.Full_LoS;
+        Last_Turn_Yields = new Yields(data.Last_Turn_Yields);
+        update_yields = data.Update_Yields;
+        saved_yields = data.Saved_Yields != null ? new Yields(data.Saved_Yields) : null;
+        saved_base_yields = data.Saved_Base_Yields != null ? new Yields(data.Saved_Base_Yields) : null;
+        foreach(BuildingSaveData building_data in data.Buildings) {
+            Building building = new Building(Owner.Faction.Buildings.First(x => x.Name == building_data.Name), this);
+            building.Load(building_data);
+            Buildings.Add(building);
+        }
+        Cultural_Influence = data.Cultural_Influence.ToDictionary(x => SaveManager.Get_Player(x.Player), x => x.Influence);
+        foreach(CityStatusEffectSaveData effect_data in data.Status_Effects) {
+            CityStatusEffect effect = new CityStatusEffect(effect_data.Name, effect_data.Duration);
+            effect.Load(effect_data);
+            Status_Effects.Apply_Status_Effect(effect, true);
+        }
+    }
+
+    public void Load_Trade_Routes(CitySaveData data)
+    {
+        Trade_Routes = data.Trade_Routes.Select(x => new TradeRoute(x.Path.Select(y => World.Instance.Map.Get_Hex_At(y.X, y.Y)).ToList(), this, World.Instance.Map.Get_Hex_At(x.Target.X, x.Target.Y).Trade_Partner,
+            x.Water_Route)).ToList();
     }
 
     public CitySaveData Save_Data
@@ -1441,6 +1474,40 @@ public class City : Ownable, Influencable, TradePartner
             data.Hex_X = Hex.Coordinates.X;
             data.Hex_Y = Hex.Coordinates.Y;
             data.Owner = SaveManager.Get_Player_Id(Owner);
+            data.Worked_Hexes = Worked_Hexes.Select(x => new CoordinateSaveData() { X = x.Coordinates.X, Y = x.Coordinates.Y }).ToList();
+            data.Hexes_In_Work_Range = Hexes_In_Work_Range.Select(x => new CoordinateSaveData() { X = x.Coordinates.X, Y = x.Coordinates.Y }).ToList();
+            data.LoS = LoS;
+            data.Work_Range = Work_Range;
+            data.Unit_Under_Production = Unit_Under_Production == null ? null : Unit_Under_Production.Name;
+            data.Building_Under_Production = Building_Under_Production == null ? null : Building_Under_Production.Name;
+            data.Unit_Production_Acquired = Unit_Production_Acquired;
+            data.Building_Production_Acquired = Building_Production_Acquired;
+            data.Population = Population;
+            data.Base_Max_Food_Storage = Base_Max_Food_Storage;
+            data.Food_Stored = Food_Stored;
+            data.Full_LoS = Full_LoS;
+            data.Last_Turn_Yields = Last_Turn_Yields.Save_Data;
+            data.Update_Yields = update_yields;
+            data.Saved_Yields = saved_yields != null ? saved_yields.Save_Data : null;
+            data.Saved_Base_Yields = saved_base_yields != null ? saved_base_yields.Save_Data : null;
+            data.Buildings = Buildings.Select(x => x.Save_Data).ToList();
+            data.Cultural_Influence = Cultural_Influence.Select(x => new CulturalInfluenceSaveData() { Player = SaveManager.Get_Player_Id(x.Key), Influence = x.Value }).ToList();
+            data.Trade_Routes = Trade_Routes.Select(x => new TradeRouteSaveData() {
+                Target = new CoordinateSaveData() { X = x.Target.Hex.Coordinates.X, Y = x.Target.Hex.Coordinates.Y },
+                Path = x.Path.Select(y => new CoordinateSaveData() { X = y.Coordinates.X, Y = y.Coordinates.Y }).ToList(),
+                Water_Route = x.Water_Route
+            }).ToList();
+            data.Status_Effects = Status_Effects.Select(x => new CityStatusEffectSaveData() {
+                Name = x.Name,
+                Duration = x.Duration,
+                Current_Duration = x.Current_Duration,
+                Parent_Duration = x.Parent_Duration.HasValue ? x.Parent_Duration.Value : -1,
+                Happiness = x.Happiness,
+                Health = x.Health,
+                Order = x.Order,
+                Yield_Delta = x.Yield_Delta == null ? null : x.Yield_Delta.Save_Data,
+                Percentage_Yield_Delta = x.Percentage_Yield_Delta == null ? null : x.Percentage_Yield_Delta.Save_Data
+            }).ToList();
             return data;
         }
     }

@@ -82,4 +82,21 @@ public class EmpireModifiers {
             return tooltip.ToString();
         }
     }
+
+    public EmpireModifiersSaveData Save_Data
+    {
+        get {
+            return new EmpireModifiersSaveData() {
+                Unit_Training_Speed_Bonus = Unit_Training_Speed_Bonus,
+                Building_Constuction_Speed_Bonus = Building_Constuction_Speed_Bonus,
+                Improvement_Constuction_Speed_Bonus = Improvement_Constuction_Speed_Bonus,
+                Passive_Income = Passive_Income,
+                Max_Mana = Max_Mana,
+                Population_Growth_Bonus = Population_Growth_Bonus,
+                Village_Yield_Bonus = Village_Yield_Bonus.Save_Data,
+                Percentage_Village_Yield_Bonus = Percentage_Village_Yield_Bonus.Save_Data,
+                Trade_Route_Yield_Bonus = Trade_Route_Yield_Bonus.Save_Data
+            };
+        }
+    }
 }

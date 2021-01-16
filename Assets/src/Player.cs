@@ -15,7 +15,7 @@ public class Player {
     public I_AI AI { get; private set; }
     public List<City> Cities { get; private set; }
     public List<Village> Villages { get; private set; }
-    public List<WorldMapEntity> WorldMapEntitys { get; private set; }
+    public List<WorldMapEntity> World_Map_Entities { get; private set; }
     public int Id { get; private set; }
     public Faction Faction { get; private set; }
     public float Cash { get; set; }
@@ -51,7 +51,7 @@ public class Player {
     public Player(string name, AI.Level? ai, Faction faction, bool neutral = false)
     {
         Name = name;
-        WorldMapEntitys = new List<WorldMapEntity>();
+        World_Map_Entities = new List<WorldMapEntity>();
         Id = current_id;
         current_id++;
         Faction = faction;
@@ -96,7 +96,7 @@ public class Player {
     
     public void End_Turn()
     {
-        foreach(WorldMapEntity entity in WorldMapEntitys) {
+        foreach(WorldMapEntity entity in World_Map_Entities) {
             while(entity.Stored_Path != null && entity.Current_Movement > 0.0f) {
                 if (!entity.Follow_Stored_Path()) {
                     break;
@@ -163,7 +163,7 @@ public class Player {
             Last_Technology_Researched = Current_Technology;
             Current_Technology = null;
             SelectTechnologyPanelManager.Instance.Active = true;
-            foreach (WorldMapEntity entity in WorldMapEntitys) {
+            foreach (WorldMapEntity entity in World_Map_Entities) {
                 if(entity is Worker) {
                     (entity as Worker).Update_Actions_List();
                 }
@@ -177,7 +177,7 @@ public class Player {
             }
         }
 
-        foreach (WorldMapEntity entity in WorldMapEntitys) {
+        foreach (WorldMapEntity entity in World_Map_Entities) {
             entity.Start_Turn();
         }
 
@@ -193,7 +193,7 @@ public class Player {
             foreach(City city in Cities) {
                 income += city.Yields.Cash;
             }
-            foreach(WorldMapEntity entity in WorldMapEntitys) {
+            foreach(WorldMapEntity entity in World_Map_Entities) {
                 income -= entity.Upkeep;
                 if(entity is Army) {
                     income += (entity as Army).Raiding_Income;
@@ -245,7 +245,7 @@ public class Player {
             foreach (City city in Cities) {
                 income += city.Yields.Mana;
             }
-            foreach (WorldMapEntity entity in WorldMapEntitys) {
+            foreach (WorldMapEntity entity in World_Map_Entities) {
                 income -= entity.Mana_Upkeep;
             }
             return income;
@@ -285,7 +285,7 @@ public class Player {
                     }
                 }
             }
-            foreach (WorldMapEntity entity in Main.Instance.Current_Player.WorldMapEntitys) {
+            foreach (WorldMapEntity entity in Main.Instance.Current_Player.World_Map_Entities) {
                 foreach (WorldMapHex hex in entity.Get_Hexes_In_LoS()) {
                     if (!los.ContainsKey(hex)) {
                         los.Add(hex, entity);
@@ -492,12 +492,69 @@ public class Player {
         return data;
     }
 
-    public void Load(PlayerSaveData data)
+    public void Load_Pre_Map(PlayerSaveData data)
     {
         Id = data.Id;
         Team = data.Team != -1 ? data.Team : (int?)null;
         Cash = data.Cash;
         mana = data.Mana;
+        Current_Technology = string.IsNullOrEmpty(data.Current_Technology) ? null : new Technology(Faction.Technologies.First(x => x.Name == data.Current_Technology), this);
+        if(Current_Technology != null) {
+            Current_Technology.Research_Acquired = data.Research_Acquired;
+        }
+        Last_Technology_Researched = string.IsNullOrEmpty(data.Last_Technology_Researched) ? null : Faction.Technologies.First(x => x.Name == data.Last_Technology_Researched);
+        Researched_Technologies = data.Researched_Technologies.Select(x => Faction.Technologies.First(y => y.Name == x)).ToList();
+        foreach(EmpireModifierStatusEffectSaveData effect_data in data.Status_Effects) {
+            EmpireModifierStatusEffect effect = new EmpireModifierStatusEffect(effect_data.Name, effect_data.Duration, new EmpireModifiers() {
+                Unit_Training_Speed_Bonus = effect_data.Modifiers.Unit_Training_Speed_Bonus,
+                Building_Constuction_Speed_Bonus = effect_data.Modifiers.Building_Constuction_Speed_Bonus,
+                Improvement_Constuction_Speed_Bonus = effect_data.Modifiers.Improvement_Constuction_Speed_Bonus,
+                Passive_Income = effect_data.Modifiers.Passive_Income,
+                Max_Mana = effect_data.Modifiers.Max_Mana,
+                Population_Growth_Bonus = effect_data.Modifiers.Population_Growth_Bonus,
+                Village_Yield_Bonus = new Yields(effect_data.Modifiers.Village_Yield_Bonus),
+                Percentage_Village_Yield_Bonus = new Yields(effect_data.Modifiers.Percentage_Village_Yield_Bonus),
+                Trade_Route_Yield_Bonus = new Yields(effect_data.Modifiers.Trade_Route_Yield_Bonus)
+            });
+            effect.Current_Duration = effect_data.Current_Duration;
+            Status_Effects.Apply_Status_Effect(effect, true);
+        }
+        foreach(CooldownSaveData cooldown_data in data.Spells_On_Cooldown) {
+            spells_on_cooldown.Set_Cooldown(Faction.Spells.First(x => x.Name == cooldown_data.Name), cooldown_data.Value);
+        }
+        foreach (CooldownSaveData cooldown_data in data.Blessings_On_Cooldown) {
+            blessings_on_cooldown.Set_Cooldown(Faction.Blessings.First(x => x.Name == cooldown_data.Name), cooldown_data.Value);
+        }
+        foreach (CooldownSaveData cooldown_data in data.Active_Blessings) {
+            active_blessings.Add(Faction.Blessings.First(x => x.Name == cooldown_data.Name), cooldown_data.Value);
+        }
+    }
+
+    public void Load_Post_Map(PlayerSaveData data)
+    {
+        foreach(ArmySaveData army_data in data.Armies) {
+            WorldMapHex hex = World.Instance.Map.Get_Hex_At(army_data.Hex_X, army_data.Hex_Y);
+            Army army = new Army(hex, Faction.Army_Prototype, this, null);
+            hex.Entity = army;
+            foreach(UnitSaveData unit_data in army_data.Units) {
+                Unit unit = new Unit(Faction.Units.First(x => x.Name == unit_data.Name) as Unit);
+                unit.Load(unit_data);
+                army.Add_Unit(unit);
+            }
+            World_Map_Entities.Add(army);
+        }
+        foreach(WorkerSaveData worker_data in data.Workers) {
+            WorldMapHex hex = World.Instance.Map.Get_Hex_At(worker_data.Hex_X, worker_data.Hex_Y);
+            Worker worker = new Worker(hex, Faction.Units.First(x => x.Name == worker_data.Name) as Worker, this);
+            worker.Load(worker_data);
+            World_Map_Entities.Add(worker);
+        }
+        foreach (ProspectorSaveData prospector_data in data.Prospectors) {
+            WorldMapHex hex = World.Instance.Map.Get_Hex_At(prospector_data.Hex_X, prospector_data.Hex_Y);
+            Prospector prospector = new Prospector(hex, Faction.Units.First(x => x.Name == prospector_data.Name) as Prospector, this);
+            prospector.Load(prospector_data);
+            World_Map_Entities.Add(prospector);
+        }
     }
 
     public PlayerSaveData Save_Data
@@ -513,6 +570,33 @@ public class Player {
             data.Mana = mana;
             data.Villages = Villages.Select(x => x.Id).ToList();
             data.Cities = Cities.Select(x => x.Id).ToList();
+            data.Workers = new List<WorkerSaveData>();
+            data.Prospectors = new List<ProspectorSaveData>();
+            data.Armies = new List<ArmySaveData>();
+            foreach(WorldMapEntity entity in World_Map_Entities) {
+                if(entity is Army) {
+                    data.Armies.Add((entity as Army).Save_Data);
+                } else if(entity is Worker) {
+                    data.Workers.Add((entity as Worker).Save_Data);
+                } else if (entity is Prospector) {
+                    data.Prospectors.Add((entity as Prospector).Save_Data);
+                } else {
+                    CustomLogger.Instance.Error("Type {0} can't be serialized", entity.GetType().FullName);
+                }
+            }
+            data.Current_Technology = Current_Technology == null ? null : Current_Technology.Name;
+            data.Research_Acquired = Current_Technology == null ? 0.0f : Current_Technology.Research_Acquired;
+            data.Last_Technology_Researched = Last_Technology_Researched == null ? null : Last_Technology_Researched.Name;
+            data.Researched_Technologies = Researched_Technologies.Select(x => x.Name).ToList();
+            data.Status_Effects = Status_Effects.Select(x => new EmpireModifierStatusEffectSaveData() {
+                Name = x.Name,
+                Duration = x.Duration,
+                Current_Duration = x.Current_Duration,
+                Modifiers = x.Modifiers.Save_Data
+            }).ToList();
+            data.Spells_On_Cooldown = spells_on_cooldown.Select(x => new CooldownSaveData() { Name = x.Name, Value = spells_on_cooldown.Get_Cooldown(x) }).ToList();
+            data.Blessings_On_Cooldown = blessings_on_cooldown.Select(x => new CooldownSaveData() { Name = x.Name, Value = blessings_on_cooldown.Get_Cooldown(x) }).ToList();
+            data.Active_Blessings = active_blessings.Select(x => new CooldownSaveData() { Name = x.Key.Name, Value = x.Value }).ToList();
             return data;
         }
     }

@@ -139,7 +139,7 @@ public class AI : IConfigListener, I_AI
         //Scouting armies
         List<Army> deleted_armies = new List<Army>(); 
         foreach(KeyValuePair<Army, WorldMapHex> pair in scouting_armies) {
-            if (!Player.WorldMapEntitys.Contains(pair.Key)) {
+            if (!Player.World_Map_Entities.Contains(pair.Key)) {
                 deleted_armies.Add(pair.Key);
             }
         }
@@ -149,7 +149,7 @@ public class AI : IConfigListener, I_AI
         //Defence armies
         deleted_armies.Clear();
         foreach (KeyValuePair<City, Army> pair in defence_armies) {
-            if (!Player.WorldMapEntitys.Contains(pair.Value)) {
+            if (!Player.World_Map_Entities.Contains(pair.Value)) {
                 deleted_armies.Add(pair.Value);
             }
         }
@@ -159,7 +159,7 @@ public class AI : IConfigListener, I_AI
         //Main armies
         deleted_armies.Clear();
         foreach (KeyValuePair<Army, ArmyOrder> pair in main_armies) {
-            if (!Player.WorldMapEntitys.Contains(pair.Key)) {
+            if (!Player.World_Map_Entities.Contains(pair.Key)) {
                 deleted_armies.Add(pair.Key);
             }
         }
@@ -184,7 +184,7 @@ public class AI : IConfigListener, I_AI
 
         own_main_army_strenght = 0.0f;
         own_defence_army_strenght = 0.0f;
-        foreach (WorldMapEntity entity in Player.WorldMapEntitys) {
+        foreach (WorldMapEntity entity in Player.World_Map_Entities) {
             if (entity is Army) {
                 if (main_armies.ContainsKey(entity as Army)) {
                     own_main_army_strenght += (entity as Army).Relative_Strenght;
@@ -268,7 +268,7 @@ public class AI : IConfigListener, I_AI
         }
 
         //Move units
-        foreach (WorldMapEntity entity in Player.WorldMapEntitys) {
+        foreach (WorldMapEntity entity in Player.World_Map_Entities) {
             if (entity.Wait_Turn) {
                 continue;
             }
@@ -346,7 +346,7 @@ public class AI : IConfigListener, I_AI
         //Workers
         desired_workers = Player.Cities.Count;
         worker_count = 0;
-        foreach (WorldMapEntity entity in Player.WorldMapEntitys) {
+        foreach (WorldMapEntity entity in Player.World_Map_Entities) {
             if (entity is Worker) {
                 worker_count++;
             }
@@ -383,7 +383,7 @@ public class AI : IConfigListener, I_AI
         //Delete excess prospectors
         List<Prospector> delete_these = new List<Prospector>();
         while (prospector_count - prospectors_in_training > desired_prospectors) {
-            foreach(WorldMapEntity entity in Player.WorldMapEntitys) {
+            foreach(WorldMapEntity entity in Player.World_Map_Entities) {
                 if(entity is Prospector) {
                     delete_these.Add(entity as Prospector);
                     prospector_count--;
@@ -447,7 +447,7 @@ public class AI : IConfigListener, I_AI
 
         //Assing army roles
         List<WorldMapEntity> help = new List<WorldMapEntity>();
-        foreach (WorldMapEntity e in Player.WorldMapEntitys) {
+        foreach (WorldMapEntity e in Player.World_Map_Entities) {
             help.Add(e);
         }
 
@@ -987,7 +987,7 @@ public class AI : IConfigListener, I_AI
         foreach (City city in Player.Cities) {
             foreach (WorldMapHex hex in city.Hexes_In_Work_Range) {
                 if ((hex.Entity == null || hex.Entity.Is_Owned_By(Player) && hex.Civilian == null) && hex.Passable && worker.Get_Buildable_Improvements(hex).Count != 0
-                    && !Player.WorldMapEntitys.Any(x => x.Is_Civilian && x.Stored_Path_Target == hex)) {
+                    && !Player.World_Map_Entities.Any(x => x.Is_Civilian && x.Stored_Path_Target == hex)) {
                     hexes_to_be_evaluated.Add(hex);
                 }
             }
@@ -1334,7 +1334,7 @@ public class AI : IConfigListener, I_AI
 
         //Defending civilians
         if (main_armies[army] == null && army.Hex.Civilian == null) {
-            foreach(WorldMapEntity entity in Player.WorldMapEntitys) {
+            foreach(WorldMapEntity entity in Player.World_Map_Entities) {
                 if (entity.Is_Civilian && entity.Hex.Entity == null && !main_armies.Any(x => x.Value != null && x.Value.Hex_Target == entity.Hex)) {
                     Log("New order: defending civilian", LogType.Military);
                     main_armies[army] = new ArmyOrder(ArmyOrder.OrderType.Defend_Civilian, entity.Hex);

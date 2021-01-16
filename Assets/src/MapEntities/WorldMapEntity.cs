@@ -39,10 +39,10 @@ public class WorldMapEntity : Ownable {
             CustomLogger.Instance.Error("Creating an instance of WorldMapEntity on a hex which already has one");
         }
         Owner = owner;
-        if (Owner.WorldMapEntitys.Contains(this)) {
+        if (Owner.World_Map_Entities.Contains(this)) {
             CustomLogger.Instance.Warning("This entity has already been added to owner's entity list");
         } else {
-            Owner.WorldMapEntitys.Add(this);
+            Owner.World_Map_Entities.Add(this);
         }
         Hex = hex;
         if (civilian) {
@@ -231,7 +231,7 @@ public class WorldMapEntity : Ownable {
     
     public void Delete()
     {
-        Owner.WorldMapEntitys.Remove(this);
+        Owner.World_Map_Entities.Remove(this);
         if (Is_Civilian) {
             Hex.Civilian = null;
         } else {

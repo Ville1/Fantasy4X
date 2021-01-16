@@ -107,17 +107,6 @@ public class WorldMapHex : Hex {
         SpriteRenderer.sprite = SpriteManager.Instance.Get(Sprite, SpriteManager.SpriteType.Terrain);
     }
 
-    public void Load(WorldMapHexSaveData data)
-    {
-        Change_To(HexPrototypes.Instance.Get_World_Map_Hex(data.Internal_Name));
-        CombatMap_City_Seed = data.CombatMap_City_Seed.ToDictionary(x => x.Key, x => x.Value);
-        Mineral = !string.IsNullOrEmpty(data.Mineral) ? Mineral.Get_Prototype(data.Mineral) : null;
-        Current_LoS = (LoS_Status)data.Current_Los;
-        explored_by = data.Explored_By.Select(x => SaveManager.Get_Player(x)).ToList();
-        prospected_by = data.Prospected_By.Select(x => SaveManager.Get_Player(x)).ToList();
-        owner = SaveManager.Get_Player(data.Owner);
-    }
-    
     public float Movement_Cost
     {
         get {
@@ -686,7 +675,58 @@ public class WorldMapHex : Hex {
             data.Explored_By = explored_by.Select(x => SaveManager.Get_Player_Id(x)).ToList();
             data.Owner = SaveManager.Get_Player_Id(Owner);
             data.Prospected_By = prospected_by.Select(x => SaveManager.Get_Player_Id(x)).ToList();
+            data.Road = Road == null ? null : Road.Internal_Name;
+            if(Improvement != null) {
+                data.Improvement = new ImprovementSaveData() {
+                    Name = Improvement.Name,
+                    Faction = Improvement.Faction == null ? null : Improvement.Faction.Name,
+                    Special_Yield_Delta = Improvement.Special_Yield_Delta == null ? null : Improvement.Special_Yield_Delta.Save_Data,
+                    Happiness_Delta = Improvement.Happiness_Delta,
+                    Health_Delta = Improvement.Health_Delta,
+                    Order_Delta = Improvement.Order_Delta
+                };
+            } else {
+                data.Improvement = null;
+            }
+            data.Is_Map_Edge_Road_Connection = Is_Map_Edge_Road_Connection;
+            data.Status_Effects = Status_Effects.Select(x => new WorldMapHexStatusEffectSaveData() {
+                Name = x.Name,
+                Yield_Delta = x.Yield_Delta.Save_Data,
+                Duration = x.Duration,
+                Current_Duration = x.Current_Duration,
+                Parent_Duration = x.Parent_Duration.HasValue ? x.Parent_Duration.Value : -1,
+                Happiness = x.Happiness,
+                Health = x.Health,
+                Order = x.Order
+            }).ToList();
             return data;
+        }
+    }
+
+    public void Load(WorldMapHexSaveData data)
+    {
+        Change_To(HexPrototypes.Instance.Get_World_Map_Hex(data.Internal_Name));
+        CombatMap_City_Seed = data.CombatMap_City_Seed.ToDictionary(x => x.Key, x => x.Value);
+        Mineral = !string.IsNullOrEmpty(data.Mineral) ? Mineral.Get_Prototype(data.Mineral) : null;
+        Current_LoS = (LoS_Status)data.Current_Los;
+        explored_by = data.Explored_By.Select(x => SaveManager.Get_Player(x)).ToList();
+        prospected_by = data.Prospected_By.Select(x => SaveManager.Get_Player(x)).ToList();
+        owner = SaveManager.Get_Player(data.Owner);
+        Is_Map_Edge_Road_Connection = data.Is_Map_Edge_Road_Connection;
+        if (!string.IsNullOrEmpty(data.Road)) {
+            Road = new Road(this, HexPrototypes.Instance.Get_Road(data.Road));
+        }
+        if(data.Improvement != null && !string.IsNullOrEmpty(data.Improvement.Name)) {
+            if (string.IsNullOrEmpty(data.Improvement.Faction)) {
+                Improvement = new Improvement(this, Improvement.Default.Name == data.Improvement.Name ? Improvement.Default : Improvement.Default_Water);
+            } else {
+                Improvement = new Improvement(this, Factions.All.First(x => x.Name == data.Improvement.Faction).Improvements.First(x => x.Name == data.Improvement.Name));
+            }
+        }
+        foreach(WorldMapHexStatusEffectSaveData effect_data in data.Status_Effects) {
+            HexStatusEffect effect = new HexStatusEffect(effect_data.Name, effect_data.Duration);
+            effect.Load(effect_data);
+            Status_Effects.Apply_Status_Effect(effect, true);
         }
     }
 }

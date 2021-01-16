@@ -30,16 +30,16 @@ public class CooldownManager<T> : IEnumerable<T> where T : ICooldown {
         return data == null ? 0 : data.Current_Cooldown;
     }
 
-    public void Set_Cooldown(T obj)
+    public void Set_Cooldown(T obj, int cooldown = -1)
     {
-        if(obj.Cooldown == 0) {
+        if(obj.Cooldown == 0 && cooldown == -1) {
             return;
         }
         CoodownData<T> existing_data = list.FirstOrDefault(x => x.Object.Id == obj.Id);
         if(existing_data == null) {
-            list.Add(new CoodownData<T>(obj, obj.Cooldown));
+            list.Add(new CoodownData<T>(obj, cooldown == -1 ? obj.Cooldown : cooldown));
         } else {
-            existing_data.Current_Cooldown = obj.Cooldown;
+            existing_data.Current_Cooldown = cooldown == -1 ? obj.Cooldown : cooldown;
         }
     }
 

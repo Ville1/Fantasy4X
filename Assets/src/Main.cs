@@ -285,7 +285,7 @@ public class Main : MonoBehaviour {
             return;
         }
         foreach(Player player in All_Players) {
-            foreach (WorldMapEntity entity in player.WorldMapEntitys) {
+            foreach (WorldMapEntity entity in player.World_Map_Entities) {
                 entity.Flag.Update_Type();
             }
             foreach(City city in player.Cities) {
@@ -316,7 +316,7 @@ public class Main : MonoBehaviour {
         
         foreach (PlayerSaveData data in SaveManager.Instance.Data.Players) {
             Player player = new Player(data.Name, data.AI_Level != -1 ? (AI.Level?)data.AI_Level : (AI.Level?)null, Factions.All.First(x => x.Name == data.Faction));
-            player.Load(data);
+            player.Load_Pre_Map(data);
             Players.Add(player);
         }
 
@@ -331,6 +331,9 @@ public class Main : MonoBehaviour {
 
     public void Finish_Loading()
     {
+        foreach (PlayerSaveData data in SaveManager.Instance.Data.Players) {
+            Players.First(x => x.Id == data.Id).Load_Post_Map(data);
+        }
         World.Instance.Map.Update_LoS();
         foreach (Player player in Players) {
             player.Update_Score();

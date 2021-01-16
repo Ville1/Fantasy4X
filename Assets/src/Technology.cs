@@ -17,7 +17,7 @@ public class Technology {
     public Dictionary<int, Technology> Leads_To { get; set; }
     public List<Technology> Prequisites { get; set; }
 
-    public Technology(string name, int research_required, List<AI.Tag> tags)
+    public Technology(Faction faction, string name, int research_required, List<AI.Tag> tags)
     {
         Name = name;
         Research_Required = research_required;
@@ -26,6 +26,9 @@ public class Technology {
         Prequisites = new List<Technology>();
         Tags = tags;
         EmpireModifiers = new EmpireModifiers();
+        if(faction != null) {
+            faction.Technologies.Add(this);
+        }
     }
 
     /// <summary>

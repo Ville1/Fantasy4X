@@ -54,4 +54,14 @@ public class HexStatusEffect : IStatusEffect {
             return tooltip.ToString();
         }
     }
+
+    public void Load(WorldMapHexStatusEffectSaveData data)
+    {
+        Current_Duration = data.Current_Duration;
+        Parent_Duration = data.Parent_Duration == -1 ? (int?)null : data.Parent_Duration;
+        Yield_Delta = new Yields(data.Yield_Delta);
+        Happiness = data.Happiness;
+        Health = data.Health;
+        Order = data.Order;
+    }
 }

@@ -26,6 +26,7 @@ public class Improvement {
     public float Order_Delta { get; set; }
     public bool Is_Active { get { return Hex != null && Hex.Owner != null; } }
     public bool Requires_Nearby_City { get; private set; }
+    public Faction Faction { get; private set; }
 
     private string name;
     private float happiness;
@@ -38,6 +39,7 @@ public class Improvement {
     {
         Hex = hex;
         Name = prototype.Name;
+        Faction = prototype.Faction;
         Texture = prototype.Texture;
         Inactive_Texture = prototype.Inactive_Texture;
         Base_Yields = new Yields(prototype.Base_Yields);
@@ -81,9 +83,10 @@ public class Improvement {
     /// Prototype constructor
     /// </summary>
     /// <param name="name"></param>
-    public Improvement(string name, string texture, string inactive_texture, Yields base_yields, float happiness, float health, float order, int build_time, int los,
+    public Improvement(Faction faction, string name, string texture, string inactive_texture, Yields base_yields, float happiness, float health, float order, int build_time, int los,
         bool extracts_minerals, List<string> can_be_build_on, Technology requires_technology, ImprovementUpdate update)
     {
+        Faction = faction;
         Name = name;
         Texture = texture;
         Inactive_Texture = inactive_texture;
@@ -229,14 +232,14 @@ public class Improvement {
     public static Improvement Default
     {
         get {
-            return new Improvement("Hut", "hut", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
+            return new Improvement(null, "Hut", "hut", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
         }
     }
 
     public static Improvement Default_Water
     {
         get {
-            return new Improvement("Boat", "boat", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
+            return new Improvement(null, "Boat", "boat", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
         }
     }
 }

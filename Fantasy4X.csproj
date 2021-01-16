@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.6.0f3</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -142,10 +144,14 @@
     <Compile Include="Assets\src\Player.cs" />
     <Compile Include="Assets\src\PrefabManager.cs" />
     <Compile Include="Assets\src\RNG.cs" />
+    <Compile Include="Assets\src\UI\CameraManager.cs" />
     <Compile Include="Assets\src\Saving\CitySaveData.cs" />
+    <Compile Include="Assets\src\Saving\EmpireModifiersSaveData.cs" />
     <Compile Include="Assets\src\Saving\SaveData.cs" />
     <Compile Include="Assets\src\Saving\SaveManager.cs" />
+    <Compile Include="Assets\src\Saving\WorldMapEntitySaveData.cs" />
     <Compile Include="Assets\src\Saving\WorldMapHexSaveData.cs" />
+    <Compile Include="Assets\src\Saving\YieldsSaveData.cs" />
     <Compile Include="Assets\src\SortingLayer.cs" />
     <Compile Include="Assets\src\Spell.cs" />
     <Compile Include="Assets\src\SpriteManager.cs" />
@@ -154,7 +160,6 @@
     <Compile Include="Assets\src\Trainable.cs" />
     <Compile Include="Assets\src\UI\BlessingGUIManager.cs" />
     <Compile Include="Assets\src\UI\BottomGUIManager.cs" />
-    <Compile Include="Assets\src\UI\CameraManager.cs" />
     <Compile Include="Assets\src\UI\CityGUIManager.cs" />
     <Compile Include="Assets\src\UI\CityOrVillageOverviewGUIManager.cs" />
     <Compile Include="Assets\src\UI\CombatLogManager.cs" />

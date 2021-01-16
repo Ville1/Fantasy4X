@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Army : WorldMapEntity {
@@ -607,6 +608,21 @@ public class Army : WorldMapEntity {
                     }
                 }
             }
+        }
+    }
+
+    public ArmySaveData Save_Data
+    {
+        get {
+            ArmySaveData data = new ArmySaveData();
+            data.Hex_X = Hex.Coordinates.X;
+            data.Hex_Y = Hex.Coordinates.Y;
+            data.Units = Units.Select(x => new UnitSaveData() {
+                Name = x.Name,
+                Manpower = x.Manpower,
+                Movement = x.Current_Campaing_Map_Movement
+            }).ToList();
+            return data;
         }
     }
 }

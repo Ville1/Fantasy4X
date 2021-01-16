@@ -51,7 +51,7 @@ public class WildLifeAI : IConfigListener, I_AI
         act_cooldown = 0.0f;
         
         //Spawn armies
-        int max_spawns = Mathf.RoundToInt(World.Instance.Map.Hex_Count * SPAWN_RATE) - Player.WorldMapEntitys.Count + 1;
+        int max_spawns = Mathf.RoundToInt(World.Instance.Map.Hex_Count * SPAWN_RATE) - Player.World_Map_Entities.Count + 1;
         int spawn_count = 0;
         int max_iterations = 5000 + Mathf.RoundToInt(50000 * SPAWN_RATE);
         int iteration = 0;
@@ -117,7 +117,7 @@ public class WildLifeAI : IConfigListener, I_AI
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         //Move units
-        foreach (WorldMapEntity entity in Player.WorldMapEntitys) {
+        foreach (WorldMapEntity entity in Player.World_Map_Entities) {
             if (entity.Wait_Turn) {
                 continue;
             }

@@ -222,32 +222,32 @@ public class BottomGUIManager : MonoBehaviour
 
     public void Next_Unit()
     {
-        if(!Active || Main.Instance.Other_Players_Turn || Main.Instance.Current_Player.WorldMapEntitys.Count == 0) {
+        if(!Active || Main.Instance.Other_Players_Turn || Main.Instance.Current_Player.World_Map_Entities.Count == 0) {
             return;
         }
 
         List<WorldMapEntity> idle_entitys = new List<WorldMapEntity>();
         int start_index = 0;
-        for (int i = 0; i < Main.Instance.Current_Player.WorldMapEntitys.Count; i++) {
-            if (!Main.Instance.Current_Player.WorldMapEntitys[i].Is_Idle) {
+        for (int i = 0; i < Main.Instance.Current_Player.World_Map_Entities.Count; i++) {
+            if (!Main.Instance.Current_Player.World_Map_Entities[i].Is_Idle) {
                 continue;
             }
-            idle_entitys.Add(Main.Instance.Current_Player.WorldMapEntitys[i]);
-            if (Current_Entity != null && Current_Entity.Id == Main.Instance.Current_Player.WorldMapEntitys[i].Id) {
+            idle_entitys.Add(Main.Instance.Current_Player.World_Map_Entities[i]);
+            if (Current_Entity != null && Current_Entity.Id == Main.Instance.Current_Player.World_Map_Entities[i].Id) {
                 start_index = idle_entitys.Count - 1;
             }
         }
 
         if(idle_entitys.Count == 0) {
-            for(int i = 0; i < Main.Instance.Current_Player.WorldMapEntitys.Count; i++) {
-                if(Current_Entity != null && Current_Entity.Id == Main.Instance.Current_Player.WorldMapEntitys[i].Id) {
+            for(int i = 0; i < Main.Instance.Current_Player.World_Map_Entities.Count; i++) {
+                if(Current_Entity != null && Current_Entity.Id == Main.Instance.Current_Player.World_Map_Entities[i].Id) {
                     start_index = i;
                     break;
                 }
             }
         }
 
-        List<WorldMapEntity> list = idle_entitys.Count != 0 ? idle_entitys : Main.Instance.Current_Player.WorldMapEntitys;
+        List<WorldMapEntity> list = idle_entitys.Count != 0 ? idle_entitys : Main.Instance.Current_Player.World_Map_Entities;
 
         int index = start_index;
         int entitys_cheched = 0;
@@ -373,7 +373,7 @@ public class BottomGUIManager : MonoBehaviour
             return true;
         }
         bool has_idle_entitys = false;
-        foreach (WorldMapEntity entity in Main.Instance.Current_Player.WorldMapEntitys) {
+        foreach (WorldMapEntity entity in Main.Instance.Current_Player.World_Map_Entities) {
             if (entity.Is_Idle) {
                 has_idle_entitys = true;
                 break;

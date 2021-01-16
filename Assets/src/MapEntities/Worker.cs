@@ -240,4 +240,28 @@ public class Worker : WorldMapEntity, Trainable
             return tooltip.ToString();
         }
     }
+
+    public WorkerSaveData Save_Data
+    {
+        get {
+            WorkerSaveData data = new WorkerSaveData();
+            data.Name = Name;
+            data.Hex_X = Hex.Coordinates.X;
+            data.Hex_Y = Hex.Coordinates.Y;
+            data.Movement = Current_Movement;
+            data.Improvement_Progress = Improvement_Progress;
+            data.Improvement_Under_Construction = Improvement_Under_Construction == null ? string.Empty : Improvement_Under_Construction.Name;
+            return data;
+        }
+    }
+
+    public void Load(WorkerSaveData data)
+    {
+        Current_Movement = data.Movement;
+        Improvement_Progress = data.Improvement_Progress;
+        Improvement_Under_Construction = string.IsNullOrEmpty(data.Improvement_Under_Construction) ? null : Buildable_Improvements.First(x => x.Name == data.Improvement_Under_Construction);
+        if(Improvement_Under_Construction != null) {
+            Start_Animation(Working_Animation, Working_Animation_FPS);
+        }
+    }
 }

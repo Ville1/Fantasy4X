@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Road {
     public string Type { get; private set; }
+    public string Internal_Name { get; private set; }
     public WorldMapHex Hex { get; private set; }
     public string North_East_Texture { get; private set; }
     public string East_Texture { get; private set; }
@@ -18,13 +19,10 @@ public class Road {
     /// <summary>
     /// Prototype constructor
     /// </summary>
-    /// <param name="type"></param>
-    /// <param name="north_east_texture"></param>
-    /// <param name="east_texture"></param>
-    /// <param name="movement_cost_reduction"></param>
-    public Road(string type, string north_east_texture, string east_texture, float movement_cost_reduction)
+    public Road(string type, string internal_name, string north_east_texture, string east_texture, float movement_cost_reduction)
     {
         Type = type;
+        Internal_Name = internal_name;
         North_East_Texture = north_east_texture;
         East_Texture = east_texture;
         Movement_Cost_Reduction = movement_cost_reduction;
@@ -34,6 +32,7 @@ public class Road {
     {
         Hex = hex;
         Type = prototype.Type;
+        Internal_Name = prototype.Internal_Name;
         North_East_Texture = prototype.North_East_Texture;
         East_Texture = prototype.East_Texture;
         Movement_Cost_Reduction = prototype.Movement_Cost_Reduction;
