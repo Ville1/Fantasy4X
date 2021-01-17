@@ -11,15 +11,16 @@ public class CombatLogManager : MonoBehaviour {
     public static CombatLogManager Instance;
 
     public GameObject Panel;
-    public Text Text;
-    public Button Up_Button;
-    public Button Down_Button;
+    public GameObject Content;
+    public GameObject Row_Prototype;
+    public Scrollbar Scrollbar;
 
     public LogLevel Max_Log_Level { get; set; }
 
-    private List<string> log;
-    private int scroll_position;
-
+    private RowScrollView<long> log_scroll_view;
+    private long current_index;
+    private bool new_log_message;
+    
     /// <summary>
     /// Initializiation
     /// </summary>
@@ -30,11 +31,11 @@ public class CombatLogManager : MonoBehaviour {
             return;
         }
         Instance = this;
-
-        log = new List<string>();
+        
         Panel.SetActive(false);
-        Clear_Log();
         Max_Log_Level = LogLevel.Verbose;
+        log_scroll_view = new RowScrollView<long>("log_scroll_view", Content, Row_Prototype, 15.0f);
+        current_index = 0;
     }
 
     /// <summary>
@@ -42,7 +43,10 @@ public class CombatLogManager : MonoBehaviour {
     /// </summary>
     private void Update()
     {
-
+        if (Scrollbar.value != 0.0f && new_log_message) {
+            Scrollbar.value = 0.0f;
+            new_log_message = false;
+        }
     }
 
     public bool Active
@@ -57,9 +61,8 @@ public class CombatLogManager : MonoBehaviour {
 
     public void Clear_Log()
     {
-        log.Clear();
-        Text.text = "";
-        scroll_position = 0;
+        log_scroll_view.Clear();
+        current_index = 0;
     }
 
     public void Print_Log(string line, LogLevel level = LogLevel.Basic)
@@ -67,36 +70,8 @@ public class CombatLogManager : MonoBehaviour {
         if((int)level > (int)Max_Log_Level) {
             return;
         }
-        log.Add(line);
-        Update_Text();
-    }
-
-    public void Scroll_Up()
-    {
-        scroll_position++;
-        if (log.Count - TEXT_ROWS - 2 - scroll_position < 0) {
-            scroll_position--;
-        }
-        Update_Text();
-    }
-
-    public void Scroll_Down()
-    {
-        scroll_position--;
-        if (scroll_position < 0) {
-            scroll_position = 0;
-        }
-        Update_Text();
-    }
-
-    private void Update_Text()
-    {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < TEXT_ROWS; i++) {
-            if (log.Count > i - scroll_position) {
-                builder.Insert(0, log[log.Count - i - 1 - scroll_position] + Environment.NewLine);
-            }
-        }
-        Text.text = builder.ToString();
+        log_scroll_view.Add(current_index, new List<UIElementData>() { new UIElementData("Text", line) });
+        current_index++;
+        new_log_message = true;
     }
 }

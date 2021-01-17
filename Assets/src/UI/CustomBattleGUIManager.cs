@@ -5,8 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class CustomBattleGUIManager : MonoBehaviour {
-    private static readonly int DEFAULT_CASH = 2500;
-    private static readonly int DEFAULT_PRODUCTION = 5000;
+    private static readonly int DEFAULT_CASH = 1000;
+    private static readonly int DEFAULT_PRODUCTION = 1200;
+    private static readonly int DEFAULT_UNIT_MAX = 20;
 
     public static CustomBattleGUIManager Instance { get; private set; }
 
@@ -17,6 +18,7 @@ public class CustomBattleGUIManager : MonoBehaviour {
     public InputField Production_Input_Field;
     public Image Hex_Image;
     public Dropdown Hex_Dropdown;
+    public InputField Max_Units_Input_Field;
 
     public Text Left_Name_Text;
     public Dropdown Left_Faction_Dropdown;
@@ -26,6 +28,8 @@ public class CustomBattleGUIManager : MonoBehaviour {
     public Text Left_Production_Text;
     public GameObject Left_Unit_Selection_Content;
     public GameObject Left_Unit_Selection_Row_Prototype;
+    public Text Left_Unit_Count_Text;
+    public Text Left_Strenght_Text;
     public GameObject Left_Army_Content;
     public GameObject Left_Army_Row_Prototype;
 
@@ -37,6 +41,8 @@ public class CustomBattleGUIManager : MonoBehaviour {
     public Text Right_Production_Text;
     public GameObject Right_Unit_Selection_Content;
     public GameObject Right_Unit_Selection_Row_Prototype;
+    public Text Right_Unit_Count_Text;
+    public Text Right_Strenght_Text;
     public GameObject Right_Army_Content;
     public GameObject Right_Army_Row_Prototype;
 
@@ -58,6 +64,9 @@ public class CustomBattleGUIManager : MonoBehaviour {
     private List<Unit> left_units;
     private List<Unit> right_units;
     private WorldMapHex placeholder_hex;
+    private int max_units;
+    private Color default_text_color;
+    private List<Faction> factions;
 
     /// <summary>
     /// Initializiation
@@ -78,6 +87,11 @@ public class CustomBattleGUIManager : MonoBehaviour {
         left_army_scroll_view = new RowScrollView<Unit>("left_army_scroll_view", Left_Army_Content, Left_Army_Row_Prototype, 20.0f);
         right_unit_selection_scroll_view = new RowScrollView<Unit>("right_unit_selection_scroll_view", Right_Unit_Selection_Content, Right_Unit_Selection_Row_Prototype, 20.0f);
         right_army_scroll_view = new RowScrollView<Unit>("right_army_scroll_view", Right_Army_Content, Right_Army_Row_Prototype, 20.0f);
+        default_text_color = Left_Cash_Text.color;
+        factions = Factions.All;
+        factions.Add(Factions.Neutral_Cities);
+        factions.Add(Factions.Bandits);
+        factions.Add(Factions.Wild_Life);
     }
 
     /// <summary>
@@ -108,8 +122,8 @@ public class CustomBattleGUIManager : MonoBehaviour {
 
     public void Initialize_GUI()
     {
-        left_player = new Player.NewPlayerData("Player 1", null, Factions.All[0]);
-        right_player = new Player.NewPlayerData("Player 2", AI.Level.Medium, Factions.All[0]);
+        left_player = new Player.NewPlayerData("Player 1", null, factions[0]);
+        right_player = new Player.NewPlayerData("Player 2", AI.Level.Medium, factions[0]);
         left_is_attacker = true;
         available_cash = DEFAULT_CASH;
         available_production = DEFAULT_PRODUCTION;
@@ -120,6 +134,7 @@ public class CustomBattleGUIManager : MonoBehaviour {
         right_production_left = available_production;
         left_units = new List<Unit>();
         right_units = new List<Unit>();
+        max_units = DEFAULT_UNIT_MAX;
         Update_GUI();
     }
 
@@ -147,6 +162,62 @@ public class CustomBattleGUIManager : MonoBehaviour {
         Right_Position_Button.GetComponentInChildren<Text>().text = !left_is_attacker ? "Attacker" : "Defender";
     }
 
+    public void Edit_Cash()
+    {
+        if(!int.TryParse(Cash_Input_Field.text, out available_cash)) {
+            available_cash = DEFAULT_CASH;
+        }
+        Update_GUI();
+    }
+
+    public void Edit_Production()
+    {
+        if (!int.TryParse(Production_Input_Field.text, out available_production)) {
+            available_production = DEFAULT_PRODUCTION;
+        }
+        Update_GUI();
+    }
+
+    public void Edit_Max_Units()
+    {
+        if (!int.TryParse(Max_Units_Input_Field.text, out max_units)) {
+            max_units = DEFAULT_UNIT_MAX;
+        }
+        Update_GUI();
+    }
+
+    public void Select_Hex()
+    {
+        selected_hex = HexPrototypes.Instance.Get_World_Map_Hex(HexPrototypes.Instance.All_Internal_Names[Hex_Dropdown.value]);
+        Update_GUI();
+    }
+
+    public void Select_Left_Faction()
+    {
+        left_player.Faction = factions[Left_Faction_Dropdown.value];
+        left_units.Clear();
+        Update_GUI();
+    }
+
+    public void Select_Right_Faction()
+    {
+        right_player.Faction = factions[Right_Faction_Dropdown.value];
+        right_units.Clear();
+        Update_GUI();
+    }
+
+    public void Select_Left_AI()
+    {
+        left_player.AI = Left_AI_Dropdown.value == 0 ? (AI.Level?)null : (AI.Level)(Left_AI_Dropdown.value - 1);
+        Update_GUI();
+    }
+
+    public void Select_Right_AI()
+    {
+        right_player.AI = Right_AI_Dropdown.value == 0 ? (AI.Level?)null : (AI.Level)(Right_AI_Dropdown.value - 1);
+        Update_GUI();
+    }
+
     private void Update_GUI()
     {
         //Middle
@@ -154,10 +225,11 @@ public class CustomBattleGUIManager : MonoBehaviour {
         Production_Input_Field.text = available_production.ToString();
         Hex_Image.sprite = SpriteManager.Instance.Get(selected_hex.Sprite, SpriteManager.SpriteType.Terrain);
         Helper.Set_Dropdown_Options(Hex_Dropdown, HexPrototypes.Instance.All_Internal_Names.Select(x => HexPrototypes.Instance.Get_World_Map_Hex(x).Terrain).ToList(), selected_hex.Terrain);
+        Max_Units_Input_Field.text = max_units.ToString();
 
         //Left side
         Left_Name_Text.text = left_player.Faction.Name;
-        Helper.Set_Dropdown_Options(Left_Faction_Dropdown, Factions.All.Select(x => x.Name).ToList(), left_player.Faction.Name);
+        Helper.Set_Dropdown_Options(Left_Faction_Dropdown, factions.Select(x => x.Name).ToList(), left_player.Faction.Name);
         Helper.Set_Dropdown_Options(Left_AI_Dropdown, ai_labels, left_player.AI.HasValue ? ai_labels[((int)left_player.AI.Value) + 1] : ai_labels[0]);
         Left_Cash_Text.text = left_cash_left.ToString();
         Left_Production_Text.text = left_production_left.ToString();
@@ -166,13 +238,28 @@ public class CustomBattleGUIManager : MonoBehaviour {
             left_unit_selection_scroll_view.Add(unit, Create_Unit_Row(unit, true, true));
         }
         left_army_scroll_view.Clear();
+        float strenght = 0.0f;
+        int cash_used = 0;
+        int production_used = 0;
+        bool valid_resource_use = true;
         foreach (Unit unit in left_units) {
             left_army_scroll_view.Add(unit, Create_Unit_Row(unit, false, true));
+            strenght += unit.Relative_Strenght;
+            cash_used += unit.Cost;
+            production_used += unit.Production_Required;
         }
+        Left_Unit_Count_Text.text = string.Format("{0} / {1}", left_units.Count, max_units);
+        Left_Unit_Count_Text.color = left_units.Count > max_units ? Color.red : default_text_color;
+        Left_Strenght_Text.text = Helper.Float_To_String(strenght, 0);
+        Left_Cash_Text.text = (available_cash - cash_used).ToString();
+        Left_Cash_Text.color = cash_used > available_cash ? Color.red : default_text_color;
+        Left_Production_Text.text = (available_production - production_used).ToString();
+        Left_Production_Text.color = production_used > available_production ? Color.red : default_text_color;
+        valid_resource_use = !valid_resource_use ? false : (cash_used <= available_cash && production_used <= available_production);
 
         //Right side
         Right_Name_Text.text = right_player.Faction.Name;
-        Helper.Set_Dropdown_Options(Right_Faction_Dropdown, Factions.All.Select(x => x.Name).ToList(), right_player.Faction.Name);
+        Helper.Set_Dropdown_Options(Right_Faction_Dropdown, factions.Select(x => x.Name).ToList(), right_player.Faction.Name);
         Helper.Set_Dropdown_Options(Right_AI_Dropdown, ai_labels, right_player.AI.HasValue ? ai_labels[((int)right_player.AI.Value) + 1] : ai_labels[0]);
         Right_Cash_Text.text = right_cash_left.ToString();
         Right_Production_Text.text = right_production_left.ToString();
@@ -181,12 +268,27 @@ public class CustomBattleGUIManager : MonoBehaviour {
             right_unit_selection_scroll_view.Add(unit, Create_Unit_Row(unit, true, false));
         }
         right_army_scroll_view.Clear();
+        strenght = 0.0f;
+        cash_used = 0;
+        production_used = 0;
+        valid_resource_use = true;
         foreach (Unit unit in right_units) {
             right_army_scroll_view.Add(unit, Create_Unit_Row(unit, false, false));
+            strenght += unit.Relative_Strenght;
+            cash_used += unit.Cost;
+            production_used += unit.Production_Required;
         }
+        Right_Unit_Count_Text.text = string.Format("{0} / {1}", right_units.Count, max_units);
+        Right_Unit_Count_Text.color = right_units.Count > max_units ? Color.red : default_text_color;
+        Right_Strenght_Text.text = Helper.Float_To_String(strenght, 0);
+        Right_Cash_Text.text = (available_cash - cash_used).ToString();
+        Right_Cash_Text.color = cash_used > available_cash ? Color.red : default_text_color;
+        Right_Production_Text.text = (available_production - production_used).ToString();
+        Right_Production_Text.color = production_used > available_production ? Color.red : default_text_color;
+        valid_resource_use = !valid_resource_use ? false : (cash_used <= available_cash && production_used <= available_production);
 
         Update_Positions();
-        Start_Button.interactable = left_units.Count != 0 && right_units.Count != 0;
+        Start_Button.interactable = left_units.Count != 0 && right_units.Count != 0 && valid_resource_use && left_units.Count <= max_units && right_units.Count <= max_units;
     }
     
     private List<UIElementData> Create_Unit_Row(Unit unit, bool selection, bool left)

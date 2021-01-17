@@ -1814,19 +1814,10 @@ public class AI : IConfigListener, I_AI
         //Moving
         Unit closest_enemy = null;
         int closest_distance = -1;
-        foreach(Unit enemy in enemy_army.Units) {
-            //TODO
-            try {
-                if (closest_distance == -1 || (enemy.Hex.Distance(unit.Hex) < closest_distance)) {
-                    closest_enemy = enemy;
-                    closest_distance = enemy.Hex.Distance(unit.Hex);
-                }
-            } catch(Exception e) {
-                CustomLogger.Instance.Error(unit.ToString());
-                CustomLogger.Instance.Error(unit.Hex != null ? unit.Hex.ToString() : "null");
-                CustomLogger.Instance.Error(enemy.ToString());
-                CustomLogger.Instance.Error(enemy.Hex != null ? enemy.Hex.ToString() : "null");
-                throw e;
+        foreach(Unit enemy in enemy_army.Units.Where(x => x.Hex != null).ToList()) {
+            if (closest_distance == -1 || (enemy.Hex.Distance(unit.Hex) < closest_distance)) {
+                closest_enemy = enemy;
+                closest_distance = enemy.Hex.Distance(unit.Hex);
             }
         }
         if (closest_enemy.Hex.Is_Adjancent_To(unit.Hex)) {

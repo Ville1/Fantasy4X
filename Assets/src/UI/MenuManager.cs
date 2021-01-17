@@ -6,6 +6,9 @@ public class MenuManager : MonoBehaviour {
 
     public Button Menu_Button;
 
+    private bool in_combat_position;
+    private Vector3 normal_position;
+
     /// <summary>
     /// Initializiation
     /// </summary>
@@ -16,6 +19,12 @@ public class MenuManager : MonoBehaviour {
             return;
         }
         Instance = this;
+        in_combat_position = false;
+        normal_position = new Vector3(
+            Menu_Button.transform.position.x,
+            Menu_Button.transform.position.y,
+            Menu_Button.transform.position.z
+        );
     }
 
     /// <summary>
@@ -41,6 +50,21 @@ public class MenuManager : MonoBehaviour {
         }
         set {
             Menu_Button.interactable = value;
+        }
+    }
+
+    public bool Combat_Position
+    {
+        get {
+            return in_combat_position;
+        }
+        set {
+            in_combat_position = value;
+            Menu_Button.transform.position = new Vector3(
+                normal_position.x - (in_combat_position ? 450.0f : 0.0f),
+                normal_position.y,
+                normal_position.z
+            );
         }
     }
 

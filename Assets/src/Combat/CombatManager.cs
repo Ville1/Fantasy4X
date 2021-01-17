@@ -204,7 +204,7 @@ public class CombatManager : MonoBehaviour {
             }
         }
         CombatUIManager.Instance.Update_GUI();
-        if(CombatUIManager.Instance.Current_Unit.Hex != null) {
+        if(CombatUIManager.Instance.Current_Unit.Hex != null && Current_Player.AI == null) {
             CameraManager.Instance.Set_Camera_Location(CombatUIManager.Instance.Current_Unit.Hex);
         }
     }

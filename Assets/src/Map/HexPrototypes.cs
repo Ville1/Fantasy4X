@@ -24,7 +24,7 @@ public class HexPrototypes {
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }, default_grassland_seed, null));
         world_map_hex_prototypes.Add(new WorldMapHex("plains", "Plains", "plains", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 25 }, { "trees", 3 } }, null));
-        world_map_hex_prototypes.Add(new WorldMapHex("hill", "Hill", "hills", new Yields(1, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true,
+        world_map_hex_prototypes.Add(new WorldMapHex("hill", "Hill", "hills_2", new Yields(1, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill, WorldMapHex.Tag.Arid }, default_grassland_seed, null));
         world_map_hex_prototypes.Add( new WorldMapHex("hill with a cave", "Hill with a Cave", "cave_hills", new Yields(1, 1, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 3.0f, 1, 1, true,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Underground }, new Dictionary<string, int>() { { "cave", 100 }, { "cave rocks", 50 } }, null));
@@ -62,7 +62,7 @@ public class HexPrototypes {
         world_map_hex_prototypes.Add(new WorldMapHex("village", "Village", "village", new Yields(1, 1, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 25 }, { "trees", 25 }, { "houses", 10 } },
             new Dictionary<string, int>() { { "grass", 65 }, { "scrubs", 20 }, { "trees", 15 }, { "street", 75 }, { "houses", 100 } }));
-        world_map_hex_prototypes.Add(new WorldMapHex("dwarven city", "Dwarven City", "hex_dwarven_city", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 1, false,
+        world_map_hex_prototypes.Add(new WorldMapHex("dwarven city", "Dwarven City", "dwarf_city", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Underground }, new Dictionary<string, int>() { { "cave", 100 }, { "cave rocks", 50 }, { "cave houses", 5 } },
             new Dictionary<string, int>() { { "cave", 50 }, { "cave rocks", 5 }, { "cave street", 200 }, { "cave houses", 250 } }));
 

@@ -79,7 +79,7 @@ public class MasterUIManager : MonoBehaviour {
     public bool Intercept_Keyboard_Input
     {
         get {
-            return ConsoleManager.Instance.Is_Open() || SaveGUIManager.Instance.Active || LoadGUIManager.Instance.Active || ProgressBarManager.Instance.Active;
+            return ConsoleManager.Instance.Is_Open() || SaveGUIManager.Instance.Active || LoadGUIManager.Instance.Active || ProgressBarManager.Instance.Active || CustomBattleGUIManager.Instance.Active;
         }
     }
 
@@ -121,6 +121,7 @@ public class MasterUIManager : MonoBehaviour {
             } else if (!combat_ui && Main.Instance.Other_Players_Turn) {
                 WaitingForPlayerGUIManager.Instance.Active = true;
             }
+            MenuManager.Instance.Combat_Position = combat_ui;
         }
     }
 

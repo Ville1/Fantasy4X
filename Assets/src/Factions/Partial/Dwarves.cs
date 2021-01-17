@@ -344,7 +344,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("armor piercing", 0.25f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("no high shots")
-            }, new List<Unit.Tag>() { Unit.Tag.Blocks_Hex_Working }));
+            }, new List<Unit.Tag>()));
         faction.Units.Add(new Unit("Militia", Unit.UnitType.Infantry, "dwarf_militia", 2.0f, 80, 70, 1.0f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 85.0f, 150.0f,
             new Damage(3.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.5f } }), 0.1f,
             null, 0, 0, null, null,
