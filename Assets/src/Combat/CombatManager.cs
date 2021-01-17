@@ -16,6 +16,7 @@ public class CombatManager : MonoBehaviour {
     public Army Army_2 { get; private set; }
     public bool Retreat_Phase { get; private set; }
     public float Retreat_Move_Cooldown { get; set; }
+    public WorldMapHex Hex { get; private set; }
 
     private float retreat_timer;
     private bool end_retreat_phase;
@@ -89,6 +90,7 @@ public class CombatManager : MonoBehaviour {
         MasterUIManager.Instance.Combat_UI = true;
         Current_Army = army_1;
         Other_Army = army_2;
+        Hex = hex;
         Army_1 = army_1;
         Army_2 = army_2;
         Army_1.Start_Combat();
@@ -104,6 +106,7 @@ public class CombatManager : MonoBehaviour {
         end_retreat_phase = false;
         CombatLogManager.Instance.Clear_Log();
         CombatLogManager.Instance.Print_Log(string.Format("Combat starts: {0} ({1}) vs {2} ({3})", army_1.Owner.Name, army_1.Owner.Faction.Name, army_2.Owner.Name, army_2.Owner.Faction.Name));
+        CombatTopPanelManager.Instance.Update_GUI();
     }
 
     public void End_Combat(bool victory)
@@ -204,6 +207,7 @@ public class CombatManager : MonoBehaviour {
             }
         }
         CombatUIManager.Instance.Update_GUI();
+        CombatTopPanelManager.Instance.Update_GUI();
         if(CombatUIManager.Instance.Current_Unit.Hex != null && Current_Player.AI == null) {
             CameraManager.Instance.Set_Camera_Location(CombatUIManager.Instance.Current_Unit.Hex);
         }

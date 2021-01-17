@@ -21,6 +21,7 @@ public class Unit : Trainable
     private static readonly int on_rout_morale_damage_aoe_radios = 3;
     private static readonly float morale_gained_on_rout_multiplier = 0.5f;
     private static readonly float morale_damage_bonus_on_charge = 0.25f;
+    private static readonly float ROUTED_RELATIVE_STRENGHT = 0.25f;
 
     private static readonly Dictionary<AttackArch, float> ARCH_ATTACK_MULTIPLIERS = new Dictionary<AttackArch, float>() {
         { AttackArch.None, 0.1f },
@@ -487,7 +488,7 @@ public class Unit : Trainable
     public float Current_Relative_Strenght
     {
         get {
-            return relative_strenght * Manpower * ((Stamina_Effect + 1.0f) / 2.0f) * ((Morale_Effect + 1.0f) / 2.0f);
+            return relative_strenght * Manpower * ((Stamina_Effect + 1.0f) / 2.0f) * ((Morale_Effect + 1.0f) / 2.0f) * (Is_Routed ? ROUTED_RELATIVE_STRENGHT : 1.0f);
         }
     }
 
@@ -669,6 +670,7 @@ public class Unit : Trainable
             CombatLogManager.Instance.Print_Log(string.Format("{0} {1} {2} ({3}/{4} dmg dealt, {5}/{6} dmg taken)", Name, Last_Move_This_Turn_Was_Running ? "charge" : "melee attack",
                 target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f), Mathf.RoundToInt(attacker_result.Manpower_Delta * -100.0f),
                 Mathf.RoundToInt(attacker_result.Morale_Delta * -1.0f)));
+            CombatTopPanelManager.Instance.Update_GUI();
         }
 
         return new AttackResult[2] { attacker_result, defender_result };
@@ -961,9 +963,16 @@ public class Unit : Trainable
         }
     }
 
+    public bool Is_Routed
+    {
+        get {
+            return Current_Morale <= 0.0f && Uses_Morale;
+        }
+    }
+
     public bool Retreat()
     {
-        if (Hex == null || Current_Morale > 0.0f || !Uses_Morale) {
+        if (Hex == null || !Is_Routed) {
             return false;
         }
 

@@ -122,6 +122,7 @@ public class MasterUIManager : MonoBehaviour {
                 WaitingForPlayerGUIManager.Instance.Active = true;
             }
             MenuManager.Instance.Combat_Position = combat_ui;
+            CombatTopPanelManager.Instance.Active = value;
         }
     }
 

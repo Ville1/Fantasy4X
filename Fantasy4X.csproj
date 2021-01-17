@@ -162,6 +162,7 @@
     <Compile Include="Assets\src\UI\CityGUIManager.cs" />
     <Compile Include="Assets\src\UI\CityOrVillageOverviewGUIManager.cs" />
     <Compile Include="Assets\src\UI\CombatLogManager.cs" />
+    <Compile Include="Assets\src\UI\CombatTopPanelManager.cs" />
     <Compile Include="Assets\src\UI\CombatUIManager.cs" />
     <Compile Include="Assets\src\UI\ConfirmationDialogManager.cs" />
     <Compile Include="Assets\src\UI\ConsoleManager.cs" />

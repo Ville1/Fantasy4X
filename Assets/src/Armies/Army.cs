@@ -574,6 +574,28 @@ public class Army : WorldMapEntity {
         }
     }
 
+    public float Average_Manpower
+    {
+        get {
+            float total = 0.0f;
+            foreach(Unit unit in Units) {
+                total += unit.Manpower;
+            }
+            return Units.Count != 0 ? total / Units.Count : 0.0f;
+        }
+    }
+
+    public float Average_Morale
+    {
+        get {
+            float total = 0.0f;
+            foreach (Unit unit in Units) {
+                total += unit.Relative_Morale;
+            }
+            return Units.Count != 0 ? total / Units.Count : 0.0f;
+        }
+    }
+
     public override bool Wait_Turn
     {
         get {
