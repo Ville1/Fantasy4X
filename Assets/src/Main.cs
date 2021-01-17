@@ -102,6 +102,30 @@ public class Main : MonoBehaviour {
         CameraManager.Instance.Set_Camera_Location(Current_Player.Capital.Hex);
     }
 
+    public void Start_Custom_Battle(Player.NewPlayerData attacker_data, List<Unit> attacker_units, Player.NewPlayerData defender_data, List<Unit> defender_units, WorldMapHex hex)
+    {
+        Initialize_New_Game();
+        World.Instance.Generate_Placeholder_Map();
+        EffectManager.Instance.Update_Target_Map();
+
+        Player attacker = new Player(attacker_data.Name, attacker_data.AI, attacker_data.Faction);
+        Player defender = new Player(defender_data.Name, defender_data.AI, defender_data.Faction);
+        Players.Add(attacker);
+        Players.Add(defender);
+        Current_Player = attacker;
+        Viewing_Player = attacker;
+
+        Army attacker_army = new Army(World.Instance.Map.Get_Hex_At(World.Instance.Map.Width / 2, World.Instance.Map.Height / 2), attacker.Faction.Army_Prototype, attacker, null);
+        Army defender_army = new Army(World.Instance.Map.Get_Hex_At(World.Instance.Map.Width / 2 + 1, World.Instance.Map.Height / 2), defender.Faction.Army_Prototype, defender, null);
+        foreach(Unit unit in attacker_units) {
+            attacker_army.Add_Unit(unit);
+        }
+        foreach (Unit unit in defender_units) {
+            defender_army.Add_Unit(unit);
+        }
+        CombatManager.Instance.Start_Combat(attacker_army, defender_army, hex);
+    }
+
     private void Initialize_New_Game()
     {
         Game_Is_Running = true;

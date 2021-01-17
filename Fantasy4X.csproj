@@ -165,6 +165,7 @@
     <Compile Include="Assets\src\UI\CombatUIManager.cs" />
     <Compile Include="Assets\src\UI\ConfirmationDialogManager.cs" />
     <Compile Include="Assets\src\UI\ConsoleManager.cs" />
+    <Compile Include="Assets\src\UI\CustomBattleGUIManager.cs" />
     <Compile Include="Assets\src\UI\GameEndedGUIManager.cs" />
     <Compile Include="Assets\src\UI\HexPanelManager.cs" />
     <Compile Include="Assets\src\UI\KeyboardManager.cs" />

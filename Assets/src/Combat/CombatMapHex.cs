@@ -65,7 +65,7 @@ public class CombatMapHex : Hex {
         }
         set {
             hidden = value;
-            SpriteRenderer.sprite = SpriteManager.Instance.Get(hidden ? "hex_clouds" : Texture, SpriteManager.SpriteType.Terrain);
+            SpriteRenderer.sprite = SpriteManager.Instance.Get(hidden ? "clouds" : Texture, SpriteManager.SpriteType.Terrain);
             if(Unit != null) {
                 Unit.GameObject.SetActive(!hidden);
             }

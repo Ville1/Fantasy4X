@@ -118,6 +118,13 @@ public class HexPrototypes {
             Select(x => x.Terrain).ToList();
     }
 
+    public List<string> All_Internal_Names
+    {
+        get {
+            return world_map_hex_prototypes.Select(x => x.Internal_Name).ToList();
+        }
+    }
+
     /// <summary>
     /// Except haunted forest
     /// </summary>

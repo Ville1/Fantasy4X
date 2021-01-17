@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
@@ -267,5 +268,11 @@ public class Helper {
         d *= multiplier;
         int rounded = (int)Math.Round(d);
         return (decimal)rounded / multiplier;
+    }
+
+    public static void Set_Dropdown_Options(Dropdown dropdown, List<string> options, string selected = null)
+    {
+        dropdown.options = options.Select(x => new Dropdown.OptionData(x)).ToList();
+        dropdown.value = options.Contains(selected) ? options.IndexOf(selected) : 0;
     }
 }

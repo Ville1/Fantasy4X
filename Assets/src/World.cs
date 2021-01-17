@@ -3,7 +3,7 @@
 public class World : MonoBehaviour
 {
     public enum Direction { North, North_East, East, South_East, South, South_West, West, North_West }
-    public enum GameState { Normal, Saving, Loading }
+    public enum GameState { Menu, Normal, Saving, Loading }
 
     public static World Instance { get; private set; }
     public Map Map { get; private set; }
@@ -22,7 +22,7 @@ public class World : MonoBehaviour
             return;
         }
         Instance = this;
-        State = GameState.Normal;
+        State = GameState.Menu;
     }
 
     /// <summary>
@@ -51,6 +51,16 @@ public class World : MonoBehaviour
             Map.Delete();
         }
         Map = new Map(width, height, 0.35f);
+        State = GameState.Normal;
+    }
+
+    public void Generate_Placeholder_Map()
+    {
+        if (Map != null) {
+            Map.Delete();
+        }
+        State = GameState.Normal;
+        Map = new Map(3, 3, 0.35f);
     }
 
     public void Start_Saving()

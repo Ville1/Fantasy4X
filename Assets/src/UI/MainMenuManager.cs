@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class MainMenuManager : MonoBehaviour {
     public static MainMenuManager Instance { get; private set; }
 
     public GameObject Panel;
+    public Button Custom_Battle_Button;
 
     /// <summary>
     /// Initializiation
@@ -35,6 +37,7 @@ public class MainMenuManager : MonoBehaviour {
             }
             if (value) {
                 MasterUIManager.Instance.Close_All();
+                Custom_Battle_Button.interactable = World.Instance.State == World.GameState.Menu;
             }
             Panel.SetActive(value);
         }
@@ -68,5 +71,16 @@ public class MainMenuManager : MonoBehaviour {
     {
         LoadGUIManager.Instance.Active = true;
         Active = false;
+    }
+
+    public void Custom_Battle_Button_On_Click()
+    {
+        CustomBattleGUIManager.Instance.Active = true;
+        Active = false;
+    }
+
+    public void Options_Button_On_Click()
+    {
+        MessageManager.Instance.Show_Message("Not implemented");
     }
 }
