@@ -182,7 +182,7 @@ public class BottomGUIManager : MonoBehaviour
                 }));
                 button.onClick = on_click_event;
 
-                TooltipManager.Instance.Register_Tooltip(button.gameObject, army.Units[i].Simple_Tooltip, gameObject);
+                TooltipManager.Instance.Register_Tooltip(button.gameObject, army.Units[i].Tooltip, gameObject);
 
                 units.Add(go);
             }

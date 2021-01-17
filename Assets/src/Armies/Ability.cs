@@ -96,7 +96,7 @@ public class Ability {
         /// <summary>
         /// TODO: Does not work with ranged attacks
         /// </summary>
-        public Dictionary<Unit.DamageType, float> New_Attack_Types { get; set; }
+        public Dictionary<Damage.Type, float> New_Attack_Types { get; set; }
     }
 
     public class CityEffects

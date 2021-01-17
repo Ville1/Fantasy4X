@@ -372,7 +372,7 @@ public class AbilityPrototypes {
             On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
                     Attack_Multiplier = attacker.Last_Move_This_Turn_Was_Running ? ability.Potency : 0.0f,
-                    New_Attack_Types = attacker.Last_Move_This_Turn_Was_Running ? new Dictionary<Unit.DamageType, float>() { { Unit.DamageType.Thrust, 0.90f }, { Unit.DamageType.Impact, 0.10f } } : null
+                    New_Attack_Types = attacker.Last_Move_This_Turn_Was_Running ? new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.90f }, { Damage.Type.Impact, 0.10f } } : null
                 };
             },
             Get_Relative_Strength_Multiplier_Bonus = delegate (Ability ability) {

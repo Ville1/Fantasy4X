@@ -41,9 +41,7 @@ public class Unit : Trainable
     private static readonly float ELEVATION_DIFFERENCE_RANGE_MULTIPLIER = 0.1f;
 
     private static int current_id = 0;
-
-    public enum DamageType { Slash, Thrust, Impact }
-    public enum DamageProperty { Magical, Psionic }
+    
     public enum UnitType { Undefined, Infantry, Cavalry }
     public enum ArmorType { Unarmoured, Light, Medium, Heavy }
     public enum AttackArch { None, Low, High }
@@ -87,14 +85,10 @@ public class Unit : Trainable
     public float Max_Morale { get; private set; }
     public float Current_Stamina { get; private set; }
     public float Max_Stamina { get; private set; }
-    public float Melee_Attack { get; private set; }
+    public Damage Melee_Attack { get; private set; }
     public float Charge { get; private set; }
     public float Run_Stamina_Cost { get; private set; }
-    public Dictionary<DamageType, float> Melee_Attack_Types { get; private set; }
-    public Dictionary<DamageProperty, float> Melee_Attack_Properties { get; private set; }//TODO: Unused?
-    public float Ranged_Attack { get; private set; }
-    public Dictionary<DamageType, float> Ranged_Attack_Types { get; private set; }
-    public Dictionary<DamageProperty, float> Ranged_Attack_Properties { get; private set; }
+    public Damage Ranged_Attack { get; private set; }
     public List<string> Ranged_Attack_Animation { get; private set; }
     public string Ranged_Attack_Effect_Name { get; private set; }
     public int Range { get; private set; }
@@ -102,7 +96,7 @@ public class Unit : Trainable
     public int Max_Ammo { get; private set; }
     public float Melee_Defence { get; private set; }
     public float Ranged_Defence { get; private set; }
-    public Dictionary<DamageType, float> Resistances { get; private set; }
+    public Dictionary<Damage.Type, float> Resistances { get; private set; }
     public float Morale_Value { get; private set; }
     public float Discipline { get; private set; }
     public List<Tag> Tags { get; private set; }
@@ -154,13 +148,9 @@ public class Unit : Trainable
         Current_Morale = Max_Morale;
         Max_Stamina = prototype.Max_Stamina;
         Current_Stamina = Max_Stamina;
-        Melee_Attack = prototype.Melee_Attack;
+        Melee_Attack = prototype.Melee_Attack.Clone;
         Charge = prototype.Charge;
-        Melee_Attack_Types = Helper.Copy_Dictionary(prototype.Melee_Attack_Types);
-        Melee_Attack_Properties = Helper.Copy_Dictionary(prototype.Melee_Attack_Properties);
-        Ranged_Attack = prototype.Ranged_Attack;
-        Ranged_Attack_Types = Helper.Copy_Dictionary(prototype.Ranged_Attack_Types);
-        Ranged_Attack_Properties = Helper.Copy_Dictionary(prototype.Ranged_Attack_Properties);
+        Ranged_Attack = prototype.Ranged_Attack == null ? null : prototype.Ranged_Attack.Clone;
         Ranged_Attack_Effect_Name = prototype.Ranged_Attack_Effect_Name;
         Ranged_Attack_Animation = prototype.Ranged_Attack_Animation != null ? Helper.Copy_List(prototype.Ranged_Attack_Animation) : null;
         Range = prototype.Range;
@@ -181,36 +171,10 @@ public class Unit : Trainable
     /// <summary>
     /// Prototype constructor
     /// </summary>
-    /// <param name="name"></param>
-    /// <param name="type"></param>
-    /// <param name="texture"></param>
-    /// <param name="campaing_map_movement"></param>
-    /// <param name="production_required"></param>
-    /// <param name="cost"></param>
-    /// <param name="upkeep"></param>
-    /// <param name="los"></param>
-    /// <param name="technology_required"></param>
-    /// <param name="buildings_required"></param>
-    /// <param name="movement"></param>
-    /// <param name="can_run"></param>
-    /// <param name="morale"></param>
-    /// <param name="stamina"></param>
-    /// <param name="melee_attack"></param>
-    /// <param name="melee_attack_types"></param>
-    /// <param name="charge"></param>
-    /// <param name="ranged_attack"></param>
-    /// <param name="ranged_attack_types"></param>
-    /// <param name="range"></param>
-    /// <param name="ammo"></param>
-    /// <param name="melee_defence"></param>
-    /// <param name="ranged_defence"></param>
-    /// <param name="resistances"></param>
-    /// <param name="morale_value"></param>
-    /// <param name="discipline"></param>
     public Unit(string name, UnitType type, string texture, float campaing_map_movement, int production_required, int cost, float upkeep, float mana_upkeep, int los, Technology technology_required,
-        List<Building> buildings_required, float movement, bool can_run, float run_stamina_cost, float morale, float stamina, float melee_attack, Dictionary<DamageType, float> melee_attack_types,
-        float charge, float ranged_attack, Dictionary<DamageType, float> ranged_attack_types, int range, int ammo, string ranged_attack_effect_name, List<string> ranged_attack_animation,
-        float melee_defence, float ranged_defence, Dictionary<DamageType, float> resistances, float morale_value, float discipline, ArmorType armor, List<Ability> abilities, List<Tag> tags)
+        List<Building> buildings_required, float movement, bool can_run, float run_stamina_cost, float morale, float stamina, Damage melee_attack,
+        float charge, Damage ranged_attack, int range, int ammo, string ranged_attack_effect_name, List<string> ranged_attack_animation,
+        float melee_defence, float ranged_defence, Dictionary<Damage.Type, float> resistances, float morale_value, float discipline, ArmorType armor, List<Ability> abilities, List<Tag> tags)
     {
         Name = name;
         Type = type;
@@ -231,11 +195,7 @@ public class Unit : Trainable
         Max_Stamina = stamina;
         Melee_Attack = melee_attack;
         Charge = charge;
-        Melee_Attack_Types = melee_attack_types;
-        Melee_Attack_Properties = new Dictionary<DamageProperty, float>();
         Ranged_Attack = ranged_attack;
-        Ranged_Attack_Types = ranged_attack_types;
-        Ranged_Attack_Properties = new Dictionary<DamageProperty, float>();
         Ranged_Attack_Effect_Name = ranged_attack_effect_name;
         Range = range;
         Ranged_Attack_Animation = ranged_attack_animation;
@@ -653,7 +613,7 @@ public class Unit : Trainable
     public bool Can_Ranged_Attack
     {
         get {
-            return Range > 0.0f && Ranged_Attack > 0.0f && (Current_Ammo > 0 || Max_Ammo <= 0) && !Hex.Is_Adjancent_To_Enemy(Owner);
+            return Range > 0.0f && Ranged_Attack != null && Ranged_Attack.Total > 0.0f && (Hex == null || ((Current_Ammo > 0 || Max_Ammo <= 0) && !Hex.Is_Adjancent_To_Enemy(Owner)));
         }
     }
 
@@ -716,14 +676,14 @@ public class Unit : Trainable
 
     private float Calculate_Standard_Melee_Damage(Unit target)
     {
-        float attack = Melee_Attack;
+        float attack = Melee_Attack.Total;
         float defence = target.Melee_Defence;
         return (((attack + damage_balancer) / (defence + damage_balancer)) * manpower_damage) * Manpower;
     }
 
     private float Calculate_Melee_Damage(Unit target, AttackResult result)
     {
-        float attack = Melee_Attack * Morale_Effect * Stamina_Effect;
+        float attack = Melee_Attack.Total * Morale_Effect * Stamina_Effect;
         float ability_attack_delta = 0.0f;
         float ability_attack_multiplier = 1.0f;
         float defence = target.Melee_Defence * target.Morale_Effect * target.Stamina_Effect;
@@ -737,7 +697,7 @@ public class Unit : Trainable
 
         //Charge TODO: double loops
         float ability_charge_multiplier = 1.0f;
-        Dictionary<DamageType, float> melee_attack_types = Melee_Attack_Types;
+        Dictionary<Damage.Type, float> melee_attack_types = Melee_Attack.Type_Weights;
         foreach (Ability ability in Abilities) {
             if (ability.On_Calculate_Melee_Damage_As_Attacker == null) {
                 continue;
@@ -763,7 +723,7 @@ public class Unit : Trainable
         //Base defence
         float resistance_multiplier = 0.0f;
         float total = 0.0f;
-        foreach(KeyValuePair<DamageType, float> damage in melee_attack_types) {
+        foreach(KeyValuePair<Damage.Type, float> damage in melee_attack_types) {
             float resistance_to_type = target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f;
             resistance_multiplier += damage.Value * resistance_to_type;
             total += damage.Value;
@@ -805,7 +765,7 @@ public class Unit : Trainable
         defence *= Mathf.Max(ability_defence_multiplier, 0.05f);
 
         result.Final_Attack = attack;
-        result.Base_Attack = Melee_Attack;
+        result.Base_Attack = Melee_Attack.Total;
         result.Final_Defence = defence;
         result.Base_Defence = target.Melee_Defence;
 
@@ -866,7 +826,7 @@ public class Unit : Trainable
 
     private float Calculate_Standard_Ranged_Damage(Unit target)
     {
-        float attack = Ranged_Attack;
+        float attack = Ranged_Attack.Total;
         float defence = target.Ranged_Defence;
         return (((attack + damage_balancer) / (defence + damage_balancer)) * manpower_damage) * Manpower;
     }
@@ -874,7 +834,7 @@ public class Unit : Trainable
     private float Calculate_Ranged_Damage(Unit target, AttackResult result)
     {
         float morale_effect_attack = (Morale_Effect + 1.0f) / 2.0f;
-        float attack = Ranged_Attack * morale_effect_attack * Stamina_Effect;
+        float attack = Ranged_Attack.Total * morale_effect_attack * Stamina_Effect;
         float ability_attack_delta = 0.0f;
         float ability_attack_multiplier = 1.0f;
         float morale_effect_defence = (target.Morale_Effect + 1.0f) / 2.0f;
@@ -895,7 +855,7 @@ public class Unit : Trainable
         result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = ARCH_ATTACK_MULTIPLIERS[arch], Description = ARCH_DETAIL_DESCRIPTIONS[arch] });
 
         float total = 0.0f;
-        foreach (KeyValuePair<DamageType, float> damage in Ranged_Attack_Types) {
+        foreach (KeyValuePair<Damage.Type, float> damage in Ranged_Attack.Type_Weights) {
             float resistance_to_type = target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f;
             resistance_multiplier += damage.Value * resistance_to_type;
             total += damage.Value;
@@ -937,7 +897,7 @@ public class Unit : Trainable
         defence *= Mathf.Max(ability_defence_multiplier, 0.05f);
 
         result.Final_Attack = attack;
-        result.Base_Attack = Ranged_Attack;
+        result.Base_Attack = Ranged_Attack.Total;
         result.Final_Defence = defence;
         result.Base_Defence = target.Ranged_Defence;
 
@@ -1069,8 +1029,8 @@ public class Unit : Trainable
     {
         float morale = Uses_Morale ? Math.Max(Max_Morale, 50.0f) : 200.0f;
         float stamina = Uses_Stamina ? Math.Max(Max_Stamina, 50.0f) : 200.0f;
-        relative_strenght = ((morale - 50.0f) / 5.0f) + ((stamina - 50.0f) / 7.5f) + ((Melee_Attack * 1.25f) * (1.0f + (Charge * 0.1f))) + (Melee_Defence * 1.25f) +
-            (Ranged_Attack * Range * 0.25f) + (Ranged_Defence * 1.25f) + (Max_Movement * 2.0f);
+        relative_strenght = ((morale - 50.0f) / 5.0f) + ((stamina - 50.0f) / 7.5f) + ((Melee_Attack.Total * 1.25f) * (1.0f + (Charge * 0.1f))) + (Melee_Defence * 1.25f) +
+            (Ranged_Attack != null ? (Ranged_Attack.Total * Range * 0.25f) : 0.0f) + (Ranged_Defence * 1.25f) + (Max_Movement * 2.0f);
         float multiplier = 1.0f;
         foreach(Ability ability in Abilities) {
             if(ability.Get_Relative_Strength_Multiplier_Bonus != null) {
@@ -1082,75 +1042,8 @@ public class Unit : Trainable
         }
         relative_strenght *= multiplier;
     }
-
+    
     public string Tooltip
-    {
-        get {
-            StringBuilder tooltip = new StringBuilder();
-            tooltip.Append(Name);
-            if(Type != UnitType.Undefined) {
-                tooltip.Append(Environment.NewLine).Append("Type: ").Append(Type.ToString());
-            }
-            if(Tags.Count != 0) {
-                tooltip.Append(Environment.NewLine).Append("Tags: ");
-                foreach(Tag t in Tags) {
-                    tooltip.Append(Helper.Snake_Case_To_UI(t.ToString())).Append(", ");
-                }
-                tooltip.Remove(tooltip.Length - 2, 2);
-            }
-            tooltip.Append(Environment.NewLine).Append("Upkeep: ").Append(Math.Round(Upkeep, 2).ToString("0.00"));
-            tooltip.Append(Environment.NewLine).Append("Relative Strenght: ").Append(Mathf.RoundToInt(Relative_Strenght));
-            tooltip.Append(Environment.NewLine).Append("Morale: ").Append(Mathf.RoundToInt(Max_Morale));
-            tooltip.Append(Environment.NewLine).Append("Stamina: ").Append(Mathf.RoundToInt(Max_Stamina));
-            tooltip.Append(Environment.NewLine).Append("Movement: ").Append(Mathf.RoundToInt(Max_Movement)).Append(" / ").Append(Mathf.RoundToInt(Max_Campaing_Map_Movement));
-            tooltip.Append(Environment.NewLine).Append("LoS: ").Append(LoS);
-            tooltip.Append(Environment.NewLine).Append("Melee Attack: ").Append(Mathf.RoundToInt(Melee_Attack)).Append(" (");
-            int i = 0;
-            foreach(KeyValuePair<DamageType, float> pair in Melee_Attack_Types) {
-                tooltip.Append(pair.Key.ToString()).Append(": ").Append(Mathf.RoundToInt(pair.Value * 100.0f)).Append("%");
-                if(i != Melee_Attack_Types.Count - 1) {
-                    tooltip.Append(", ");
-                }
-                i++;
-            }
-            tooltip.Append(")");
-            tooltip.Append(Environment.NewLine).Append("Charge Bonus: ").Append(Mathf.RoundToInt(Charge * 100.0f)).Append("%");
-            if (Ranged_Attack > 0.0f) {
-                tooltip.Append(Environment.NewLine).Append("Ranged Attack: ").Append(Mathf.RoundToInt(Ranged_Attack)).Append(" (");
-                i = 0;
-                foreach (KeyValuePair<DamageType, float> pair in Ranged_Attack_Types) {
-                    tooltip.Append(pair.Key.ToString()).Append(": ").Append(Mathf.RoundToInt(pair.Value * 100.0f)).Append("%");
-                    if (i != Ranged_Attack_Types.Count - 1) {
-                        tooltip.Append(", ");
-                    }
-                    i++;
-                }
-                tooltip.Append(")");
-                tooltip.Append(Environment.NewLine).Append("Range: ").Append(Range);
-                tooltip.Append(Environment.NewLine).Append("Ammo: ").Append(Max_Ammo);
-            }
-            tooltip.Append(Environment.NewLine).Append("Melee Defence: ").Append(Mathf.RoundToInt(Melee_Defence));
-            tooltip.Append(Environment.NewLine).Append("Ranged Defence: ").Append(Mathf.RoundToInt(Ranged_Defence));
-            tooltip.Append(Environment.NewLine).Append("Discipline: ").Append(Mathf.RoundToInt(Discipline));
-            if(Abilities.Count != 0) {
-                tooltip.Append(Environment.NewLine).Append("Abilities:");
-                foreach(Ability ability in Abilities) {
-                    tooltip.Append(Environment.NewLine).Append("- ").Append(ability.Name);
-                    if (ability.Uses_Potency) {
-                        tooltip.Append(" ");
-                        if (ability.Potency_As_Percent) {
-                            tooltip.Append(Mathf.RoundToInt(100.0f * ability.Potency)).Append("%");
-                        } else {
-                            tooltip.Append(Math.Round(ability.Potency, 1));
-                        }
-                    }
-                }
-            }
-            return tooltip.ToString();
-        }
-    }
-
-    public string Simple_Tooltip
     {
         get {
             StringBuilder tooltip = new StringBuilder();
@@ -1158,9 +1051,9 @@ public class Unit : Trainable
             if (Type != UnitType.Undefined) {
                 tooltip.Append(" (").Append(Type.ToString()).Append(")");
             }
-            tooltip.Append(Environment.NewLine).Append("Melee Attack: ").Append(Mathf.RoundToInt(Melee_Attack));
-            if (Ranged_Attack > 0.0f) {
-                tooltip.Append(Environment.NewLine).Append("Ranged Attack: ").Append(Mathf.RoundToInt(Ranged_Attack)).Append(" (");
+            tooltip.Append(Environment.NewLine).Append("Melee Attack: ").Append(Mathf.RoundToInt(Melee_Attack.Total));
+            if (Can_Ranged_Attack) {
+                tooltip.Append(Environment.NewLine).Append("Ranged Attack: ").Append(Mathf.RoundToInt(Ranged_Attack.Total)).Append(" (");
                 tooltip.Append(Environment.NewLine).Append("Range: ").Append(Range);
             }
             tooltip.Append(Environment.NewLine).Append("Melee Defence: ").Append(Mathf.RoundToInt(Melee_Defence));

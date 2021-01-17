@@ -541,6 +541,7 @@ public class Player {
                 unit.Load(unit_data);
                 army.Add_Unit(unit);
             }
+            army.Stored_Path = army_data.Path == null || army_data.Path.Count == 0 ? null : army_data.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
             World_Map_Entities.Add(army);
         }
         foreach(WorkerSaveData worker_data in data.Workers) {

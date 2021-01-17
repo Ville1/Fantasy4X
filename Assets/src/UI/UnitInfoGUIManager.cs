@@ -50,7 +50,7 @@ public class UnitInfoGUIManager : MonoBehaviour
 
     private Color default_text_color;
     private float bottom_position_y;
-    private RowScrollView<Unit.DamageType> resistances_scroll_view;
+    private RowScrollView<Damage.Type> resistances_scroll_view;
     private RowScrollView<Ability> abilities_scroll_view;
     private float panel_position_x;
 
@@ -67,7 +67,7 @@ public class UnitInfoGUIManager : MonoBehaviour
         Panel.SetActive(false);
         default_text_color = Relative_Strenght_Text.color;
         bottom_position_y = Bottom_Container.gameObject.transform.position.y;
-        resistances_scroll_view = new RowScrollView<Unit.DamageType>("resistances_scroll_view", Resistances_Content, Resistances_Row_Prototype, 15.0f);
+        resistances_scroll_view = new RowScrollView<Damage.Type>("resistances_scroll_view", Resistances_Content, Resistances_Row_Prototype, 15.0f);
         abilities_scroll_view = new RowScrollView<Ability>("abilities_scroll_view", Abilities_Content, Abilities_Row_Prototype, 15.0f);
         panel_position_x = Panel.gameObject.transform.position.x;
     }
@@ -144,7 +144,7 @@ public class UnitInfoGUIManager : MonoBehaviour
                 Armor_Image.gameObject.SetActive(false);
                 break;
         }
-        Type_Text.text = string.Format("{0} {1} {2}", Helper.Snake_Case_To_UI(Unit.Armor.ToString(), true), Unit.Ranged_Attack > 0.0f ? "ranged" : "melee", Unit.Type == Unit.UnitType.Undefined ? "unit" : Helper.Snake_Case_To_UI(Unit.Type.ToString()));
+        Type_Text.text = string.Format("{0} {1} {2}", Helper.Snake_Case_To_UI(Unit.Armor.ToString(), true), Unit.Can_Ranged_Attack ? "ranged" : "melee", Unit.Type == Unit.UnitType.Undefined ? "unit" : Helper.Snake_Case_To_UI(Unit.Type.ToString()));
         Tags_Text.text = string.Join(", ", Unit.Tags.Select(x => Helper.Snake_Case_To_UI(x.ToString())).ToArray());
         Relative_Strenght_Text.text = Helper.Float_To_String(Is_Preview ? Unit.Relative_Strenght : Unit.Current_Relative_Strenght, 0);
         Manpower_Image.gameObject.SetActive(!Is_Preview);
@@ -155,27 +155,27 @@ public class UnitInfoGUIManager : MonoBehaviour
         Cost_Text.text = string.Format("{0} ({1}/turn)", Unit.Cost, Helper.Float_To_String(Unit.Upkeep, 2));
         Production_Text.text = Unit.Production_Required.ToString();
 
-        Melee_Attack_Text.text = Helper.Float_To_String(Unit.Melee_Attack, 0);
+        Melee_Attack_Text.text = Helper.Float_To_String(Unit.Melee_Attack.Total, 0);
         Charge_Bonus_Text.text = string.Format("{0}%", Helper.Float_To_String(Unit.Charge * 100.0f, 0, true));
-        Melee_Damage_Types_Text.text = string.Join(", ", Unit.Melee_Attack_Types.OrderByDescending(x => x.Value).Select(x => string.Format("{0} {1}%", Helper.Snake_Case_To_UI(x.Key.ToString()), Helper.Float_To_String(x.Value * 100.0f, 0))).ToArray());
+        Melee_Damage_Types_Text.text = string.Join(", ", Unit.Melee_Attack.Type_Weights.OrderByDescending(x => x.Value).Select(x => string.Format("{0} {1}%", Helper.Snake_Case_To_UI(x.Key.ToString()), Helper.Float_To_String(x.Value * 100.0f, 0))).ToArray());
 
-        Ranged_Attack_Container.SetActive(Unit.Ranged_Attack > 0.0f);
-        if(Unit.Ranged_Attack > 0.0f) {
-            Ranged_Attack_Text.text = Helper.Float_To_String(Unit.Ranged_Attack, 0);
+        Ranged_Attack_Container.SetActive(Unit.Can_Ranged_Attack);
+        if(Unit.Can_Ranged_Attack) {
+            Ranged_Attack_Text.text = Helper.Float_To_String(Unit.Ranged_Attack.Total, 0);
             Range_Text.text = Unit.Range.ToString();
             Ammo_Text.text = Unit.Max_Ammo.ToString();
-            Ranged_Damage_Types_Text.text = string.Join(", ", Unit.Ranged_Attack_Types.OrderByDescending(x => x.Value).Select(x => string.Format("{0} {1}%", Helper.Snake_Case_To_UI(x.Key.ToString()), Helper.Float_To_String(x.Value * 100.0f, 0))).ToArray());
+            Ranged_Damage_Types_Text.text = string.Join(", ", Unit.Ranged_Attack.Type_Weights.OrderByDescending(x => x.Value).Select(x => string.Format("{0} {1}%", Helper.Snake_Case_To_UI(x.Key.ToString()), Helper.Float_To_String(x.Value * 100.0f, 0))).ToArray());
         }
         Bottom_Container.gameObject.transform.position = new Vector3(
             Bottom_Container.gameObject.transform.position.x,
-            bottom_position_y + (Unit.Ranged_Attack > 0.0f ? 0.0f : 25.0f),
+            bottom_position_y + (Unit.Can_Ranged_Attack ? 0.0f : 25.0f),
             Bottom_Container.gameObject.transform.position.z
         );
 
         Melee_Defence_Text.text = Helper.Float_To_String(Unit.Melee_Defence, 0);
         Ranged_Defence_Text.text = Helper.Float_To_String(Unit.Ranged_Defence, 0);
         resistances_scroll_view.Clear();
-        foreach(KeyValuePair<Unit.DamageType, float> pair in Unit.Resistances.OrderBy(x => (int)x.Key)) {
+        foreach(KeyValuePair<Damage.Type, float> pair in Unit.Resistances.OrderBy(x => (int)x.Key)) {
             resistances_scroll_view.Add(pair.Key, new List<UIElementData>() {
                 new UIElementData("TypeText", Helper.Snake_Case_To_UI(pair.Key.ToString(), true)),
                 new UIElementData("ValueText", string.Format("{0}%", Helper.Float_To_String(pair.Value * 100.0f, 0)), pair.Value < 1.0f ? Color.red : (pair.Value > 1.0f ? Color.blue : default_text_color))

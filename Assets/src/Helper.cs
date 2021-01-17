@@ -119,6 +119,15 @@ public class Helper {
         return copy;
     }
 
+    public static Dictionary<T, decimal> Copy_Dictionary<T>(Dictionary<T, decimal> dictionary)
+    {
+        Dictionary<T, decimal> copy = new Dictionary<T, decimal>();
+        foreach (KeyValuePair<T, decimal> pair in dictionary) {
+            copy.Add(pair.Key, pair.Value);
+        }
+        return copy;
+    }
+
     public static Dictionary<T, float> Add_Dictionary<T>(Dictionary<T, float> dictionary_1, Dictionary<T, float> dictionary_2)
     {
         Dictionary<T, float> dictionary_3 = new Dictionary<T, float>();
@@ -250,5 +259,13 @@ public class Helper {
             delegate_p();
         });
         button_game_object.GetComponentInChildren<Button>().onClick = on_click;
+    }
+
+    public static decimal Round(decimal d, int decimals)
+    {
+        int multiplier = (int)Mathf.Pow(10, decimals);
+        d *= multiplier;
+        int rounded = (int)Math.Round(d);
+        return (decimal)rounded / multiplier;
     }
 }
