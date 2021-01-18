@@ -17,6 +17,7 @@ public class CombatManager : MonoBehaviour {
     public bool Retreat_Phase { get; private set; }
     public float Retreat_Move_Cooldown { get; set; }
     public WorldMapHex Hex { get; private set; }
+    public int Turn { get; private set; }
 
     private float retreat_timer;
     private bool end_retreat_phase;
@@ -32,7 +33,7 @@ public class CombatManager : MonoBehaviour {
             return;
         }
         Instance = this;
-        Retreat_Move_Cooldown = 0.5f;
+        Retreat_Move_Cooldown = 0.10f;
     }
 
     /// <summary>
@@ -104,9 +105,11 @@ public class CombatManager : MonoBehaviour {
         Retreat_Phase = false;
         retreat_timer = 0.0f;
         end_retreat_phase = false;
+        Turn = 0;
         CombatLogManager.Instance.Clear_Log();
         CombatLogManager.Instance.Print_Log(string.Format("Combat starts: {0} ({1}) vs {2} ({3})", army_1.Owner.Name, army_1.Owner.Faction.Name, army_2.Owner.Name, army_2.Owner.Faction.Name));
         CombatTopPanelManager.Instance.Update_GUI();
+        CombatUIManager.Instance.Update_GUI();
     }
 
     public void End_Combat(bool victory)
@@ -150,6 +153,7 @@ public class CombatManager : MonoBehaviour {
             }
         } else {
             Current_Army.End_Combat_Turn();
+            Turn++;
         }
 
         if(!Retreat_Phase && !end_retreat_phase && !Deployment_Mode) {

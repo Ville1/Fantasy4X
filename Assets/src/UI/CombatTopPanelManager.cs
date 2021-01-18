@@ -6,6 +6,7 @@ public class CombatTopPanelManager : MonoBehaviour {
 
     public GameObject Panel;
 
+    public Text Turn_Text;
     public Image Balance_Bar_Blue;
     public Text Attacker_Name_Text;
     public Text Attacker_Strenght_Text;
@@ -53,6 +54,7 @@ public class CombatTopPanelManager : MonoBehaviour {
         if (!Active) {
             return;
         }
+        Turn_Text.text = (CombatManager.Instance.Turn + 1).ToString();
         Attacker_Name_Text.text = CombatManager.Instance.Army_1.Owner.Faction.Name;
         float attacker_strenght = CombatManager.Instance.Army_1.Get_Relative_Strenght_When_On_Hex(CombatManager.Instance.Hex, true, true);
         Attacker_Strenght_Text.text = Helper.Float_To_String(attacker_strenght, 0);

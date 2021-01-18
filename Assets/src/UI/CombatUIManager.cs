@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +15,7 @@ public class CombatUIManager : MonoBehaviour {
     public Image Unit_Image;
     public Text Unit_Name_Text;
     public Text Unit_Movement_Text;
+    public Image Can_Attack_Image;
     public Button Deploy_Button;
     public Button Next_Unit_Button;
     public Button Previous_Unit_Button;
@@ -48,6 +50,9 @@ public class CombatUIManager : MonoBehaviour {
     public Text Damage_Taken_Preview_Defence_Multiplier_Text;
     public GameObject Damage_Taken_Preview_Detail_Row;
 
+    public GameObject Unit_List_Content;
+    public GameObject Unit_List_Prototype;
+
     private Unit current_unit;
     private Color default_text_color;
     private Color enemy_name_text_color;
@@ -65,6 +70,8 @@ public class CombatUIManager : MonoBehaviour {
     private List<CombatMapHex> marked_attack_range_hexes;
     private List<GameObject> damage_output_details;
     private List<GameObject> damage_taken_details;
+    private Dictionary<Unit, GameObject[]> unit_list_items;
+    private long unit_list_index;
 
     /// <summary>
     /// Initializiation
@@ -81,6 +88,7 @@ public class CombatUIManager : MonoBehaviour {
         Damage_Taken_Preview_Detail_Row.SetActive(false);
         Damage_Output_Preview_Panel.SetActive(false);
         Damage_Taken_Preview_Panel.SetActive(false);
+        Unit_List_Prototype.SetActive(false);
 
         default_text_color = Unit_Name_Text.color;
 
@@ -99,6 +107,7 @@ public class CombatUIManager : MonoBehaviour {
         marked_attack_range_hexes = new List<CombatMapHex>();
         damage_output_details = new List<GameObject>();
         damage_taken_details = new List<GameObject>();
+        unit_list_items = new Dictionary<Unit, GameObject[]>();
     }
 
     /// <summary>
@@ -225,6 +234,9 @@ public class CombatUIManager : MonoBehaviour {
         }
         set {
             Panel.gameObject.SetActive(value);
+            if (value) {
+                unit_list_index = 0;
+            }
         }
     }
 
@@ -273,8 +285,52 @@ public class CombatUIManager : MonoBehaviour {
     public void Update_GUI()
     {
         Next_Turn_Button.interactable = !CombatManager.Instance.Other_Players_Turn && !CombatManager.Instance.Retreat_Phase;
+        Helper.Delete_All(unit_list_items.Select(x => x.Value[0]).ToList());
+        unit_list_items.Clear();
+        bool top_row = true;
+        int column = 0;
+        if (!CombatManager.Instance.Other_Players_Turn) {
+            foreach(Unit unit in CombatManager.Instance.Current_Army.Units) {
+                GameObject item = GameObject.Instantiate(
+                    Unit_List_Prototype,
+                    new Vector3(
+                        Unit_List_Prototype.transform.position.x + (column * 50.0f),
+                        Unit_List_Prototype.transform.position.y - (top_row ? 0.0f : 50.0f),
+                        Unit_List_Prototype.transform.position.z
+                    ),
+                    Quaternion.identity,
+                    Unit_List_Content.transform
+                );
+                item.name = string.Format("{0}Item{1}", unit.Name, unit_list_index);
+                item.SetActive(true);
+                unit_list_index++;
+                if (!top_row) {
+                    column++;
+                }
+                top_row = !top_row;
+                Helper.Set_Image(item.name, "Image", unit.Texture, SpriteManager.SpriteType.Unit);
+                GameObject can_attack_image = GameObject.Find(string.Format("{0}/{1}", item.name, "CanAttackImage"));
+                can_attack_image.gameObject.SetActive(unit.Can_Attack);
+                GameObject can_move_image = GameObject.Find(string.Format("{0}/{1}", item.name, "CanMoveImage"));
+                can_move_image.gameObject.SetActive(unit.Current_Movement > 0.0f);
+                GameObject routing_image = GameObject.Find(string.Format("{0}/{1}", item.name, "RoutingImage"));
+                routing_image.gameObject.SetActive(unit.Is_Routed);
+                GameObject selection_image = GameObject.Find(string.Format("{0}/{1}", item.name, "SelectionImage"));
+                selection_image.gameObject.SetActive(unit.Id == Current_Unit.Id);
+                Helper.Set_Button_On_Click(item.name, "SelectButton", delegate () {
+                    Current_Unit = unit;
+                });
+                unit_list_items.Add(unit, new GameObject[5] {
+                    item,
+                    can_attack_image,
+                    can_move_image,
+                    routing_image,
+                    selection_image
+                });
+            }
+        }
     }
-
+    
     public void Update_Current_Unit()
     {
         MouseManager.Instance.Set_Select_Hex_Mode(false);
@@ -304,7 +360,8 @@ public class CombatUIManager : MonoBehaviour {
         Unit_Image.overrideSprite = SpriteManager.Instance.Get(Current_Unit.Texture, SpriteManager.SpriteType.Unit);
         Unit_Name_Text.text = Current_Unit.Name;
         Unit_Name_Text.color = Current_Unit.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
-        Unit_Movement_Text.text = string.Format("Movement: {0} / {1}", Math.Round(Current_Unit.Current_Movement, 1), Current_Unit.Max_Movement);
+        Unit_Movement_Text.text = string.Format("{0} / {1}", Math.Round(Current_Unit.Current_Movement, 1), Current_Unit.Max_Movement);
+        Can_Attack_Image.gameObject.SetActive(Current_Unit.Can_Attack);
 
         Manpower_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * Current_Unit.Manpower, bar_height);
         Manpower_Text.text = Mathf.RoundToInt(Current_Unit.Manpower * 100.0f).ToString() + "%";
@@ -337,6 +394,16 @@ public class CombatUIManager : MonoBehaviour {
 
         //Update highlights
         Update_Movement_And_Attack_Range();
+
+        //Update unit list
+        foreach(KeyValuePair<Unit, GameObject[]> pair in unit_list_items) {
+            pair.Value[4].gameObject.SetActive(pair.Key.Id == Current_Unit.Id);
+            if (pair.Key.Id == Current_Unit.Id) {
+                pair.Value[1].gameObject.SetActive(Current_Unit.Can_Attack);
+                pair.Value[2].gameObject.SetActive(Current_Unit.Current_Movement > 0.0f);
+                pair.Value[3].gameObject.SetActive(Current_Unit.Is_Routed);
+            }
+        }
     }
 
     public void Deploy_Button_On_Click()
