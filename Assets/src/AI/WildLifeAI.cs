@@ -22,6 +22,7 @@ public class WildLifeAI : IConfigListener, I_AI
     private bool last_action_was_visible;
     private Dictionary<Army, ArmyWaitData> waiting_armies;
     private int performance_heavy_actions_taken;
+    private List<Unit> unit_order;
 
     public WildLifeAI(Player player)
     {
@@ -270,6 +271,27 @@ public class WildLifeAI : IConfigListener, I_AI
         return hex.City == null && hex.Village == null && (Main.Instance.Round > WOLF_WORKABLE_HEX_TRUCE || !hex.In_Work_Range_Of.Any(x => !x.Owner.Is_Neutral));
     }
 
+    public void Start_Combat_Turn()
+    {
+        Dictionary<Unit, float> distances = new Dictionary<Unit, float>();
+        foreach (Unit unit in (CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_1 : CombatManager.Instance.Army_2).Units) {
+            if (!unit.Controllable) {
+                continue;
+            }
+            float min_distance = float.MaxValue;
+            foreach (Unit enemy_unit in (CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_2 : CombatManager.Instance.Army_1).Units) {
+                if (enemy_unit.Hex != null) {
+                    float distance = unit.Hex.Coordinates.Distance(enemy_unit.Hex.Coordinates);
+                    if (distance < min_distance) {
+                        min_distance = distance;
+                    }
+                }
+            }
+            distances.Add(unit, min_distance);
+        }
+        unit_order = distances.OrderBy(x => x.Value).Select(x => x.Key).ToList();
+    }
+
     public void Combat_Act(float delta_s)
     {
         if (!CombatManager.Instance.Active_Combat) {
@@ -297,13 +319,7 @@ public class WildLifeAI : IConfigListener, I_AI
             return;
         }
 
-        foreach (Unit u in army.Units) {
-            if (u.Controllable && !u.Wait_Turn) {
-                unit = u;
-                break;
-            }
-        }
-
+        unit = unit_order.Where(x => x.Controllable && !x.Wait_Turn).FirstOrDefault();
         if (unit == null) {
             CombatManager.Instance.Next_Turn();
             return;

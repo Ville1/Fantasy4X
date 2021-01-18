@@ -73,6 +73,11 @@ public class BanditAI : IConfigListener, I_AI
         Main.Instance.Next_Turn();
     }
 
+    public void Start_Combat_Turn()
+    {
+        throw new NotImplementedException();
+    }
+
     public void Combat_Act(float delta_s)
     {
         throw new NotImplementedException();

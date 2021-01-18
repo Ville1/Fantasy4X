@@ -5,6 +5,7 @@ public interface I_AI {
     void On_Delete();
     void Update_Settings();
     void Act(float delta_s);
+    void Start_Combat_Turn();
     void Combat_Act(float delta_s);
     bool Show_Moves { get; set; }
     bool Log_Actions { get; set; }

@@ -210,6 +210,9 @@ public class CombatManager : MonoBehaviour {
                 u.Hex.Borders = CombatMapHex.Enemy_Unit_Color;
             }
         }
+        if(Current_Player.AI != null) {
+            Current_Player.AI.Start_Combat_Turn();
+        }
         CombatUIManager.Instance.Update_GUI();
         CombatTopPanelManager.Instance.Update_GUI();
         if(CombatUIManager.Instance.Current_Unit.Hex != null && Current_Player.AI == null) {

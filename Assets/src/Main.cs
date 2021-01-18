@@ -118,10 +118,12 @@ public class Main : MonoBehaviour {
         Army attacker_army = new Army(World.Instance.Map.Get_Hex_At(World.Instance.Map.Width / 2, World.Instance.Map.Height / 2), attacker.Faction.Army_Prototype, attacker, null);
         Army defender_army = new Army(World.Instance.Map.Get_Hex_At(World.Instance.Map.Width / 2 + 1, World.Instance.Map.Height / 2), defender.Faction.Army_Prototype, defender, null);
         foreach(Unit unit in attacker_units) {
-            attacker_army.Add_Unit(unit);
+            unit.Army = attacker_army;
+            attacker_army.Units.Add(unit);
         }
         foreach (Unit unit in defender_units) {
-            defender_army.Add_Unit(unit);
+            unit.Army = defender_army;
+            defender_army.Units.Add(unit);
         }
         CombatManager.Instance.Start_Combat(attacker_army, defender_army, hex);
     }

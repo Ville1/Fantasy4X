@@ -12,6 +12,7 @@ public class CombatUIManager : MonoBehaviour {
 
     public Button Next_Turn_Button;
 
+    public GameObject Unit_Container;
     public Image Unit_Image;
     public Text Unit_Name_Text;
     public Text Unit_Movement_Text;
@@ -294,8 +295,8 @@ public class CombatUIManager : MonoBehaviour {
                 GameObject item = GameObject.Instantiate(
                     Unit_List_Prototype,
                     new Vector3(
-                        Unit_List_Prototype.transform.position.x + (column * 50.0f),
-                        Unit_List_Prototype.transform.position.y - (top_row ? 0.0f : 50.0f),
+                        Unit_List_Prototype.transform.position.x + (column * 45.0f),
+                        Unit_List_Prototype.transform.position.y - (top_row ? 0.0f : 45.0f),
                         Unit_List_Prototype.transform.position.z
                     ),
                     Quaternion.identity,
@@ -316,7 +317,7 @@ public class CombatUIManager : MonoBehaviour {
                 GameObject routing_image = GameObject.Find(string.Format("{0}/{1}", item.name, "RoutingImage"));
                 routing_image.gameObject.SetActive(unit.Is_Routed);
                 GameObject selection_image = GameObject.Find(string.Format("{0}/{1}", item.name, "SelectionImage"));
-                selection_image.gameObject.SetActive(unit.Id == Current_Unit.Id);
+                selection_image.gameObject.SetActive(Current_Unit != null && unit.Id == Current_Unit.Id);
                 Helper.Set_Button_On_Click(item.name, "SelectButton", delegate () {
                     Current_Unit = unit;
                 });
@@ -328,6 +329,7 @@ public class CombatUIManager : MonoBehaviour {
                     selection_image
                 });
             }
+            Unit_List_Content.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (column + 1) * 45.0f);
         }
     }
     
@@ -335,18 +337,9 @@ public class CombatUIManager : MonoBehaviour {
     {
         MouseManager.Instance.Set_Select_Hex_Mode(false);
 
-        Manpower_GameObject.SetActive(Current_Unit != null);
-        Morale_GameObject.SetActive(Current_Unit != null);
-        Stamina_GameObject.SetActive(Current_Unit != null);
-        Toggle_Run_Button.gameObject.SetActive(Current_Unit != null);
-        
+        Unit_Container.SetActive(Current_Unit != null);
         if (Current_Unit == null) {
             //No unit selected
-            Unit_Image.gameObject.SetActive(false);
-            Unit_Name_Text.text = "";
-            Unit_Movement_Text.text = "";
-            Next_Unit_Button.interactable = false;
-            Previous_Unit_Button.interactable = false;
             Deploy_Button.gameObject.SetActive(false);
             Clear_Movement_And_Attack_Range();
             TooltipManager.Instance.Unregister_Tooltip(Unit_Image.gameObject);
@@ -454,6 +447,13 @@ public class CombatUIManager : MonoBehaviour {
     public void Toggle_Running_On_Click()
     {
         Run = !Run;
+    }
+
+    public void Info_On_Click()
+    {
+        if(Current_Unit != null) {
+            UnitInfoGUIManager.Instance.Open(Current_Unit, false);
+        }
     }
 
     private void Clear_Movement_And_Attack_Range()
