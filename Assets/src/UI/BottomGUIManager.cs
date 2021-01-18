@@ -202,21 +202,17 @@ public class BottomGUIManager : MonoBehaviour
         Current_Entity_Image.overrideSprite = SpriteManager.Instance.Get(current_entity.Texture, SpriteManager.SpriteType.Unit);
         Current_Entity_Name_Text.text = Current_Entity.Is_Owned_By_Current_Player ? current_entity.Name : string.Format("Enemy {0}", current_entity.Name);
         Current_Entity_Name_Text.color = Current_Entity.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
-        Current_Entity_Movement_Text.text = string.Format("Movement: {0} / {1}{2}{3}", Helper.Float_To_String(current_entity.Current_Movement, 1), current_entity.Max_Movement, current_entity.Wait_Turn ? " (wait)" : "",
-            current_entity.Sleep ? " (sleep)" : "");
+        Current_Entity_Movement_Text.text = string.Format("Movement: {0} / {1}", Helper.Float_To_String(current_entity.Current_Movement, 1), current_entity.Max_Movement);
 
-        if (Current_Entity is Worker) {
+        Current_Entity_Info_Text.text = current_entity.Wait_Turn ? "wait" : (current_entity.Sleep ? "sleep" : string.Empty);
+        if (Current_Entity is Worker && (Current_Entity as Worker).Improvement_Under_Construction != null) {
             Update_Actions();
-            Current_Entity_Info_Text.text = (Current_Entity as Worker).Improvement_Under_Construction != null ?
-                string.Format("Building {0}, {1} turn{2} left", (Current_Entity as Worker).Improvement_Under_Construction.Name,
-                (Current_Entity as Worker).Turns_Left, (Current_Entity as Worker).Turns_Left != 1 ? "s" : "") : "";
-        } else if (Current_Entity is Prospector) {
+            Current_Entity_Info_Text.text = string.Format("Building {0}, {1} turn{2} left", (Current_Entity as Worker).Improvement_Under_Construction.Name,
+                (Current_Entity as Worker).Turns_Left, Helper.Plural((Current_Entity as Worker).Turns_Left));
+        } else if (Current_Entity is Prospector && (Current_Entity as Prospector).Prospecting) {
             Update_Actions();
-            Current_Entity_Info_Text.text = (Current_Entity as Prospector).Prospecting ? string.Format("Prospecting {0} turn{1} left",
-                ((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress),
-                Helper.Plural((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress)) : "";
-        } else {
-            Current_Entity_Info_Text.text = "";
+            Current_Entity_Info_Text.text = string.Format("Prospecting {0} turn{1} left", ((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress),
+                Helper.Plural((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress));
         }
     }
 

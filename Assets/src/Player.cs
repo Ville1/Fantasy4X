@@ -542,6 +542,7 @@ public class Player {
                 army.Add_Unit(unit);
             }
             army.Stored_Path = army_data.Path == null || army_data.Path.Count == 0 ? null : army_data.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
+            army.Sleep = army_data.Sleep;
             World_Map_Entities.Add(army);
         }
         foreach(WorkerSaveData worker_data in data.Workers) {
@@ -555,6 +556,9 @@ public class Player {
             Prospector prospector = new Prospector(hex, Faction.Units.First(x => x.Name == prospector_data.Name) as Prospector, this);
             prospector.Load(prospector_data);
             World_Map_Entities.Add(prospector);
+        }
+        if(AI != null) {
+            (AI as AI).Load(data.AI_Data);
         }
     }
 
@@ -598,6 +602,7 @@ public class Player {
             data.Spells_On_Cooldown = spells_on_cooldown.Select(x => new CooldownSaveData() { Name = x.Name, Value = spells_on_cooldown.Get_Cooldown(x) }).ToList();
             data.Blessings_On_Cooldown = blessings_on_cooldown.Select(x => new CooldownSaveData() { Name = x.Name, Value = blessings_on_cooldown.Get_Cooldown(x) }).ToList();
             data.Active_Blessings = active_blessings.Select(x => new CooldownSaveData() { Name = x.Key.Name, Value = x.Value }).ToList();
+            data.AI_Data = AI == null ? null : (AI as AI).Save_Data;
             return data;
         }
     }

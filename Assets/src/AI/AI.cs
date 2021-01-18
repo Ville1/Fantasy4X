@@ -2157,4 +2157,104 @@ public class AI : IConfigListener, I_AI
         }
         return roles;
     }
+
+    public AISaveData Save_Data
+    {
+        get {
+            AISaveData data = new AISaveData();
+            data.Scouting_Armies = scouting_armies.Select(x => new AIArmyOrderSaveData() {
+                Army_Coordinates = new CoordinateSaveData() { X = x.Key.Hex.Coordinates.X, Y = x.Key.Hex.Coordinates.Y },
+                Target_Coordinates = new CoordinateSaveData() { X = x.Value.Coordinates.X, Y = x.Value.Coordinates.Y },
+                Order = -1,
+                Is_Army_Target = false
+            }).ToList();
+            data.Defence_Armies = defence_armies.Select(x => new AIArmyOrderSaveData() {
+                Army_Coordinates = new CoordinateSaveData() { X = x.Value.Hex.Coordinates.X, Y = x.Value.Hex.Coordinates.Y },
+                Target_Coordinates = new CoordinateSaveData() { X = x.Key.Hex.Coordinates.X, Y = x.Key.Hex.Coordinates.Y },
+                Order = -1,
+                Is_Army_Target = false
+            }).ToList();
+            data.Main_Armies = main_armies.Select(x => new AIArmyOrderSaveData() {
+                Army_Coordinates = new CoordinateSaveData() { X = x.Key.Hex.Coordinates.X, Y = x.Key.Hex.Coordinates.Y },
+                Target_Coordinates = x.Value.Army_Target == null ?
+                    new CoordinateSaveData() { X = x.Value.Hex_Target.Coordinates.X, Y = x.Value.Hex_Target.Coordinates.Y } :
+                    new CoordinateSaveData() { X = x.Value.Army_Target.Hex.Coordinates.X, Y = x.Value.Army_Target.Hex.Coordinates.Y },
+                Order = (int)x.Value.Type,
+                Is_Army_Target = x.Value.Army_Target != null
+            }).ToList();
+            data.Cities_Training_Scout_Armies = cities_training_scout_armies.Select(x => new CoordinateInfoSaveData() {
+                Value = x.Value.Name,
+                Coordinates = new CoordinateSaveData() {
+                    X = x.Key.Hex.Coordinates.X,
+                    Y = x.Key.Hex.Coordinates.Y
+                }
+            }).ToList();
+            data.Cities_Training_Defence_Armies = cities_training_defence_armies.Select(x => new DoubleCoordinateInfoSaveData() {
+                Value = ((Trainable)x.Value[0]).Name,
+                Coordinates_1 = new CoordinateSaveData() {
+                    X = x.Key.Hex.Coordinates.X,
+                    Y = x.Key.Hex.Coordinates.Y
+                },
+                Coordinates_2 = new CoordinateSaveData() {
+                    X = ((City)x.Value[1]).Hex.Coordinates.X,
+                    Y = ((City)x.Value[1]).Hex.Coordinates.Y
+                }
+            }).ToList();
+            data.Cities_Training_Main_Armies = cities_training_main_armies.Select(x => new CoordinateInfoSaveData() {
+                Value = x.Value.Name,
+                Coordinates = new CoordinateSaveData() {
+                    X = x.Key.Hex.Coordinates.X,
+                    Y = x.Key.Hex.Coordinates.Y
+                }
+            }).ToList();
+            data.Observed_Max_Enemy_Army_Strenght = observed_max_enemy_army_strenght.Select(x => new AIPlayerFloatInfoSaveData() {
+                Player_Id = SaveManager.Get_Player_Id(x.Key),
+                Value = x.Value
+            }).ToList();
+            data.Observed_Enemy_Army_Strenght_On_This_Turn = observed_enemy_army_strenght_on_this_turn.Select(x => new AIPlayerFloatInfoSaveData() {
+                Player_Id = SaveManager.Get_Player_Id(x.Key),
+                Value = x.Value
+            }).ToList();
+            data.Armies_Seen_This_Turn = armies_seen_this_turn.Select(x => new CoordinateSaveData() {
+                X = x.Hex.Coordinates.X,
+                Y = x.Hex.Coordinates.Y
+            }).ToList();
+            data.Scouted_Enemy_Cities = scouted_enemy_cities.Select(x => new CoordinateSaveData() {
+                X = x.Hex.Coordinates.X,
+                Y = x.Hex.Coordinates.Y
+            }).ToList();
+            data.Turns_Since_Army_Was_Scouted = turns_since_army_was_scouted.Select(x => new AIPlayerIntInfoSaveData() {
+                Player_Id = SaveManager.Get_Player_Id(x.Key),
+                Value = x.Value
+            }).ToList();
+            return data;
+        }
+    }
+
+    public void Load(AISaveData data)
+    {
+        scouting_armies = data.Scouting_Armies.ToDictionary(x => World.Instance.Map.Get_Hex_At(x.Army_Coordinates.X, x.Army_Coordinates.Y).Army,
+            x => World.Instance.Map.Get_Hex_At(x.Target_Coordinates.X, x.Target_Coordinates.Y));
+        defence_armies = data.Defence_Armies.ToDictionary(x => World.Instance.Map.Get_Hex_At(x.Target_Coordinates.X, x.Target_Coordinates.Y).City,
+            x => World.Instance.Map.Get_Hex_At(x.Army_Coordinates.X, x.Army_Coordinates.Y).Army);
+        main_armies = data.Main_Armies.ToDictionary(x => World.Instance.Map.Get_Hex_At(x.Army_Coordinates.X, x.Army_Coordinates.Y).Army,
+            x => x.Is_Army_Target ? new ArmyOrder((ArmyOrder.OrderType)x.Order, World.Instance.Map.Get_Hex_At(x.Target_Coordinates.X, x.Target_Coordinates.Y).Army) :
+            new ArmyOrder((ArmyOrder.OrderType)x.Order, World.Instance.Map.Get_Hex_At(x.Target_Coordinates.X, x.Target_Coordinates.Y)));
+        cities_training_scout_armies = data.Cities_Training_Scout_Armies.ToDictionary(x => World.Instance.Map.Get_Hex_At(x.Coordinates.X, x.Coordinates.Y).City,
+            x => Player.Faction.Units.First(y => y.Name == x.Value));
+        cities_training_defence_armies = data.Cities_Training_Defence_Armies.ToDictionary(x => World.Instance.Map.Get_Hex_At(x.Coordinates_1.X, x.Coordinates_1.Y).City,
+            x => new object[2] {
+                Player.Faction.Units.First(y => y.Name == x.Value),
+                World.Instance.Map.Get_Hex_At(x.Coordinates_2.X, x.Coordinates_2.Y).City
+            });
+        cities_training_main_armies = data.Cities_Training_Main_Armies.ToDictionary(x => World.Instance.Map.Get_Hex_At(x.Coordinates.X, x.Coordinates.Y).City,
+            x => Player.Faction.Units.First(y => y.Name == x.Value));
+        observed_max_enemy_army_strenght = data.Observed_Max_Enemy_Army_Strenght.ToDictionary(x => SaveManager.Get_Player(x.Player_Id),
+            x => x.Value);
+        observed_enemy_army_strenght_on_this_turn = data.Observed_Enemy_Army_Strenght_On_This_Turn.ToDictionary(x => SaveManager.Get_Player(x.Player_Id),
+            x => x.Value);
+        armies_seen_this_turn = data.Armies_Seen_This_Turn.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y).Army).ToList();
+        scouted_enemy_cities = data.Scouted_Enemy_Cities.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y).City).ToList();
+        turns_since_army_was_scouted = data.Turns_Since_Army_Was_Scouted.ToDictionary(x => SaveManager.Get_Player(x.Player_Id), x => x.Value);
+    }
 }

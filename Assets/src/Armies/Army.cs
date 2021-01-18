@@ -645,6 +645,7 @@ public class Army : WorldMapEntity {
                 Movement = x.Current_Campaing_Map_Movement
             }).ToList();
             data.Path = Stored_Path != null ? Stored_Path.Select(x => new CoordinateSaveData() { X = x.Coordinates.X, Y = x.Coordinates.Y }).ToList() : null;
+            data.Sleep = Sleep;
             return data;
         }
     }

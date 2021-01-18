@@ -11,6 +11,7 @@ public class WorkerSaveData
     public float Improvement_Progress;
     public string Improvement_Under_Construction;
     public List<CoordinateSaveData> Path;
+    public bool Sleep;
 }
 
 [Serializable]
@@ -23,6 +24,7 @@ public class ProspectorSaveData
     public int Prospect_Progress;
     public bool Prospecting;
     public List<CoordinateSaveData> Path;
+    public bool Sleep;
 }
 
 [Serializable]
@@ -32,6 +34,7 @@ public class ArmySaveData
     public int Hex_Y;
     public List<UnitSaveData> Units;
     public List<CoordinateSaveData> Path;
+    public bool Sleep;
 }
 
 [Serializable]

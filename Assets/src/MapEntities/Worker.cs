@@ -252,6 +252,7 @@ public class Worker : WorldMapEntity, Trainable
             data.Improvement_Progress = Improvement_Progress;
             data.Improvement_Under_Construction = Improvement_Under_Construction == null ? string.Empty : Improvement_Under_Construction.Name;
             data.Path = Stored_Path != null ? Stored_Path.Select(x => new CoordinateSaveData() { X = x.Coordinates.X, Y = x.Coordinates.Y }).ToList() : null;
+            data.Sleep = Sleep;
             return data;
         }
     }
@@ -262,6 +263,7 @@ public class Worker : WorldMapEntity, Trainable
         Improvement_Progress = data.Improvement_Progress;
         Improvement_Under_Construction = string.IsNullOrEmpty(data.Improvement_Under_Construction) ? null : Buildable_Improvements.First(x => x.Name == data.Improvement_Under_Construction);
         Stored_Path = data.Path == null || data.Path.Count == 0 ? null : data.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
+        Sleep = data.Sleep;
         if (Improvement_Under_Construction != null) {
             Start_Animation(Working_Animation, Working_Animation_FPS);
         }

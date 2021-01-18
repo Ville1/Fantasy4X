@@ -44,6 +44,7 @@ public class PlayerSaveData
     public List<CooldownSaveData> Spells_On_Cooldown;
     public List<CooldownSaveData> Blessings_On_Cooldown;
     public List<CooldownSaveData> Active_Blessings;
+    public AISaveData AI_Data;
 }
 
 [Serializable]

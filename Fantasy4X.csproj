@@ -143,6 +143,7 @@
     <Compile Include="Assets\src\Player.cs" />
     <Compile Include="Assets\src\PrefabManager.cs" />
     <Compile Include="Assets\src\RNG.cs" />
+    <Compile Include="Assets\src\Saving\AISaveData.cs" />
     <Compile Include="Assets\src\Saving\CitySaveData.cs" />
     <Compile Include="Assets\src\Saving\EmpireModifiersSaveData.cs" />
     <Compile Include="Assets\src\Saving\SaveData.cs" />

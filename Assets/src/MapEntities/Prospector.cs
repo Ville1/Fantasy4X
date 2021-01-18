@@ -154,6 +154,7 @@ public class Prospector : WorldMapEntity, Trainable
             data.Prospecting = prospecting;
             data.Prospect_Progress = Prospect_Progress;
             data.Path = Stored_Path != null ? Stored_Path.Select(x => new CoordinateSaveData() { X = x.Coordinates.X, Y = x.Coordinates.Y }).ToList() : null;
+            data.Sleep = Sleep;
             return data;
         }
     }
@@ -164,6 +165,7 @@ public class Prospector : WorldMapEntity, Trainable
         prospecting = data.Prospecting;
         Prospect_Progress = data.Prospect_Progress;
         Stored_Path = data.Path == null || data.Path.Count == 0 ? null : data.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
+        Sleep = data.Sleep;
         if (prospecting) {
             Start_Animation(Working_Animation, Working_Animation_FPS);
         }
