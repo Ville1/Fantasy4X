@@ -3,7 +3,7 @@
 public class Hex : Ownable {
     public static readonly string GAME_OBJECT_NAME_PREFIX = "Hex";
     static readonly float WIDTH_MULTIPLIER = 0.86f;// Mathf.Sqrt(3.0f) / 2.0f;
-    static readonly float HEIGHT_MULTIPLIER = 0.595f;
+    static readonly float HEIGHT_MULTIPLIER = 0.590f;
 
     /// <summary>
     /// Column

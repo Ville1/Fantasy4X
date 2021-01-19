@@ -17,6 +17,7 @@ public class WorldMapHexSaveData {
     public ImprovementSaveData Improvement;
     public bool Is_Map_Edge_Road_Connection;
     public List<WorldMapHexStatusEffectSaveData> Status_Effects;
+    public int Sprite_Index;
 }
 
 [Serializable]

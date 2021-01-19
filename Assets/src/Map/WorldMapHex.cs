@@ -17,7 +17,7 @@ public class WorldMapHex : Hex {
     public string Terrain { get; set; }
     public string Internal_Name { get; private set; }
     public Yields Base_Yields { get; set; }
-    public string Sprite { get; private set; }
+    public Dictionary<string, int> Alternative_Sprites { get; private set; }
     public int Elevation { get; private set; }
     public int Height { get; private set; }
     public WorldMapEntity Entity { get; set; }
@@ -49,6 +49,8 @@ public class WorldMapHex : Hex {
     private Player owner;
     private List<Player> prospected_by;
     private float movement_cost;
+    private string sprite;
+    private string default_sprite;
 
     public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent, map.Height)
     {
@@ -67,12 +69,14 @@ public class WorldMapHex : Hex {
     /// <summary>
     /// Prototype constructor
     /// </summary>
-    public WorldMapHex(string internal_name, string terrain, string texture, Yields yields, float happiness, float health, float order, float movement_cost, int elevation, int height,
+    public WorldMapHex(string internal_name, string terrain, string sprite, Dictionary<string, int> alternative_sprites, Yields yields, float happiness, float health, float order, float movement_cost, int elevation, int height,
         bool can_spawn_minerals, List<Tag> tags, Dictionary<string, int> combatMap_seed, Dictionary<string, int> combatMap_City_Seed) : base()
     {
         Internal_Name = internal_name;
         Terrain = terrain;
-        Sprite = texture;
+        default_sprite = sprite;
+        this.sprite = sprite;
+        Alternative_Sprites = alternative_sprites == null ? null : Helper.Copy_Dictionary(alternative_sprites);
         Base_Yields = new Yields(yields);
         Base_Movement_Cost = movement_cost;
         Elevation = elevation;
@@ -91,7 +95,8 @@ public class WorldMapHex : Hex {
     {
         Internal_Name = prototype.Internal_Name;
         Terrain = prototype.Terrain;
-        Sprite = prototype.Sprite;
+        default_sprite = prototype.default_sprite;
+        Alternative_Sprites = prototype.Alternative_Sprites == null ? null : Helper.Copy_Dictionary(prototype.Alternative_Sprites);
         Base_Yields = new Yields(prototype.Base_Yields);
         Base_Movement_Cost = prototype.Base_Movement_Cost;
         Elevation = prototype.Elevation;
@@ -104,7 +109,42 @@ public class WorldMapHex : Hex {
         Tags = Helper.Copy_List(prototype.Tags);
         CombatMap_Seed = Helper.Copy_Dictionary(prototype.CombatMap_Seed);
         CombatMap_City_Seed = prototype.CombatMap_City_Seed != null ? Helper.Copy_Dictionary(prototype.CombatMap_City_Seed) : null;
-        SpriteRenderer.sprite = SpriteManager.Instance.Get(Sprite, SpriteManager.SpriteType.Terrain);
+        sprite = default_sprite;
+        if (Alternative_Sprites != null && Alternative_Sprites.Count != 0) {
+            int random = RNG.Instance.Next(0, 100);
+            string random_sprite = Alternative_Sprites.OrderBy(x => x.Value).Where(x => x.Value >= random).Select(x => x.Key).FirstOrDefault();
+            sprite = random_sprite != null ? random_sprite : sprite;
+        }
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
+    }
+    
+    public string Sprite
+    {
+        get {
+            return string.IsNullOrEmpty(sprite) ? default_sprite : sprite;
+        }
+        private set {
+            default_sprite = value;
+            sprite = value;
+        }
+    }
+
+    public int Sprite_Index
+    {
+        get {
+            return (Alternative_Sprites == null || Alternative_Sprites.Count == 0 || !Alternative_Sprites.ContainsKey(sprite)) ? 0 : Alternative_Sprites.OrderBy(x => x.Value).Select(x => x.Key).ToList().IndexOf(sprite) + 1;
+        }
+        set {
+            if(Alternative_Sprites == null || Alternative_Sprites.Count == 0) {
+                return;
+            }
+            if(value == 0) {
+                sprite = Sprite;
+            } else {
+                sprite = Alternative_Sprites.OrderBy(x => x.Value).Select(x => x.Key).ToList()[value - 1];
+            }
+            SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
+        }
     }
 
     public float Movement_Cost
@@ -392,7 +432,7 @@ public class WorldMapHex : Hex {
             }
             switch (current_los) {
                 case LoS_Status.Visible:
-                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Sprite, SpriteManager.SpriteType.Terrain);
+                    SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
                     Clear_Highlight();
                     if(Entity != null) {
                         Entity.GameObject.SetActive(true);
@@ -408,7 +448,7 @@ public class WorldMapHex : Hex {
                     }
                     break;
                 case LoS_Status.Explored:
-                    SpriteRenderer.sprite = SpriteManager.Instance.Get(Sprite, SpriteManager.SpriteType.Terrain);
+                    SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
                     Clear_Highlight();
                     Highlight = EXPLORED_TINT;
                     if (Entity != null) {
@@ -447,7 +487,7 @@ public class WorldMapHex : Hex {
     public bool Visible_To_Viewing_Player
     {
         get {
-            return Highlight.r == 1.0f && Highlight.g == 1.0f && Highlight.b == 1.0f && Highlight.a == 1.0f && SpriteRenderer.sprite.name == Sprite;
+            return Highlight.r == 1.0f && Highlight.g == 1.0f && Highlight.b == 1.0f && Highlight.a == 1.0f && SpriteRenderer.sprite.name == sprite;
         }
     }
 
@@ -699,6 +739,7 @@ public class WorldMapHex : Hex {
                 Health = x.Health,
                 Order = x.Order
             }).ToList();
+            data.Sprite_Index = Sprite_Index;
             return data;
         }
     }
@@ -728,5 +769,6 @@ public class WorldMapHex : Hex {
             effect.Load(effect_data);
             Status_Effects.Apply_Status_Effect(effect, true);
         }
+        Sprite_Index = data.Sprite_Index;
     }
 }
