@@ -32,8 +32,9 @@ public class HexPrototypes {
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill, WorldMapHex.Tag.Arid }, default_grassland_seed, null));
         world_map_hex_prototypes.Add( new WorldMapHex("volcano", "Volcano", "volcano_2", null, new Yields(0, 2, 0, 1, 0, 0, 0), 0.0f, 0.0f, 0.0f, 5.0f, 3, 3, true,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Hill, WorldMapHex.Tag.Arid }, default_grassland_seed, null));
-        world_map_hex_prototypes.Add(new WorldMapHex("swamp", "Swamp", "placeholder", null, new Yields(2, 0, 0, 1, 0, 0, 0), 0.0f, -1.0f, 0.0f, 3.0f, 0, 1, false,
+        world_map_hex_prototypes.Add(new WorldMapHex("swamp", "Swamp", "swamp_1", null, new Yields(2, 0, 0, 1, 0, 0, 0), 0.0f, -1.0f, 0.0f, 3.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Game }, new Dictionary<string, int>() { { "grass", 50 }, { "scrubs", 200 }, { "trees", 85 } }, null));
+        world_map_hex_prototypes.First(x => x.Internal_Name == "swamp").Add_Animation(new List<string>() { "swamp_1", "swamp_2" }, 0.4f);
         world_map_hex_prototypes.Add(new WorldMapHex("flower field", "Flower Field", "flower_field_2", new Dictionary<string, int>() { { "flower_field_3", 33 } }, new Yields(2, 0, 0, 0, 1, 0, 0), 1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 5 }, { "trees", 5 } }, null));
         world_map_hex_prototypes.Add(new WorldMapHex("forest", "Forest", "forest_2", null, new Yields(2, 0.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 2.0f, 0, 1, false,

@@ -420,7 +420,7 @@ public class Map
                     too_close = true;
                 }
                 if (!too_close || ignore_distances) {
-                    City capital = new City(random_hex, player, HexPrototypes.Instance.Get_World_Map_Hex("water"));
+                    City capital = new City(random_hex, player, HexPrototypes.Instance.Get_World_Map_Hex("water"), false);
                     player.Capital = capital;
                     random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex(string.IsNullOrEmpty(player.Faction.City_Hex) ? "city" : player.Faction.City_Hex));
                     capital.Update_Hex_Yields();
@@ -465,7 +465,7 @@ public class Map
                     }
                 }
                 if (!too_close) {
-                    City city = new City(random_hex, Main.Instance.Neutral_Cities_Player, HexPrototypes.Instance.Get_World_Map_Hex("water"));
+                    City city = new City(random_hex, Main.Instance.Neutral_Cities_Player, HexPrototypes.Instance.Get_World_Map_Hex("water"), false);
                     Main.Instance.Neutral_Cities_Player.Cities.Add(city);
                     random_hex.Change_To(HexPrototypes.Instance.Get_World_Map_Hex("small city"));
                     city.Update_Hex_Yields();
@@ -797,7 +797,7 @@ public class Map
                 progress += serialization_hexes.Count;
                 if (serialization_index < SaveManager.Instance.Data.Map.Cities.Count) {
                     CitySaveData data = SaveManager.Instance.Data.Map.Cities[serialization_index];
-                    City city = new City(Get_Hex_At(data.Hex_X, data.Hex_Y), SaveManager.Get_Player(data.Owner), null);
+                    City city = new City(Get_Hex_At(data.Hex_X, data.Hex_Y), SaveManager.Get_Player(data.Owner), null, true);
                     city.Load(data);
                     Cities.Add(city);
                     serialization_index++;
@@ -983,7 +983,8 @@ public class Map
         for (int x = 0; x < Width; x++) {
             for (int y = 0; y < Width; y++) {
                 if (hexes[x][y] != null) {
-                    if(hexes[x][y].Entity != null) {
+                    hexes[x][y].Update(delta_s);
+                    if (hexes[x][y].Entity != null) {
                         hexes[x][y].Entity.Update(delta_s);
                     }
                     if (hexes[x][y].Civilian != null) {

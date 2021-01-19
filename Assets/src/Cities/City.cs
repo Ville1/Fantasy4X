@@ -64,7 +64,7 @@ public class City : Ownable, Influencable, TradePartner
     private Yields saved_base_yields;//TODO: what was this supposed to do?
     private Yields saved_yields;
 
-    public City(WorldMapHex hex, Player owner, WorldMapHex water_hex_for_channel)
+    public City(WorldMapHex hex, Player owner, WorldMapHex water_hex_for_channel, bool loading_from_save_file)
     {
         Hex = hex;
         Hex.City = this;
@@ -119,7 +119,9 @@ public class City : Ownable, Influencable, TradePartner
         foreach(WorldMapHex hex_in_los in Get_Hexes_In_LoS()) {
             hex_in_los.Set_Explored(Owner);
         }
-        Auto_Apply_Unemployed_Pops();
+        if (!loading_from_save_file) {
+            Auto_Apply_Unemployed_Pops();
+        }
 
         Id = current_id;
         current_id++;

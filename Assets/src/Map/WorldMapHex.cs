@@ -41,6 +41,8 @@ public class WorldMapHex : Hex {
     public StatusEffectList<HexStatusEffect> Status_Effects { get; private set; }
     public Dictionary<string, int> CombatMap_Seed { get; private set; }
     public Dictionary<string, int> CombatMap_City_Seed { get; private set; }
+    public List<string> Animation_Sprites { get; private set; }
+    public float Animation_FPS { get; private set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -51,6 +53,9 @@ public class WorldMapHex : Hex {
     private float movement_cost;
     private string sprite;
     private string default_sprite;
+    private float animation_frame_time_left;
+    private int animation_index;
+    private List<Sprite> animation_sprites;
 
     public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent, map.Height)
     {
@@ -89,6 +94,8 @@ public class WorldMapHex : Hex {
         CombatMap_Seed = Helper.Copy_Dictionary(combatMap_seed);
         CombatMap_City_Seed = combatMap_City_Seed != null ? Helper.Copy_Dictionary(combatMap_City_Seed) : null;
         Is_Water = false;
+        Animation_Sprites = null;
+        Animation_FPS = -1.0f;
     }
 
     public void Change_To(WorldMapHex prototype)
@@ -110,12 +117,23 @@ public class WorldMapHex : Hex {
         CombatMap_Seed = Helper.Copy_Dictionary(prototype.CombatMap_Seed);
         CombatMap_City_Seed = prototype.CombatMap_City_Seed != null ? Helper.Copy_Dictionary(prototype.CombatMap_City_Seed) : null;
         sprite = default_sprite;
+        Animation_Sprites = prototype.Animation_Sprites != null ? Helper.Copy_List(prototype.Animation_Sprites) : null;
+        animation_sprites = Animation_Sprites != null ? Animation_Sprites.Select(x => SpriteManager.Instance.Get(x, SpriteManager.SpriteType.Terrain)).ToList() : null;
+        Animation_FPS = prototype.Animation_FPS;
+        animation_frame_time_left = 0.0f;
+        animation_index = 0;
         if (Alternative_Sprites != null && Alternative_Sprites.Count != 0) {
             int random = RNG.Instance.Next(0, 100);
             string random_sprite = Alternative_Sprites.OrderBy(x => x.Value).Where(x => x.Value >= random).Select(x => x.Key).FirstOrDefault();
             sprite = random_sprite != null ? random_sprite : sprite;
         }
         SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
+    }
+
+    public void Add_Animation(List<string> sprites, float fps)
+    {
+        Animation_Sprites = sprites;
+        Animation_FPS = fps;
     }
     
     public string Sprite
@@ -606,6 +624,28 @@ public class WorldMapHex : Hex {
         }
     }
 
+    new public bool Is_Owned_By(Player player)
+    {
+        if (Owner == null) {
+            return false;
+        }
+        return Owner.Id == player.Id;
+    }
+
+    new public bool Is_Owned_By_Current_Player
+    {
+        get {
+            return Is_Owned_By(Main.Instance.Current_Player);
+        }
+    }
+
+    new public bool Has_Owner
+    {
+        get {
+            return Owner != null;
+        }
+    }
+
     public void Spawn_Mineral()
     {
         if (!Can_Spawn_Minerals) {
@@ -701,6 +741,29 @@ public class WorldMapHex : Hex {
         }
     }
 
+    public bool Is_Animated
+    {
+        get {
+            return Animation_Sprites != null && Animation_Sprites.Count != 0 && Animation_FPS > 0.0f;
+        }
+    }
+
+    public void Update(float delta_s)
+    {
+        if (!Is_Animated || Current_LoS == LoS_Status.Unexplored) {
+            return;
+        }
+        animation_frame_time_left -= delta_s;
+        if (animation_frame_time_left <= 0.0f) {
+            animation_frame_time_left += (1.0f / Animation_FPS);
+            animation_index++;
+            if (animation_index >= Animation_Sprites.Count) {
+                animation_index = 0;
+            }
+            SpriteRenderer.sprite = animation_sprites[animation_index];
+        }
+    }
+
     public WorldMapHexSaveData Save_Data
     {
         get {
@@ -752,6 +815,9 @@ public class WorldMapHex : Hex {
         Current_LoS = (LoS_Status)data.Current_Los;
         explored_by = data.Explored_By.Select(x => SaveManager.Get_Player(x)).ToList();
         prospected_by = data.Prospected_By.Select(x => SaveManager.Get_Player(x)).ToList();
+        if(Internal_Name == "swamp") {
+            int i = 0;
+        }
         owner = SaveManager.Get_Player(data.Owner);
         Is_Map_Edge_Road_Connection = data.Is_Map_Edge_Road_Connection;
         if (!string.IsNullOrEmpty(data.Road)) {
