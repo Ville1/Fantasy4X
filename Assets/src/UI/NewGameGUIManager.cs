@@ -98,8 +98,8 @@ public class NewGameGUIManager : MonoBehaviour {
         int default_faction_index = 0;
         AI.Level default_ai_level = AI.Level.Medium;
         Player.NewPlayerData player = player_rows.Count == 0 ?
-            new Player.NewPlayerData("Anonymous", null, Factions.All[default_faction_index]) :
-            new Player.NewPlayerData(string.Format("Bot {0}", bot_name_index), default_ai_level, Factions.All[default_faction_index]);
+            new Player.NewPlayerData("Anonymous", null, Factions.Campaing_Play_Options[default_faction_index]) :
+            new Player.NewPlayerData(string.Format("Bot {0}", bot_name_index), default_ai_level, Factions.Campaing_Play_Options[default_faction_index]);
         
         GameObject new_row = GameObject.Instantiate(Player_Row_Prototype, Panel.transform);
         new_row.transform.position = new Vector3(new_row.transform.position.x, new_row.transform.position.y - (PLAYER_ROW_HEIGHT * player_rows.Count),
@@ -111,7 +111,7 @@ public class NewGameGUIManager : MonoBehaviour {
         new_row.name = string.Format("player_row_{0}", player_row_index);
 
         Get_NameInputField(new_row).text = player.Name;
-        Get_FactionDropdown(new_row).options = Factions.All.Select(x => new Dropdown.OptionData(x.Name)).ToList();
+        Get_FactionDropdown(new_row).options = Factions.Campaing_Play_Options.Select(x => new Dropdown.OptionData(x.Name)).ToList();
         Get_FactionDropdown(new_row).value = default_faction_index;
         List<Dropdown.OptionData> ai_options = new List<Dropdown.OptionData>();
         ai_options.Add(new Dropdown.OptionData("Human"));
@@ -165,7 +165,7 @@ public class NewGameGUIManager : MonoBehaviour {
             if (string.IsNullOrEmpty(player.Name)) {
                 return;
             }
-            player.Faction = Factions.All[Get_FactionDropdown(row).value];
+            player.Faction = Factions.Campaing_Play_Options[Get_FactionDropdown(row).value];
             player.AI = Get_AIDropdown(row).value == 0 ? (AI.Level?)null : (AI.Level)(Get_AIDropdown(row).value - 1);
             players.Add(player);
         }

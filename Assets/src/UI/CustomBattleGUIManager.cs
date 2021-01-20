@@ -88,10 +88,7 @@ public class CustomBattleGUIManager : MonoBehaviour {
         right_unit_selection_scroll_view = new RowScrollView<Unit>("right_unit_selection_scroll_view", Right_Unit_Selection_Content, Right_Unit_Selection_Row_Prototype, 20.0f);
         right_army_scroll_view = new RowScrollView<Unit>("right_army_scroll_view", Right_Army_Content, Right_Army_Row_Prototype, 20.0f);
         default_text_color = Left_Cash_Text.color;
-        factions = Factions.All;
-        factions.Add(Factions.Neutral_Cities);
-        factions.Add(Factions.Bandits);
-        factions.Add(Factions.Wild_Life);
+        factions = Factions.Custom_Battle_Options;
     }
 
     /// <summary>

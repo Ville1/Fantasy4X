@@ -315,25 +315,34 @@ public class BottomGUIManager : MonoBehaviour
         actions.Clear();
 
         for (int i = 0; i < Current_Entity.Actions.Count; i++) {
-            GameObject go = GameObject.Instantiate(Action_GameObject);
-            go.SetActive(true);
-            go.transform.SetParent(Panel.transform, false);
-            go.name = "Action" + i;
-            go.transform.position = new Vector3(Action_GameObject.transform.position.x + (go.GetComponent<RectTransform>().rect.width * i),
-                Action_GameObject.transform.position.y, Action_GameObject.transform.position.z);
-            go.GetComponentInChildren<Image>().overrideSprite = SpriteManager.Instance.Get(Current_Entity.Actions[i].Texture, Current_Entity.Actions[i].Texture_Type);
-            go.GetComponentInChildren<Text>().text = Current_Entity.Actions[i].Name;
-            go.GetComponentInChildren<Button>().interactable = Current_Entity.Actions[i].Can_Be_Activated(Current_Entity) && Current_Entity.Is_Owned_By(Main.Instance.Viewing_Player);
+            GameObject action_gameobject = GameObject.Instantiate(Action_GameObject);
+            action_gameobject.SetActive(true);
+            action_gameobject.transform.SetParent(Panel.transform, false);
+            action_gameobject.name = string.Format("Action{0}", i);
+            action_gameobject.transform.position = new Vector3(
+                Action_GameObject.transform.position.x + (action_gameobject.GetComponent<RectTransform>().rect.width * i),
+                Action_GameObject.transform.position.y,
+                Action_GameObject.transform.position.z
+            );
+            action_gameobject.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get(Current_Entity.Actions[i].Texture, Current_Entity.Actions[i].Texture_Type);
+            if(Current_Entity.Actions[i].Texture_Type == SpriteManager.SpriteType.Improvement) {
+                action_gameobject.GetComponentInChildren<Image>().GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 160.0f);
+            }
+            action_gameobject.GetComponentInChildren<Text>().text = Current_Entity.Actions[i].Name;
+            action_gameobject.GetComponentInChildren<Button>().interactable = Current_Entity.Actions[i].Can_Be_Activated(Current_Entity) && Current_Entity.Is_Owned_By(Main.Instance.Viewing_Player);
+            if (!Current_Entity.Actions[i].Can_Be_Activated(Current_Entity) || !Current_Entity.Is_Owned_By(Main.Instance.Viewing_Player)) {
+                action_gameobject.GetComponentInChildren<Image>().color = Color.gray;
+            }
             Button.ButtonClickedEvent on_click_event = new Button.ButtonClickedEvent();
             int index = i;
             on_click_event.AddListener(new UnityEngine.Events.UnityAction(delegate () {
                 Current_Entity.Actions[index].Activate(Current_Entity);
                 Update_Current_Entity();
             }));
-            go.GetComponentInChildren<Button>().onClick = on_click_event;
-            actions.Add(go);
+            action_gameobject.GetComponentInChildren<Button>().onClick = on_click_event;
+            actions.Add(action_gameobject);
             if (!string.IsNullOrEmpty(Current_Entity.Actions[i].Tooltip)) {
-                TooltipManager.Instance.Register_Tooltip(go.GetComponentInChildren<Button>().gameObject, Current_Entity.Actions[i].Tooltip, gameObject);
+                TooltipManager.Instance.Register_Tooltip(action_gameobject.GetComponentInChildren<Button>().gameObject, Current_Entity.Actions[i].Tooltip, gameObject);
             }
         }
     }

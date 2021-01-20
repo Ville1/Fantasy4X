@@ -23,6 +23,20 @@ public partial class Factions
         }
     }
 
+    public static List<Faction> Campaing_Play_Options
+    {
+        get {
+            return All.Where(x => x.Allow_Campaing_Play).ToList();
+        }
+    }
+
+    public static List<Faction> Custom_Battle_Options
+    {
+        get {
+            return All.Where(x => x.Allow_Custom_Battle_Play).ToList();
+        }
+    }
+
     public static Faction Neutral_Cities
     {
         get {
@@ -300,13 +314,13 @@ public partial class Factions
 
 
         Kingdom.Improvements.Add(new Improvement(Kingdom, "Farm", "farm_2", "farm_inactive_2", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open), null, null));
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Plantation", "plantation", "plantation_inactive", new Yields(0, 0, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid), null, null));
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Hunting Lodge", "hunting_lodge", "hunting_lodge_inactive", new Yields(1.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 7, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Game), null, null));
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Timber), null, null));
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Quarry", "quarry", "quarry_inactive", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 20, 0, false, new List<string>() { "Hill", "Plains", "Hill with a Cave" }, null, null));
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Mine", "mine", "mine_inactive", new Yields(-1, 1, 0, 0, 0, 0, 0), 0.0f, -0.5f, 0.0f, 17, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Plantation", "plantation_2", "plantation_inactive_2", new Yields(0, 0, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Hunting Lodge", "hunting_lodge_2", "hunting_lodge_inactive_2", new Yields(1.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 7, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Game), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Logging Camp", "logging_camp_2", "logging_camp_inactive_2", new Yields(0, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Timber), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Quarry", "quarry_2", "quarry_inactive_2", new Yields(0, 2, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 20, 0, false, new List<string>() { "Hill", "Plains", "Hill with a Cave" }, null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Mine", "mine_2", "mine_inactive_2", new Yields(-1, 1, 0, 0, 0, 0, 0), 0.0f, -0.5f, 0.0f, 17, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), null, null));
 
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Windmill", "windmill", "windmill_inactive", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, new List<string>() { "Hill", "Hill with a Cave" }, Engineering,
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Windmill", "windmill_2", "windmill_inactive_2", new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, new List<string>() { "Hill", "Hill with a Cave" }, Engineering,
             delegate (Improvement improvement) {
                 int adjancent_agriculture = 0;
                 foreach (WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
@@ -327,7 +341,7 @@ public partial class Factions
             }
         ));
 
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Lumber Mill", "large_hut", "large_hut_inactive", new Yields(-1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, HexPrototypes.Instance.All_Non_Structures, Construction,
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Lumber Mill", "large_hut_2", "large_hut_inactive_2", new Yields(-1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 15, 0, false, HexPrototypes.Instance.All_Non_Structures, Construction,
             delegate (Improvement improvement) {
                 int adjancent_lumber_camps = 0;
                 foreach (WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
@@ -349,7 +363,7 @@ public partial class Factions
             }
         ));
 
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Forester's Lodge", "forester", "forester_inactive", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false,
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Forester's Lodge", "forester_2", "forester_inactive_2", new Yields(1, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false,
             HexPrototypes.Instance.All_Forests.Concat(new List<string>() { "Haunted Forest", "Swamp" }).ToList(), Forestry,
             delegate (Improvement improvement) {
                 improvement.Special_Yield_Delta = new Yields();
@@ -375,7 +389,7 @@ public partial class Factions
         ));
 
         //Increases order!
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Mansion", "large_hut", "large_hut_inactive", new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 20, 0, false,
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Mansion", "large_hut_2", "large_hut_inactive_2", new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 20, 0, false,
             HexPrototypes.Instance.All_Non_Structures, Architecture,
             delegate (Improvement improvement) {
                 int adjancent_agriculture = 0;
@@ -754,6 +768,7 @@ public partial class Factions
                 Max_Mana = 1000.0f,
                 Population_Growth_Bonus = -0.95f
             });
+        neutral_cities.Allow_Campaing_Play = false;
 
         neutral_cities.Units.Add(new Unit("Town Guard", Unit.UnitType.Infantry, "neutral_guard", 2.0f, 200, 200, 0.25f, 0.0f, 2, null, null,
             2.0f, true, 10.0f, 100.0f, 100.0f,
@@ -780,6 +795,7 @@ public partial class Factions
                 Population_Growth_Bonus = -0.95f
             });
         bandits.Uses_Special_AI = true;
+        bandits.Allow_Campaing_Play = false;
 
         bandits.Units.Add(new Unit("Thugs", Unit.UnitType.Infantry, "default_unit", 2.0f, 20, 20, 0.25f, 0.0f, 2, null, null,
             2.0f, true, 10.0f, 75.0f, 90.0f,
@@ -831,6 +847,7 @@ public partial class Factions
                 Max_Mana = 500.0f
             });
         wild_life.Uses_Special_AI = true;
+        wild_life.Allow_Campaing_Play = false;
 
         wild_life.Units.Add(new Unit("Wolves", Unit.UnitType.Undefined, "wolf", 3.0f, 1, 1, 0.0f, 0.0f, 3, null, null,
             3.0f, true, 5.0f, 75.0f, 150.0f,

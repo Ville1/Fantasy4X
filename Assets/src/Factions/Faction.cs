@@ -29,6 +29,8 @@ public class Faction {
     public string City_Hex { get; private set; }
     public bool Uses_Special_AI { get; set; }
     public List<Technology> Technologies { get; private set; }
+    public bool Allow_Campaing_Play { get; set; }
+    public bool Allow_Custom_Battle_Play { get; set; }
 
     public Faction(string name, int starting_cash, int capital_starting_population, Dictionary<City.CitySize, Yields> city_yields,
         float pop_food_consumption, int max_food_storage_per_city, float base_happiness, float happiness_from_pops,
@@ -60,6 +62,8 @@ public class Faction {
         Blessings = new List<Blessing>();
         Uses_Special_AI = false;
         Technologies = new List<Technology>() { root_technology };
+        Allow_Campaing_Play = true;
+        Allow_Custom_Battle_Play = true;
 
         Id = current_id;
         current_id++;
