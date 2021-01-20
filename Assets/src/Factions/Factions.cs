@@ -299,7 +299,7 @@ public partial class Factions
 
 
 
-        Kingdom.Improvements.Add(new Improvement(Kingdom, "Farm", "farm", "farm_inactive", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open), null, null));
+        Kingdom.Improvements.Add(new Improvement(Kingdom, "Farm", "farm_2", "farm_inactive_2", new Yields(2, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open), null, null));
         Kingdom.Improvements.Add(new Improvement(Kingdom, "Plantation", "plantation", "plantation_inactive", new Yields(0, 0, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Open, WorldMapHex.Tag.Arid), null, null));
         Kingdom.Improvements.Add(new Improvement(Kingdom, "Hunting Lodge", "hunting_lodge", "hunting_lodge_inactive", new Yields(1.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 7, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Game), null, null));
         Kingdom.Improvements.Add(new Improvement(Kingdom, "Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0, 1, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(WorldMapHex.Tag.Timber), null, null));

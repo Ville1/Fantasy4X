@@ -27,7 +27,7 @@ public class WildLifeAI : IConfigListener, I_AI
     public WildLifeAI(Player player)
     {
         Log_Actions = true;
-        Logged_Action_Types = new List<AI.LogType>() { AI.LogType.General, AI.LogType.Military, AI.LogType.Diagnostic };
+        Logged_Action_Types = new List<AI.LogType>() { AI.LogType.General };
         Player = player;
         Show_Moves = AI.Default_Show_Moves;
         ConfigManager.Instance.Register_Listener(this);

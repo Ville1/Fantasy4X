@@ -232,7 +232,7 @@ public class Improvement {
     public static Improvement Default
     {
         get {
-            return new Improvement(null, "Hut", "hut", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
+            return new Improvement(null, "Hut", "hut_2", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
         }
     }
 

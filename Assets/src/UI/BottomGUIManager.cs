@@ -205,14 +205,18 @@ public class BottomGUIManager : MonoBehaviour
         Current_Entity_Movement_Text.text = string.Format("Movement: {0} / {1}", Helper.Float_To_String(current_entity.Current_Movement, 1), current_entity.Max_Movement);
 
         Current_Entity_Info_Text.text = current_entity.Wait_Turn ? "wait" : (current_entity.Sleep ? "sleep" : string.Empty);
-        if (Current_Entity is Worker && (Current_Entity as Worker).Improvement_Under_Construction != null) {
+        if (Current_Entity is Worker) {
             Update_Actions();
-            Current_Entity_Info_Text.text = string.Format("Building {0}, {1} turn{2} left", (Current_Entity as Worker).Improvement_Under_Construction.Name,
-                (Current_Entity as Worker).Turns_Left, Helper.Plural((Current_Entity as Worker).Turns_Left));
-        } else if (Current_Entity is Prospector && (Current_Entity as Prospector).Prospecting) {
+            if((Current_Entity as Worker).Improvement_Under_Construction != null) {
+                Current_Entity_Info_Text.text = string.Format("Building {0}, {1} turn{2} left", (Current_Entity as Worker).Improvement_Under_Construction.Name,
+                    (Current_Entity as Worker).Turns_Left, Helper.Plural((Current_Entity as Worker).Turns_Left));
+            }
+        } else if (Current_Entity is Prospector) {
             Update_Actions();
-            Current_Entity_Info_Text.text = string.Format("Prospecting {0} turn{1} left", ((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress),
-                Helper.Plural((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress));
+            if ((Current_Entity as Prospector).Prospecting) {
+                Current_Entity_Info_Text.text = string.Format("Prospecting {0} turn{1} left", ((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress),
+                    Helper.Plural((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress));
+            }
         }
     }
 
