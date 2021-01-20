@@ -8,6 +8,7 @@ public class WorldMapHex : Hex {
     private static readonly Color EXPLORED_TINT = new Color(0.5f, 0.5f, 0.5f, 1.0f);
     private static readonly float UNEXPLORED_MOVEMENT_COST = 10.0f;
     private static string not_explored_texture = "clouds";
+    private static long current_icon_id = 0;
 
     public enum InfoText { None, Coordinates, Yields, Minerals }
     public enum LoS_Status { Visible, Explored, Unexplored }
@@ -56,6 +57,8 @@ public class WorldMapHex : Hex {
     private float animation_frame_time_left;
     private int animation_index;
     private List<Sprite> animation_sprites;
+    private GameObject yields_gameobject;
+    private List<GameObject> yield_icons;
 
     public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent, map.Height)
     {
@@ -128,6 +131,8 @@ public class WorldMapHex : Hex {
             sprite = random_sprite != null ? random_sprite : sprite;
         }
         SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
+        yields_gameobject = null;
+        yield_icons = null;
     }
 
     public void Add_Animation(List<string> sprites, float fps)
@@ -761,6 +766,96 @@ public class WorldMapHex : Hex {
                 animation_index = 0;
             }
             SpriteRenderer.sprite = animation_sprites[animation_index];
+        }
+    }
+
+    public bool Show_Yields
+    {
+        get {
+            return yields_gameobject != null && yield_icons != null && yields_gameobject.activeSelf;
+        }
+        set {
+            if(!value && !Show_Yields) {
+                return;
+            }
+            if (value) {
+                if(yields_gameobject == null) {
+                    yields_gameobject = GameObject.Instantiate(
+                        PrefabManager.Instance.Hex_Yields,
+                        new Vector3(
+                            GameObject.transform.position.x,
+                            GameObject.transform.position.y,
+                            GameObject.transform.position.z
+                        ),
+                        Quaternion.identity,
+                        GameObject.transform
+                    );
+                    yields_gameobject.name = "Yields";
+                    yield_icons = new List<GameObject>();
+                }
+                yields_gameobject.SetActive(true);
+
+                List<string> icons = new List<string>();
+                float[] amounts = new float[7] { Yields.Food, Yields.Production, Yields.Cash, Yields.Science, Yields.Culture, Yields.Mana, Yields.Faith };
+                string[][] icon_sprites = new string[7][] {
+                    new string[3] { "food_icon_half", "food_icon", "food_icon_big" },
+                    new string[3] { "production_icon_half", "production_icon", "production_icon_big" },
+                    new string[3] { "cash_icon_half", "cash_icon", "cash_icon_big" },
+                    new string[3] { "science_icon_half", "science_icon", "science_icon_big" },
+                    new string[3] { "culture_icon_half", "culture_icon", "culture_icon_big" },
+                    new string[3] { "mana_icon_half", "mana_icon", "mana_icon_big" },
+                    new string[3] { "faith_icon_half", "faith_icon", "faith_icon_big" }
+                };
+                for(int i = 0; i < amounts.Length; i++) {
+                    int big_amount = (int)(amounts[i] / 5.0f);
+                    float rest = amounts[i] - (big_amount * 5.0f);
+                    int full_amount = (int)rest;
+                    float decimals = rest - full_amount;
+                    if(decimals >= 0.75f) {
+                        full_amount++;
+                        decimals = 0.0f;
+                    }
+                    for(int y = 0; y < big_amount; y++) {
+                        icons.Add(icon_sprites[i][2]);
+                    }
+                    for (int y = 0; y < full_amount; y++) {
+                        icons.Add(icon_sprites[i][1]);
+                    }
+                    if(decimals != 0.0f) {
+                        icons.Add(icon_sprites[i][0]);
+                    }
+                }
+
+                float spacing = 0.25f;
+                GameObject icon_prototype = GameObject.Find(string.Format("{0}/{1}/{2}", GameObject.name, yields_gameobject.name, "Icon"));
+                icon_prototype.SetActive(true);
+                for (int i = 0; i < icons.Count; i++) {
+                    GameObject icon_gameobject = GameObject.Instantiate(
+                        icon_prototype,
+                        new Vector3(
+                            yields_gameobject.transform.position.x + (i * spacing),
+                            yields_gameobject.transform.position.y,
+                            yields_gameobject.transform.position.z
+                        ),
+                        Quaternion.identity,
+                        yields_gameobject.transform
+                    );
+                    icon_gameobject.name = string.Format("Icon#{0}", current_icon_id);
+                    current_icon_id = current_icon_id == long.MaxValue ? 0 : current_icon_id + 1;
+                    icon_gameobject.GetComponentInChildren<SpriteRenderer>().sprite = SpriteManager.Instance.Get(icons[i], SpriteManager.SpriteType.UI);
+                    icon_gameobject.GetComponentInChildren<SpriteRenderer>().sortingOrder = i;
+                    yield_icons.Add(icon_gameobject);
+                }
+                icon_prototype.SetActive(false);
+                yields_gameobject.transform.position = new Vector3(
+                    GameObject.transform.position.x - (icons.Count * (spacing * 0.5f)),
+                    GameObject.transform.position.y,
+                    GameObject.transform.position.z
+                );
+            } else {
+                yields_gameobject.SetActive(false);
+                Helper.Delete_All(yield_icons);
+            }
         }
     }
 

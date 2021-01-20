@@ -174,8 +174,10 @@ public class CityGUIManager : MonoBehaviour {
                 UnitInfoGUIManager.Instance.Active = false;
             }
             if(World.Instance.Map != null) {
-                World.Instance.Map.Map_Mode = Active ? WorldMapHex.InfoText.Yields :
-                    (BottomGUIManager.Instance.Current_Entity is Prospector && !Main.Instance.Other_Players_Turn ? WorldMapHex.InfoText.Minerals : WorldMapHex.InfoText.None);
+                World.Instance.Map.Map_Mode = BottomGUIManager.Instance.Current_Entity is Prospector && !Main.Instance.Other_Players_Turn ? WorldMapHex.InfoText.Minerals : WorldMapHex.InfoText.None;
+                foreach(WorldMapHex hex in Current_City.Hexes_In_Work_Range) {
+                    hex.Show_Yields = Active;
+                }
             }
             CameraManager.Instance.Lock_Camera = Active;
             CameraManager.Instance.Set_City_Zoom(false);

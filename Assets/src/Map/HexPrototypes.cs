@@ -39,7 +39,7 @@ public class HexPrototypes {
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 5 }, { "trees", 5 } }, null));
         world_map_hex_prototypes.Add(new WorldMapHex("forest", "Forest", "forest_2", null, new Yields(2, 0.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 2.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Timber, WorldMapHex.Tag.Game }, default_forest_seed, null));
-        world_map_hex_prototypes.Add(new WorldMapHex("forest hill", "Forest Hill", "placeholder", null, new Yields(1.5f, 1.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 3.0f, 1, 2,
+        world_map_hex_prototypes.Add(new WorldMapHex("forest hill", "Forest Hill", "forest_hill_2", null, new Yields(1.5f, 1.5f, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 3.0f, 1, 2,
             true, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Hill, WorldMapHex.Tag.Timber, WorldMapHex.Tag.Game }, default_forest_seed, null));
         world_map_hex_prototypes.Add(new WorldMapHex("mushroom forest", "Mushroom Forest", "placeholder", null, new Yields(2.5f, 0.5f, 0, 1, 0, 1, 0), 0.0f, 0.0f, 0.0f, 2.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Game }, default_grassland_seed, null));

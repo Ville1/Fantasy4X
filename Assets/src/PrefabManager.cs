@@ -6,6 +6,7 @@ public class PrefabManager : MonoBehaviour {
     public GameObject World_Map_Hex;
     public GameObject Floating_Text;
     public GameObject Floating_Text_Morale;
+    public GameObject Hex_Yields;
 
     /// <summary>
     /// Initialization
