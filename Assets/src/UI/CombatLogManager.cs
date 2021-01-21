@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CombatLogManager : MonoBehaviour {
-    private static readonly int TEXT_ROWS = 15;
     public enum LogLevel { Basic = 0, Verbose = 1 }
 
     public static CombatLogManager Instance;

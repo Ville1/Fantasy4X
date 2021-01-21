@@ -1,27 +1,32 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class TechnologyPanelManager : MonoBehaviour {
-    private static Vector2 position_movement_speed = new Vector2(10.0f, 10.0f);
     public static TechnologyPanelManager Instance;
 
-    private static int line_width = 5;
+    private static readonly int COLUMN_WIDTH = 150;
+    private static readonly int ROW_HEIGHT = 40;
+    private static readonly int LINE_WIDTH = 5;
 
     public GameObject Panel;
-    public Button Root_Technology_Button;
+    public GameObject Root_Technology_GameObject;
     public GameObject Line_Panel;
     public GameObject Buttons_GameObject;
     public GameObject Lines_GameObject;
+    public GameObject Scroll_View_Content;
 
-    private Dictionary<Technology, Button> technology_buttons;
+    private Dictionary<Technology, GameObject> technology_gameobjects;
     private List<GameObject> lines;
     private Color cant_be_researched_color;
     private Color researched_color;
     private Color can_be_researched_color;
     private List<Technology> update_leads_to_links;
-    private Vector2 position_delta;
-    private Vector3 original_root_position;
+    private long current_item_id;
+    private float max_y;
+    private float min_y;
+    private int max_column;
 
     /// <summary>
     /// Initializiation
@@ -35,15 +40,16 @@ public class TechnologyPanelManager : MonoBehaviour {
         Instance = this;
         Panel.SetActive(false);
         Line_Panel.SetActive(false);
-        Root_Technology_Button.gameObject.SetActive(false);
+        Root_Technology_GameObject.gameObject.SetActive(false);
         cant_be_researched_color = new Color(1.0f, 0.0f, 0.0f);
         researched_color = new Color(0.0f, 0.0f, 1.0f);
         can_be_researched_color = new Color(0.0f, 1.0f, 0.0f);
-        technology_buttons = new Dictionary<Technology, Button>();
+        technology_gameobjects = new Dictionary<Technology, GameObject>();
         lines = new List<GameObject>();
-        position_delta = new Vector2(0.0f, 0.0f);
-        original_root_position = new Vector3(Root_Technology_Button.transform.position.x, Root_Technology_Button.transform.position.y,
-            Root_Technology_Button.transform.position.z);
+        current_item_id = 0;
+        max_y = 0.0f;
+        min_y = float.MaxValue;
+        max_column = 0;
     }
 
     /// <summary>
@@ -73,7 +79,6 @@ public class TechnologyPanelManager : MonoBehaviour {
             }
             Panel.SetActive(value);
             if (Active) {
-                position_delta = new Vector2(0.0f, 0.0f);
                 Update_Technologies();
             }
         }
@@ -86,80 +91,81 @@ public class TechnologyPanelManager : MonoBehaviour {
 
     public void Update_Technologies()
     {
-        foreach(KeyValuePair<Technology, Button> pair in technology_buttons) {
-            GameObject.Destroy(pair.Value.gameObject);
-        }
+        Helper.Delete_All(technology_gameobjects);
         TooltipManager.Instance.Unregister_Tooltips_By_Owner(gameObject);
-        technology_buttons.Clear();
-        foreach(GameObject line in lines) {
-            GameObject.Destroy(line);
-        }
+        technology_gameobjects.Clear();
+        Helper.Delete_All(lines);
         lines.Clear();
         update_leads_to_links = new List<Technology>();
         int column = 0;
-        Root_Technology_Button.transform.position = new Vector3(
-            original_root_position.x + position_delta.x,
-            original_root_position.y + position_delta.y,
-            original_root_position.z
-        );
+        max_y = 0.0f;
+        min_y = float.MaxValue;
+        max_column = 0;
         foreach (KeyValuePair<int, Technology> pair in Player.Root_Technology.Leads_To) {
-            Update_Technologies_Recursive(pair.Value, column, pair.Key, Root_Technology_Button.transform.position.y);
+            Update_Technologies_Recursive(pair.Value, column, pair.Key, Root_Technology_GameObject.transform.position.y);
         }
         foreach(Technology update_tech in update_leads_to_links) {
             foreach (KeyValuePair<int, Technology> pair in update_tech.Leads_To) {
                 GameObject line = GameObject.Instantiate(Line_Panel);
                 line.SetActive(true);
-                line.name = "Line" + pair.Value.Name.Replace(" ", "");
+                line.name = string.Format("Line{0}#{1}", pair.Value.Name.Replace(" ", ""), current_item_id);
+                current_item_id = current_item_id == long.MaxValue ? 0 : current_item_id + 1;
                 line.transform.SetParent(Lines_GameObject.transform, false);
 
-                Vector3 differenceVector = technology_buttons[update_tech].transform.position - technology_buttons[pair.Value].transform.position;
+                Vector3 differenceVector = technology_gameobjects[update_tech].transform.position - technology_gameobjects[pair.Value].transform.position;
 
-                line.GetComponent<RectTransform>().sizeDelta = new Vector2(differenceVector.magnitude, line_width);
+                line.GetComponent<RectTransform>().sizeDelta = new Vector2(differenceVector.magnitude, LINE_WIDTH);
                 line.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
-                line.GetComponent<RectTransform>().position = technology_buttons[update_tech].transform.position;
+                line.GetComponent<RectTransform>().position = technology_gameobjects[update_tech].transform.position;
                 float angle = Mathf.Atan2(differenceVector.y, differenceVector.x) * Mathf.Rad2Deg;
                 line.GetComponent<RectTransform>().rotation = Quaternion.Euler(0, 0, (angle + 180.0f));
             }
         }
+        
+        Scroll_View_Content.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (max_column + 1) * COLUMN_WIDTH);
+        Scroll_View_Content.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (2 * (int)Mathf.Max(max_y, -min_y)) + (2 * ROW_HEIGHT));
     }
 
     private void Update_Technologies_Recursive(Technology tech, int column, int position, float last_y)
     {
-        int column_widht = 150;
-        int row_height = 40;
         float new_y = last_y;
-        Button button_go = null;
+        GameObject button_go = null;
+        max_column = column > max_column ? column : max_column;
 
-        if (!technology_buttons.ContainsKey(tech) && position < 7) {
+        if (!technology_gameobjects.ContainsKey(tech) && position < 7) {
             int estimated_turns = tech.Turns_Left_Estimate;
-            Button new_button = GameObject.Instantiate<Button>(Root_Technology_Button);
-            new_button.gameObject.SetActive(true);
-            new_button.transform.SetParent(Buttons_GameObject.transform, false);
-            new_button.name = string.Format("{0}Button", tech.Name.Replace(" ", ""));
-            new_button.transform.position = new Vector3(
-                Root_Technology_Button.transform.position.x + (column_widht * column),
-                last_y + (-1.0f * (row_height * (position - 3))),
-                Root_Technology_Button.transform.position.z
+            GameObject tech_gameobject = GameObject.Instantiate(
+                Root_Technology_GameObject,
+                new Vector3(
+                    Root_Technology_GameObject.transform.position.x + (COLUMN_WIDTH * column),
+                    last_y + (-1.0f * (ROW_HEIGHT * (position - 3))),
+                    Root_Technology_GameObject.transform.position.z
+                ),
+                Quaternion.identity,
+                Buttons_GameObject.transform
             );
-            new_button.GetComponentInChildren<Text>().text = tech.Is_Researched ? tech.Name : string.Format("{0} ({1} turn{2})", tech.Name,
+            tech_gameobject.gameObject.SetActive(true);
+            tech_gameobject.name = string.Format("{0}Item#{1}", tech.Name.Replace(" ", ""), current_item_id);
+            current_item_id = current_item_id == long.MaxValue ? 0 : current_item_id + 1;
+
+            tech_gameobject.GetComponentInChildren<Text>().text = tech.Is_Researched ? tech.Name : string.Format("{0} ({1} turn{2})", tech.Name,
                 estimated_turns, Helper.Plural(estimated_turns));
-            new_button.interactable = tech.Can_Be_Researched;
+            Button button = tech_gameobject.GetComponentInChildren<Button>();
+            Image background_image = GameObject.Find(string.Format("{0}/BackgroundImage", tech_gameobject.name)).GetComponentInChildren<Image>();
+            button.interactable = tech.Can_Be_Researched;
             
-            if(new_button.transform.position.x < 120.0f /*button width*/ * 1.35f || new_button.transform.position.x > 900.0f /*panel width*/ * 1.05f ||
-                new_button.transform.position.y < 120.0f || new_button.transform.position.y > 550.0f) {//<- idk where these numers come from :P
-                new_button.gameObject.SetActive(false);//Off screen
-            }
+            TooltipManager.Instance.Register_Tooltip(button.gameObject, tech.Tooltip, gameObject);
 
-            TooltipManager.Instance.Register_Tooltip(new_button.gameObject, tech.Tooltip, gameObject);
-
-            new_y = new_button.transform.position.y;
-
+            new_y = tech_gameobject.transform.position.y;
+            min_y = tech_gameobject.transform.localPosition.y < min_y ? tech_gameobject.transform.localPosition.y : min_y;
+            max_y = tech_gameobject.transform.localPosition.y > max_y ? tech_gameobject.transform.localPosition.y : max_y;
+            
             if (tech.Is_Researched) {
-                new_button.image.color = researched_color;
+                background_image.color = researched_color;
             } else if (tech.Can_Be_Researched) {
-                new_button.image.color = can_be_researched_color;
+                background_image.color = can_be_researched_color;
             } else {
-                new_button.image.color = cant_be_researched_color;
+                background_image.color = cant_be_researched_color;
             }
             Button.ButtonClickedEvent on_click_event = new Button.ButtonClickedEvent();
             Technology t = tech;
@@ -169,13 +175,56 @@ public class TechnologyPanelManager : MonoBehaviour {
                 TopGUIManager.Instance.Update_GUI();
                 BottomGUIManager.Instance.Update_Next_Turn_Button_Text();
             }));
-            new_button.GetComponentInChildren<Button>().onClick = on_click_event;
+            tech_gameobject.GetComponentInChildren<Button>().onClick = on_click_event;
 
-            technology_buttons.Add(tech, new_button);
-            button_go = new_button;
+            List<object[]> icons = new List<object[]>();
+            foreach(Trainable unit in Player.Faction.Units.Where(x => x.Technology_Required != null && x.Technology_Required.Name == tech.Name).ToList()) {
+                icons.Add(new object[3] {
+                    unit.Name,
+                    unit.Texture,
+                    SpriteManager.SpriteType.Unit
+                });
+            }
+            foreach (Building building in Player.Faction.Buildings.Where(x => x.Technology_Required != null && x.Technology_Required.Name == tech.Name).ToList()) {
+                icons.Add(new object[3] {
+                    building.Name,
+                    building.Texture,
+                    SpriteManager.SpriteType.Building
+                });
+            }
+            if(tech.EmpireModifiers != null && !tech.EmpireModifiers.Empty) {
+                icons.Add(new object[3] {
+                    tech.EmpireModifiers.Tooltip,
+                    "plus_icon",
+                    SpriteManager.SpriteType.UI
+                });
+            }
+            Image prototype_image = GameObject.Find(string.Format("{0}/Icons/IconImage", tech_gameobject.name)).GetComponentInChildren<Image>();
+            int index = 0;
+            foreach(object[] icon_data in icons) {
+                GameObject new_icon = GameObject.Instantiate(
+                    prototype_image.gameObject,
+                    new Vector3(
+                        prototype_image.gameObject.transform.position.x + (index * 15.0f),
+                        prototype_image.gameObject.transform.position.y,
+                        prototype_image.gameObject.transform.position.z
+                    ),
+                    Quaternion.identity,
+                    GameObject.Find(string.Format("{0}/Icons", tech_gameobject.name)).transform
+                );
+                new_icon.name = string.Format("Icon#{0}", current_item_id);
+                current_item_id = current_item_id == long.MaxValue ? 0 : current_item_id + 1;
+                new_icon.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get((string)icon_data[1], (SpriteManager.SpriteType)icon_data[2]);
+                TooltipManager.Instance.Register_Tooltip(new_icon, (string)icon_data[0], gameObject);
+                index++;
+            }
+            prototype_image.gameObject.SetActive(false);
+
+            technology_gameobjects.Add(tech, tech_gameobject);
+            button_go = tech_gameobject;
         } else {
-            if (technology_buttons.ContainsKey(tech)) {
-                button_go = technology_buttons[tech];
+            if (technology_gameobjects.ContainsKey(tech)) {
+                button_go = technology_gameobjects[tech];
             } else {
                 update_leads_to_links.Add(tech);
             }
@@ -183,7 +232,7 @@ public class TechnologyPanelManager : MonoBehaviour {
 
         if(button_go != null && button_go.gameObject.activeSelf) {
             foreach (Technology prerequisite_tech in tech.Prequisites) {
-                if (!technology_buttons.ContainsKey(prerequisite_tech)) {
+                if (!technology_gameobjects.ContainsKey(prerequisite_tech)) {
                     continue;
                 }
                 GameObject line = GameObject.Instantiate(Line_Panel);
@@ -191,11 +240,11 @@ public class TechnologyPanelManager : MonoBehaviour {
                 line.name = string.Format("Line_{0}_{1}", prerequisite_tech.Name.Replace(" ", ""), tech.Name.Replace(" ", ""));
                 line.transform.SetParent(Lines_GameObject.transform, false);
 
-                Vector3 differenceVector = technology_buttons[prerequisite_tech].transform.position - button_go.transform.position;
+                Vector3 differenceVector = technology_gameobjects[prerequisite_tech].transform.position - button_go.transform.position;
 
-                line.GetComponent<RectTransform>().sizeDelta = new Vector2(differenceVector.magnitude, line_width);
+                line.GetComponent<RectTransform>().sizeDelta = new Vector2(differenceVector.magnitude, LINE_WIDTH);
                 line.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
-                line.GetComponent<RectTransform>().position = technology_buttons[prerequisite_tech].transform.position;
+                line.GetComponent<RectTransform>().position = technology_gameobjects[prerequisite_tech].transform.position;
                 float angle = Mathf.Atan2(differenceVector.y, differenceVector.x) * Mathf.Rad2Deg;
                 line.GetComponent<RectTransform>().rotation = Quaternion.Euler(0, 0, (angle + 180.0f));
 
@@ -206,29 +255,5 @@ public class TechnologyPanelManager : MonoBehaviour {
         foreach (KeyValuePair<int, Technology> next_pair in tech.Leads_To) {
             Update_Technologies_Recursive(next_pair.Value, column + 1, next_pair.Key, new_y);
         }
-    }
-
-    public void Move_Up()
-    {
-        position_delta.y -= position_movement_speed.y;
-        Update_Technologies();
-    }
-
-    public void Move_Down()
-    {
-        position_delta.y += position_movement_speed.y;
-        Update_Technologies();
-    }
-
-    public void Move_Left()
-    {
-        position_delta.x += position_movement_speed.x;
-        Update_Technologies();
-    }
-
-    public void Move_Right()
-    {
-        position_delta.x -= position_movement_speed.x;
-        Update_Technologies();
     }
 }

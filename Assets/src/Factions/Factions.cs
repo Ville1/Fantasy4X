@@ -198,6 +198,8 @@ public partial class Factions
         Professional_Army.Link(Military_Science, 3);
         Technology Military_History = new Technology(Kingdom, "Military History", 240, new List<AI.Tag>() { AI.Tag.Military });
         Military_Science.Link(Military_History, 3);
+        Technology Advanced_Armors = new Technology(Kingdom, "Advanced Armors", 335, new List<AI.Tag>() { AI.Tag.Military });
+        Military_History.Link(Advanced_Armors, 3);
 
         Technology Combined_Arms = new Technology(Kingdom, "Combined Arms", 85, new List<AI.Tag>() { AI.Tag.Military });
         Professional_Army.Link(Combined_Arms, 2);
@@ -212,8 +214,7 @@ public partial class Factions
             Improvement_Constuction_Speed_Bonus = 0.05f
         };
         Logistics.Link(Topography, 3);
-
-
+        
         Technology Ballistics = new Technology(Kingdom, "Ballistics", 450, new List<AI.Tag>() { AI.Tag.Military });
         Topography.Link(Ballistics, 3);
 
@@ -231,6 +232,7 @@ public partial class Factions
         Construction.Link(Heavy_Industry, 3);
         Technology Metallurgy = new Technology(Kingdom, "Metallurgy", 260, new List<AI.Tag>());
         Heavy_Industry.Link(Metallurgy, 3);
+        Heavy_Industry.Link(Advanced_Armors);
         Technology Machinery = new Technology(Kingdom, "Machinery", 340, new List<AI.Tag>() { AI.Tag.Cash, AI.Tag.Production, AI.Tag.Science, AI.Tag.Culture });
         Metallurgy.Link(Machinery, 3);
 
