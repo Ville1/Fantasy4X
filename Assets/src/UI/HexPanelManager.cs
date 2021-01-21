@@ -11,6 +11,7 @@ public class HexPanelManager : MonoBehaviour
     public GameObject Panel;
     public Text Terrain_Text;
     public Image Hex_Image;
+    public Image Improvement_Image;
     public Text Food_Text;
     public Text Production_Text;
     public Text Cash_Text;
@@ -35,7 +36,7 @@ public class HexPanelManager : MonoBehaviour
             return;
         }
         Instance = this;
-        Active = false;
+        Panel.SetActive(false);
         hex = null;
     }
 
@@ -84,7 +85,12 @@ public class HexPanelManager : MonoBehaviour
             CityOrVillageOverviewGUIManager.Instance.Current = hex.Trade_Partner;
             TooltipManager.Instance.Unregister_Tooltips_By_Owner(gameObject);
             Terrain_Text.text = hex.Terrain + " " + hex.Coordinates.X + "," + hex.Coordinates.Y;
-            Hex_Image.overrideSprite = SpriteManager.Instance.Get(hex.Sprite, SpriteManager.SpriteType.Terrain);
+            Hex_Image.sprite = SpriteManager.Instance.Get(hex.Sprite, SpriteManager.SpriteType.Terrain);
+            Hex_Image.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Hex_Image.sprite.rect.height > Hex_Image.sprite.rect.width ? 200.0f : 100.0f);
+            Improvement_Image.gameObject.SetActive(hex.Improvement != null && hex.Visible_To_Viewing_Player);
+            if (Improvement_Image.gameObject.activeSelf) {
+                Improvement_Image.sprite = SpriteManager.Instance.Get(hex.Improvement.Texture, SpriteManager.SpriteType.Improvement);
+            }
             Food_Text.text = Helper.Float_To_String(hex.Yields.Food, 1, false, false);
             Production_Text.text = Helper.Float_To_String(hex.Yields.Production, 1, false, false);
             Cash_Text.text = Helper.Float_To_String(hex.Yields.Cash, 1, false, false);
@@ -93,8 +99,8 @@ public class HexPanelManager : MonoBehaviour
             Mana_Text.text = Helper.Float_To_String(hex.Yields.Mana, 1, false, false);
             Faith_Text.text = Helper.Float_To_String(hex.Yields.Faith, 1, false, false);
             Movement_Cost_Text.text = string.Format("Movement{0}Cost: {1}", Environment.NewLine, Helper.Float_To_String(Hex.Movement_Cost, 1));
-            Improvement_Text.text = string.Format("Improvement:{0}{1}", Environment.NewLine, hex.Improvement == null ? "None" : hex.Improvement.Name);
-            Owner_Text.text = string.Format("Owner:{0}{1}", Environment.NewLine, hex.Has_Owner ? hex.Owner.Name : "None");
+            Improvement_Text.text = string.Format("Improvement:{0}{1}", Environment.NewLine, hex.Visible_To_Viewing_Player ? (hex.Improvement == null ? "None" : hex.Improvement.Name) : "???");
+            Owner_Text.text = string.Format("Owner:{0}{1}", Environment.NewLine, hex.Visible_To_Viewing_Player ? (hex.Has_Owner ? hex.Owner.Name : "None") : "???");
             if (Hex.Can_Spawn_Minerals) {
                 Mineral_Text.gameObject.SetActive(true);
                 if (Hex.Is_Prospected_By(Main.Instance.Viewing_Player)) {

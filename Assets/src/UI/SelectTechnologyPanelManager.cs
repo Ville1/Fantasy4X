@@ -96,6 +96,9 @@ public class SelectTechnologyPanelManager : MonoBehaviour {
                         d.On_Click();
                     });
                 }
+                if (icons[i].Sprite_Type == SpriteManager.SpriteType.Improvement) {
+                    icon_gameobject.GetComponentInChildren<Image>().GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 40.0f);
+                }
                 TooltipManager.Instance.Register_Tooltip(icon_gameobject.GetComponentInChildren<Image>().gameObject, icons[i].Tooltip, gameObject);
                 icon_gameobjects.Add(icon_gameobject);
             }
@@ -139,6 +142,9 @@ public class SelectTechnologyPanelManager : MonoBehaviour {
                         Helper.Set_Button_On_Click(icon_gameobject.name, "SelectButton", delegate () {
                             icon_data.On_Click();
                         });
+                    }
+                    if (icon_data.Sprite_Type == SpriteManager.SpriteType.Improvement) {
+                        icon_gameobject.GetComponentInChildren<Image>().GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 34.0f);
                     }
                     TooltipManager.Instance.Register_Tooltip(icon_gameobject.GetComponentInChildren<Image>().gameObject, icon_data.Tooltip, gameObject);
                     index++;

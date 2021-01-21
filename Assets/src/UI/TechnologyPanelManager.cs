@@ -193,7 +193,10 @@ public class TechnologyPanelManager : MonoBehaviour {
                 new_icon.name = string.Format("Icon#{0}", current_item_id);
                 current_item_id = current_item_id == long.MaxValue ? 0 : current_item_id + 1;
                 new_icon.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get(icon_data.Sprite, icon_data.Sprite_Type);
-                TooltipManager.Instance.Register_Tooltip(new_icon, icon_data.Tooltip, gameObject);
+                TooltipManager.Instance.Register_Tooltip(new_icon.GetComponentInChildren<Image>().gameObject, icon_data.Tooltip, gameObject);
+                if(icon_data.Sprite_Type == SpriteManager.SpriteType.Improvement) {
+                    new_icon.GetComponentInChildren<Image>().GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 30.0f);
+                }
                 if(icon_data.On_Click != null) {
                     Helper.Set_Button_On_Click(new_icon.name, "SelectButton", delegate() { icon_data.On_Click(); });
                 }
