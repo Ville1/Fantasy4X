@@ -295,7 +295,7 @@ public class CustomBattleGUIManager : MonoBehaviour {
             new UIElementData("NameText", unit.Name),
             new UIElementData("CostText", string.Format("{0}/{1}", unit.Cost, unit.Production_Required)),
             new UIElementData("InfoButton", "i", delegate() {
-                UnitInfoGUIManager.Instance.Open(unit, false);
+                UnitInfoGUIManager.Instance.Open(unit, true);
             }),
             new UIElementData("SelectButton", null, delegate () {
                 if(selection) {

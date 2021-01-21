@@ -53,6 +53,7 @@ public class UnitInfoGUIManager : MonoBehaviour
     private RowScrollView<Damage.Type> resistances_scroll_view;
     private RowScrollView<Ability> abilities_scroll_view;
     private float panel_position_x;
+    private bool train_gui;
 
     /// <summary>
     /// Initializiation
@@ -91,10 +92,11 @@ public class UnitInfoGUIManager : MonoBehaviour
         }
     }
 
-    public void Open(Unit unit, bool is_preview)
+    public void Open(Unit unit, bool is_preview, bool train_gui = false)
     {
         Unit = unit;
         Is_Preview = is_preview;
+        this.train_gui = train_gui;
         Active = true;
         Update_Info();
     }
@@ -117,7 +119,7 @@ public class UnitInfoGUIManager : MonoBehaviour
     public void Update_Info()
     {
         Panel.gameObject.transform.position = new Vector3(
-            panel_position_x + (Is_Preview ? 150.0f : 0.0f),
+            panel_position_x + (train_gui ? 150.0f : 0.0f),
             Panel.gameObject.transform.position.y,
             Panel.gameObject.transform.position.z
         );
@@ -125,9 +127,9 @@ public class UnitInfoGUIManager : MonoBehaviour
         Name_Text.text = Unit.Name;
         Image.sprite = SpriteManager.Instance.Get(Unit.Texture, SpriteManager.SpriteType.Unit);
 
-        Train_Button.gameObject.SetActive(Is_Preview);
+        Train_Button.gameObject.SetActive(train_gui);
         Train_Button.interactable = CityGUIManager.Instance.Current_City != null ? CityGUIManager.Instance.Current_City.Can_Train(Unit) : false;
-        Close_Button.GetComponentInChildren<Text>().text = Is_Preview ? "Cancel" : "Close";
+        Close_Button.GetComponentInChildren<Text>().text = train_gui ? "Cancel" : "Close";
 
         Armor_Image.gameObject.SetActive(true);
         switch (Unit.Armor) {

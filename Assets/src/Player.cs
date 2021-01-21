@@ -504,6 +504,13 @@ public class Player {
         }
         Last_Technology_Researched = string.IsNullOrEmpty(data.Last_Technology_Researched) ? null : Faction.Technologies.First(x => x.Name == data.Last_Technology_Researched);
         Researched_Technologies = data.Researched_Technologies.Select(x => Faction.Technologies.First(y => y.Name == x)).ToList();
+        foreach(Technology tech in Root_Technology.All_Techs_This_Leads_To) {
+            if(Researched_Technologies.Exists(x => x.Name == tech.Name)) {
+                tech.Research_Acquired = tech.Research_Required;
+            } else if(data.Technologies_In_Progress.Exists(x => x.Name == tech.Name)) {
+                tech.Research_Acquired = data.Technologies_In_Progress.First(x => x.Name == tech.Name).Progress;
+            }
+        }
         foreach(EmpireModifierStatusEffectSaveData effect_data in data.Status_Effects) {
             EmpireModifierStatusEffect effect = new EmpireModifierStatusEffect(effect_data.Name, effect_data.Duration, new EmpireModifiers() {
                 Unit_Training_Speed_Bonus = effect_data.Modifiers.Unit_Training_Speed_Bonus,
@@ -593,6 +600,10 @@ public class Player {
             data.Research_Acquired = Current_Technology == null ? 0.0f : Current_Technology.Research_Acquired;
             data.Last_Technology_Researched = Last_Technology_Researched == null ? null : Last_Technology_Researched.Name;
             data.Researched_Technologies = Researched_Technologies.Select(x => x.Name).ToList();
+            data.Technologies_In_Progress = Root_Technology.All_Techs_This_Leads_To.Where(x => x.Research_Acquired != 0.0f && x.Research_Acquired != x.Research_Required).Select(x => new TechnologySaveData() {
+                Name = x.Name,
+                Progress = x.Research_Acquired
+            }).ToList();
             data.Status_Effects = Status_Effects.Select(x => new EmpireModifierStatusEffectSaveData() {
                 Name = x.Name,
                 Duration = x.Duration,

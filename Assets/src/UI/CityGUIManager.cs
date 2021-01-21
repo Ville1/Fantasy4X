@@ -585,7 +585,7 @@ public class CityGUIManager : MonoBehaviour {
                 new UIElementData("TurnsText", string.Format("{0} turn{1}", turns, Helper.Plural(turns))),
                 new UIElementData("SelectButton", null, delegate() {
                     if(available_unit is Unit) {
-                        UnitInfoGUIManager.Instance.Open(available_unit as Unit, true);
+                        UnitInfoGUIManager.Instance.Open(available_unit as Unit, true, true);
                     } else {
                         Select_Unit(available_unit);
                     }

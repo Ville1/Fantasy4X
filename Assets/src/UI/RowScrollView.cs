@@ -73,6 +73,11 @@ public class RowScrollView<T>
         }
     }
 
+    public GameObject Get(T key)
+    {
+        return rows.ContainsKey(key) ? rows[key] : null;
+    }
+
     public override string ToString()
     {
         return string.Format("{0}#{1}", Name, Id);

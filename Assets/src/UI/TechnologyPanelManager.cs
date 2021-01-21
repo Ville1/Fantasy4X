@@ -176,49 +176,30 @@ public class TechnologyPanelManager : MonoBehaviour {
                 BottomGUIManager.Instance.Update_Next_Turn_Button_Text();
             }));
             tech_gameobject.GetComponentInChildren<Button>().onClick = on_click_event;
-
-            List<object[]> icons = new List<object[]>();
-            foreach(Trainable unit in Player.Faction.Units.Where(x => x.Technology_Required != null && x.Technology_Required.Name == tech.Name).ToList()) {
-                icons.Add(new object[3] {
-                    unit.Name,
-                    unit.Texture,
-                    SpriteManager.SpriteType.Unit
-                });
-            }
-            foreach (Building building in Player.Faction.Buildings.Where(x => x.Technology_Required != null && x.Technology_Required.Name == tech.Name).ToList()) {
-                icons.Add(new object[3] {
-                    building.Name,
-                    building.Texture,
-                    SpriteManager.SpriteType.Building
-                });
-            }
-            if(tech.EmpireModifiers != null && !tech.EmpireModifiers.Empty) {
-                icons.Add(new object[3] {
-                    tech.EmpireModifiers.Tooltip,
-                    "plus_icon",
-                    SpriteManager.SpriteType.UI
-                });
-            }
-            Image prototype_image = GameObject.Find(string.Format("{0}/Icons/IconImage", tech_gameobject.name)).GetComponentInChildren<Image>();
+            
+            GameObject icon_prototype = GameObject.Find(string.Format("{0}/Icons/IconPrototype", tech_gameobject.name));
             int index = 0;
-            foreach(object[] icon_data in icons) {
+            foreach(Technology.IconData icon_data in tech.UI_Icons(Player)) {
                 GameObject new_icon = GameObject.Instantiate(
-                    prototype_image.gameObject,
+                    icon_prototype,
                     new Vector3(
-                        prototype_image.gameObject.transform.position.x + (index * 15.0f),
-                        prototype_image.gameObject.transform.position.y,
-                        prototype_image.gameObject.transform.position.z
+                        icon_prototype.gameObject.transform.position.x + (index * 15.0f),
+                        icon_prototype.gameObject.transform.position.y,
+                        icon_prototype.gameObject.transform.position.z
                     ),
                     Quaternion.identity,
                     GameObject.Find(string.Format("{0}/Icons", tech_gameobject.name)).transform
                 );
                 new_icon.name = string.Format("Icon#{0}", current_item_id);
                 current_item_id = current_item_id == long.MaxValue ? 0 : current_item_id + 1;
-                new_icon.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get((string)icon_data[1], (SpriteManager.SpriteType)icon_data[2]);
-                TooltipManager.Instance.Register_Tooltip(new_icon, (string)icon_data[0], gameObject);
+                new_icon.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get(icon_data.Sprite, icon_data.Sprite_Type);
+                TooltipManager.Instance.Register_Tooltip(new_icon, icon_data.Tooltip, gameObject);
+                if(icon_data.On_Click != null) {
+                    Helper.Set_Button_On_Click(new_icon.name, "SelectButton", delegate() { icon_data.On_Click(); });
+                }
                 index++;
             }
-            prototype_image.gameObject.SetActive(false);
+            icon_prototype.gameObject.SetActive(false);
 
             technology_gameobjects.Add(tech, tech_gameobject);
             button_go = tech_gameobject;

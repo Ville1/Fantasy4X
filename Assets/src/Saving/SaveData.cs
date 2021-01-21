@@ -40,6 +40,7 @@ public class PlayerSaveData
     public float Research_Acquired;
     public List<string> Researched_Technologies;
     public string Last_Technology_Researched;
+    public List<TechnologySaveData> Technologies_In_Progress;
     public List<EmpireModifierStatusEffectSaveData> Status_Effects;
     public List<CooldownSaveData> Spells_On_Cooldown;
     public List<CooldownSaveData> Blessings_On_Cooldown;
@@ -52,4 +53,11 @@ public class CooldownSaveData
 {
     public string Name;
     public int Value;
+}
+
+[Serializable]
+public class TechnologySaveData
+{
+    public string Name;
+    public float Progress;
 }

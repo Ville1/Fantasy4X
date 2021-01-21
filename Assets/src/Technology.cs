@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -217,6 +218,71 @@ public class Technology {
                 tooltip.Append(Environment.NewLine).Append("Unlocks: ").Append(string.Join(", ", Get_Unlocks().ToArray()));
             }
             return tooltip.ToString();
+        }
+    }
+
+    public List<IconData> UI_Icons(Player player)
+    {
+        List<IconData> icons = new List<IconData>();
+        foreach (Trainable unit in player.Faction.Units.Where(x => x.Technology_Required != null && x.Technology_Required.Name == Name).ToList()) {
+            icons.Add(new IconData(
+                unit.Name,
+                unit.Texture,
+                SpriteManager.SpriteType.Unit,
+                delegate () {
+                    if(unit is Unit) {
+                        UnitInfoGUIManager.Instance.Open(unit as Unit, true);
+                    }
+                }
+            ));
+        }
+        foreach (Building building in player.Faction.Buildings.Where(x => x.Technology_Required != null && x.Technology_Required.Name == Name).ToList()) {
+            icons.Add(new IconData(
+                building.Name,
+                building.Texture,
+                SpriteManager.SpriteType.Building
+            ));
+        }
+        foreach (Improvement improvement in player.Faction.Improvements.Where(x => x.Technology_Required != null && x.Technology_Required.Name == Name).ToList()) {
+            icons.Add(new IconData(
+                improvement.Name,
+                improvement.Texture,
+                SpriteManager.SpriteType.Improvement
+            ));
+        }
+        if (EmpireModifiers != null && !EmpireModifiers.Empty) {
+            icons.Add(new IconData(
+                EmpireModifiers.Tooltip,
+                "plus_icon",
+                SpriteManager.SpriteType.UI
+            ));
+        }
+        return icons;
+    }
+
+    public class IconData
+    {
+        public delegate void OnClickDelegate();
+
+        public string Tooltip { get; set; }
+        public string Sprite { get; set; }
+        public SpriteManager.SpriteType Sprite_Type { get; set; }
+        public OnClickDelegate On_Click { get; set; }
+
+        public IconData(string tooltip, string sprite, SpriteManager.SpriteType sprite_type)
+        {
+            Tooltip = tooltip;
+            Sprite = sprite;
+            Sprite_Type = sprite_type;
+            On_Click = null;
+        }
+
+        public IconData(string tooltip, string sprite, SpriteManager.SpriteType sprite_type, OnClickDelegate on_click)
+        {
+            Tooltip = tooltip;
+            Sprite = sprite;
+            Sprite_Type = sprite_type;
+            On_Click = on_click;
         }
     }
 }
