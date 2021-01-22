@@ -291,7 +291,7 @@ public class CombatUIManager : MonoBehaviour {
         bool top_row = true;
         int column = 0;
         if (!CombatManager.Instance.Other_Players_Turn) {
-            foreach(Unit unit in CombatManager.Instance.Current_Army.Units) {
+            foreach(Unit unit in CombatManager.Instance.Current_Army.Units.Where(x => x.Hex != null || CombatManager.Instance.Deployment_Mode).ToList()) {
                 GameObject item = GameObject.Instantiate(
                     Unit_List_Prototype,
                     new Vector3(
@@ -377,7 +377,7 @@ public class CombatUIManager : MonoBehaviour {
 
         Next_Unit_Button.interactable = true;
         Previous_Unit_Button.interactable = true;
-        Toggle_Run_Button.interactable = Current_Unit.Can_Run && !CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn;
+        Toggle_Run_Button.interactable = Current_Unit.Can_Run && !CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn && !Current_Unit.Hex.Is_Adjancent_To_Enemy(Current_Unit.Owner);
         if (!Current_Unit.Can_Run) {
             run = false;
             Toggle_Run_Button.GetComponentInChildren<Text>().text = "Run";

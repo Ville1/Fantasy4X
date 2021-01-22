@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class AbilityPrototypes {
     private static AbilityPrototypes instance;
@@ -534,6 +535,40 @@ public class AbilityPrototypes {
                 }
             }
         });
+
+        prototypes.Add("knight upkeep reduction", new Ability("Knight Upkeep Reduction", true, true));
+        prototypes.Add("knight upkeep", new Ability("Knight", false, false) {
+            Get_Upkeep_Multiplier = delegate (Ability ability, WorldMapHex hex) {
+                float squire_reduction = 0.0f;
+                float min_reduction = float.MaxValue;
+                int knights = 0;
+                foreach(Unit unit in hex.Army.Units) {
+                    if(unit.Abilities.Exists(x => x.Name == "Knight Upkeep Reduction")) {
+                        float squire = unit.Abilities.First(x => x.Name == "Knight Upkeep Reduction").Potency;
+                        squire_reduction += squire;
+                        min_reduction = squire_reduction < min_reduction ? squire_reduction : min_reduction;
+                    }
+                    if(unit.Abilities.Exists(x => x.Name == "Knight")) {
+                        knights++;
+                    }
+                }
+                if(squire_reduction == 0.0f) {
+                    return 0.0f;
+                }
+                if(knights == 0) {
+                    CustomLogger.Instance.Error("Army has no knights, but unit with this ability should be there");
+                    return 0.0f;
+                }
+                return -Math.Min(min_reduction, squire_reduction / knights);
+            }
+        });
+
+        prototypes.Add("skirmisher", new Ability("Skirmisher", true, true) {
+            Get_Disengagement_Movement_Cost = delegate (Ability ability, Unit unit) {
+                return ability.Potency;
+            }
+        });
+
         //TODO: rough terrain penalty & ranged attacks
         //TODO: lance charge in urban? impassable houses?
         //TODO: stealth? Does not get destroyed when losing city defence?

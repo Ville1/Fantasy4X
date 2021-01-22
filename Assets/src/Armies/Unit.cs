@@ -55,7 +55,8 @@ public class Unit : Trainable
         Undead,
         Siege_Weapon,
         Large,
-        Blocks_Hex_Working
+        Blocks_Hex_Working,
+        Limited_Recruitment
     }
 
     public string Name { get; private set; }
@@ -334,7 +335,7 @@ public class Unit : Trainable
             movement_cost += engagement_movement_cost;
         } else if (old_hex.Is_Adjancent_To_Enemy(Owner) && !new_hex.Is_Adjancent_To_Enemy(Owner)) {
             //Disengagement
-            movement_cost += disengagement_movement_cost;
+            movement_cost += disengagement_movement_cost * (Math.Max(0.0f, 1.0f - Abilities.Select(x => x.Get_Disengagement_Movement_Cost == null ? 0.0f : x.Get_Disengagement_Movement_Cost(x, this)).Sum()));
             run = false;
             if (disable_can_attack_on_disengagement) {
                 Can_Attack = false;
@@ -736,6 +737,15 @@ public class Unit : Trainable
         defence *= resistance_multiplier;
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
 
+        //City defence
+        if(Hex.City && CombatManager.Instance.Army_2.Id == Army.Id) {
+            attack *= (1.0f + CombatManager.Instance.Hex.City.Defence_Bonus);
+            result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = CombatManager.Instance.Hex.City.Defence_Bonus, Description = "City Defence" });
+        } else if(target.Hex.City && CombatManager.Instance.Army_2.Id == target.Army.Id) {
+            defence *= (1.0f + CombatManager.Instance.Hex.City.Defence_Bonus);
+            result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = CombatManager.Instance.Hex.City.Defence_Bonus, Description = "City Defence" });
+        }
+
         //Ability delta
         foreach (Ability ability in Abilities) {
             if (ability.On_Calculate_Melee_Damage_As_Attacker == null) {
@@ -856,6 +866,7 @@ public class Unit : Trainable
         attack *= 1.0f + ARCH_ATTACK_MULTIPLIERS[arch];
         result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = ARCH_ATTACK_MULTIPLIERS[arch], Description = ARCH_DETAIL_DESCRIPTIONS[arch] });
 
+        //Base defence
         float total = 0.0f;
         foreach (KeyValuePair<Damage.Type, float> damage in Ranged_Attack.Type_Weights) {
             float resistance_to_type = target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f;
@@ -867,6 +878,15 @@ public class Unit : Trainable
         }
         defence *= resistance_multiplier;
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
+
+        //City defence
+        if (Hex.City && CombatManager.Instance.Army_2.Id == Army.Id) {
+            attack *= (1.0f + CombatManager.Instance.Hex.City.Defence_Bonus);
+            result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = CombatManager.Instance.Hex.City.Defence_Bonus, Description = "City Defence" });
+        } else if (target.Hex.City && CombatManager.Instance.Army_2.Id == target.Army.Id) {
+            defence *= (1.0f + CombatManager.Instance.Hex.City.Defence_Bonus);
+            result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = CombatManager.Instance.Hex.City.Defence_Bonus, Description = "City Defence" });
+        }
 
         //Ability delta
         foreach (Ability ability in Abilities) {

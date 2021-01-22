@@ -123,12 +123,23 @@ public class UnitInfoGUIManager : MonoBehaviour
             Panel.gameObject.transform.position.y,
             Panel.gameObject.transform.position.z
         );
-
+        TooltipManager.Instance.Unregister_Tooltips_By_Owner(gameObject);
         Name_Text.text = Unit.Name;
         Image.sprite = SpriteManager.Instance.Get(Unit.Texture, SpriteManager.SpriteType.Unit);
 
         Train_Button.gameObject.SetActive(train_gui);
-        Train_Button.interactable = CityGUIManager.Instance.Current_City != null ? CityGUIManager.Instance.Current_City.Can_Train(Unit) : false;
+        if (train_gui) {
+            if(CityGUIManager.Instance.Current_City == null) {
+                CustomLogger.Instance.Error("CityGUIManager.Instance.Current_City == null");
+                Active = false;
+                return;
+            }
+            string message = null;
+            Train_Button.interactable = CityGUIManager.Instance.Current_City.Can_Train(Unit, out message);
+            if (!string.IsNullOrEmpty(message)) {
+                TooltipManager.Instance.Register_Tooltip(Train_Button.gameObject, message, gameObject);
+            }
+        }
         Close_Button.GetComponentInChildren<Text>().text = train_gui ? "Cancel" : "Close";
 
         Armor_Image.gameObject.SetActive(true);

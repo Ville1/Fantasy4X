@@ -102,7 +102,7 @@ public class Main : MonoBehaviour {
         CameraManager.Instance.Set_Camera_Location(Current_Player.Capital.Hex);
     }
 
-    public void Start_Custom_Battle(Player.NewPlayerData attacker_data, List<Unit> attacker_units, Player.NewPlayerData defender_data, List<Unit> defender_units, WorldMapHex hex)
+    public void Start_Custom_Battle(Player.NewPlayerData attacker_data, List<Unit> attacker_units, Player.NewPlayerData defender_data, List<Unit> defender_units, WorldMapHex hex_p)
     {
         Initialize_New_Game();
         World.Instance.Generate_Placeholder_Map();
@@ -114,9 +114,15 @@ public class Main : MonoBehaviour {
         Players.Add(defender);
         Current_Player = attacker;
         Viewing_Player = attacker;
+        
+        WorldMapHex hex = World.Instance.Map.Get_Hex_At(World.Instance.Map.Width / 2 + 1, World.Instance.Map.Height / 2);
+        hex.Change_To(hex_p);
+        if(hex.CombatMap_City_Seed != null && hex.CombatMap_City_Seed.Count != 0) {
+            City city = new City(hex, defender, null, false);
+        }
 
         Army attacker_army = new Army(World.Instance.Map.Get_Hex_At(World.Instance.Map.Width / 2, World.Instance.Map.Height / 2), attacker.Faction.Army_Prototype, attacker, null);
-        Army defender_army = new Army(World.Instance.Map.Get_Hex_At(World.Instance.Map.Width / 2 + 1, World.Instance.Map.Height / 2), defender.Faction.Army_Prototype, defender, null);
+        Army defender_army = new Army(hex, defender.Faction.Army_Prototype, defender, null);
         foreach(Unit unit in attacker_units) {
             unit.Army = attacker_army;
             attacker_army.Units.Add(unit);

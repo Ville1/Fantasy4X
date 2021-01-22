@@ -39,6 +39,8 @@ public class Building {
     public float Max_Mana { get; set; }
     public float Health_Penalty_From_Buildings_Multiplier { get; set; }
     public int Update_Priority { get; set; }
+    public Dictionary<string, int> Recruitment_Limits { get; set; }
+    public float City_Defence_Bonus { get; set; }
 
     private float upkeep;
     private bool paused;
@@ -81,6 +83,8 @@ public class Building {
         Max_Mana = prototype.Max_Mana;
         Health_Penalty_From_Buildings_Multiplier = prototype.Health_Penalty_From_Buildings_Multiplier;
         Update_Priority = prototype.Update_Priority;
+        Recruitment_Limits = Helper.Copy_Dictionary(prototype.Recruitment_Limits);
+        City_Defence_Bonus = prototype.City_Defence_Bonus;
     }
 
     public Building(string name, string texture, int production_required, int cost, float upkeep, Yields yields, float happiness, float health, float order,
@@ -116,6 +120,8 @@ public class Building {
         Trade_Value = 0.0f;
         Health_Penalty_From_Buildings_Multiplier = 0.0f;
         Update_Priority = 0;
+        Recruitment_Limits = new Dictionary<string, int>();
+        City_Defence_Bonus = 0.0f;
     }
 
     public Yields Yields
@@ -257,6 +263,12 @@ public class Building {
             }
             if (Health_Penalty_From_Buildings_Multiplier != 0.0f) {
                 tooltip.Append(Environment.NewLine).Append("Health penalty from buildings: ").Append(Mathf.RoundToInt(100.0f * Health_Penalty_From_Buildings_Multiplier)).Append("%");
+            }
+            if(Recruitment_Limits.Count != 0) {
+                tooltip.Append(Environment.NewLine).Append("Recruitment limits:");
+                foreach(KeyValuePair<string, int> pair in Recruitment_Limits) {
+                    tooltip.Append(Environment.NewLine).Append("  ").Append(pair.Key).Append(" +").Append(pair.Value);
+                }
             }
             return tooltip.ToString();
         }

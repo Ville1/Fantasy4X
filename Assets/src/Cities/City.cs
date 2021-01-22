@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 public class City : Ownable, Influencable, TradePartner
@@ -29,7 +30,7 @@ public class City : Ownable, Influencable, TradePartner
     private static readonly float ENEMY_CULTURAL_INFLUENCE_HAPPINESS_BREAK_POINT_2 = 0.50f;
     private static readonly float ENEMY_CULTURAL_INFLUENCE_LOS_BREAK_POINT_1 = 0.33f;
     private static readonly float ENEMY_CULTURAL_INFLUENCE_LOS_BREAK_POINT_2 = 0.67f;
-
+    private static readonly float BASE_DEFENCE_BONUS = 0.05f;
 
     private static int current_id = 0;
 
@@ -59,6 +60,7 @@ public class City : Ownable, Influencable, TradePartner
     public Yields Last_Turn_Yields { get; private set; }
     public Army Garrison { get { return Hex.Entity != null && Hex.Entity is Army ? Hex.Entity as Army : null; } }
     public StatusEffectList<CityStatusEffect> Status_Effects { get; private set; }
+    public float Defence_Bonus { get { return Buildings.Select(x => x.City_Defence_Bonus).Sum() + BASE_DEFENCE_BONUS; } }
 
     private bool update_yields;
     private Yields saved_base_yields;//TODO: what was this supposed to do?
@@ -271,7 +273,41 @@ public class City : Ownable, Influencable, TradePartner
 
     public bool Can_Train(Trainable unit)
     {
-        return Owner.Cash >= unit.Cost - Unit_Refound() && Owner.Has_Unlocked(unit) && (!unit.Requires_Coast || Is_Coastal);
+        return
+            Owner.Cash >= unit.Cost - Unit_Refound() &&
+            Owner.Has_Unlocked(unit) &&
+            (!unit.Requires_Coast || Is_Coastal) &&
+            !(unit is Unit && (unit as Unit).Tags.Contains(Unit.Tag.Limited_Recruitment) &&
+            Owner.World_Map_Entities.Where(x => x is Army).Select(x => x as Army).Select(x => x.Units.Where(y => y.Name == unit.Name).ToList().Count).Sum() >=
+            Owner.Cities.Select(x => x.Buildings.Where(y => y.Recruitment_Limits.ContainsKey(unit.Name)).Select(y => y.Recruitment_Limits[unit.Name]).Sum()).Sum());
+    }
+
+    public bool Can_Train(Trainable unit, out string message)
+    {
+        message = null;
+        StringBuilder message_builder = new StringBuilder();
+        if(Owner.Cash < unit.Cost - Unit_Refound()) {
+            message_builder.Append("not enough cash, ");
+        }
+        if (!Owner.Has_Unlocked(unit)) {
+            message_builder.Append("missing ").Append(unit.Technology_Required.Name).Append(" - technology, ");
+        }
+        if(unit.Requires_Coast && !Is_Coastal) {
+            message_builder.Append("requires a coastal city");
+        }
+        if(unit is Unit && (unit as Unit).Tags.Contains(Unit.Tag.Limited_Recruitment)) {
+            int unit_count = Owner.World_Map_Entities.Where(x => x is Army).Select(x => x as Army).Select(x => x.Units.Where(y => y.Name == unit.Name).ToList().Count).Sum();
+            int unit_max = Owner.Cities.Select(x => x.Buildings.Where(y => y.Recruitment_Limits.ContainsKey(unit.Name)).Select(y => y.Recruitment_Limits[unit.Name]).Sum()).Sum();
+            if(unit_count >= unit_max) {
+                message_builder.Append("limited recruitment ").Append(unit_count).Append("/").Append(unit_max).Append(", ");
+            }
+        }
+        message = null;
+        if(message_builder.Length != 0) {
+            message = message_builder.Remove(message_builder.Length - 2, 2).ToString();
+            message = message[0].ToString().ToString() + message.Substring(1);
+        }
+        return Can_Train(unit);
     }
 
     public bool Can_Build(Building building)
