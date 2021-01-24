@@ -478,7 +478,9 @@ public class AI : IConfigListener, I_AI
                     main_armies.Add(army, null);
                     cities_training_main_armies.Remove(army.Hex.City);
                 } else {
-                    CustomLogger.Instance.Warning("Could not find role for army #" + army.Id);
+                    //Roleless army, could be caused by Army.Attack() -> make it into main army
+                    Log("(Roleless army) Role assigned: main", LogType.Military);
+                    main_armies.Add(army, null);
                 }
             }
             //Split new armies from existing ones
@@ -617,6 +619,11 @@ public class AI : IConfigListener, I_AI
                     preference += Mathf.Pow(2.0f, (unit as Unit).LoS);
                     preference /= (((unit as Unit).Upkeep + 2.0f) / 3.0f);
                     preference /= (((unit as Unit).Production_Required + (unit as Unit).Cost + 100.0f) / 200.0f);
+                    if((unit as Unit).Tags.Contains(Unit.Tag.Naval)) {
+                        preference = 0.0f;//TODO: Navy
+                    } else if((unit as Unit).Tags.Contains(Unit.Tag.Amphibious)) {
+                        preference *= 2.0f;
+                    }
                     Log(string.Format("{0} -> preference: {1}", unit.Name, Math.Round(preference, 1)), LogType.Military);
                     scout_options.Add(unit, preference);
                 }
@@ -656,7 +663,9 @@ public class AI : IConfigListener, I_AI
 
                     preference += (unit as Unit).Relative_Strenght;
                     preference /= (((unit as Unit).Production_Required + (unit as Unit).Cost + 100.0f) / 200.0f);
-
+                    if ((unit as Unit).Tags.Contains(Unit.Tag.Naval)) {
+                        preference = 0.0f;//TODO: Navy
+                    }
                     Log(string.Format("{0} -> preference: {1}", unit.Name, Math.Round(preference, 1)), LogType.Military);
                     unit_options.Add(unit, preference);
                 }
@@ -1248,7 +1257,7 @@ public class AI : IConfigListener, I_AI
 
         //Attack adjancent enemies
         if (main_armies[army] == null || main_armies[army].Type != ArmyOrder.OrderType.Defend_City) {
-            foreach(Army enemy in army.Adjancent_Enemies) {
+            foreach(Army enemy in army.Adjancent_Enemies.Where(x => x.Hex.Passable_For(army)).ToList()) {
                 if(enemy.Get_Relative_Strenght_When_On_Hex(enemy.Hex, true, false) * (1.0f + army_attack_carefulness) <
                         army.Get_Relative_Strenght_When_On_Hex(enemy.Hex, true, true)) {
                     Log("Attacking enemy army #" + enemy.Id, LogType.Military);

@@ -63,7 +63,6 @@ public class CustomBattleGUIManager : MonoBehaviour {
     private int right_production_left;
     private List<Unit> left_units;
     private List<Unit> right_units;
-    private WorldMapHex placeholder_hex;
     private int max_units;
     private Color default_text_color;
     private List<Faction> factions;
@@ -285,7 +284,9 @@ public class CustomBattleGUIManager : MonoBehaviour {
         valid_resource_use = !valid_resource_use ? false : (cash_used <= available_cash && production_used <= available_production);
 
         Update_Positions();
-        Start_Button.interactable = left_units.Count != 0 && right_units.Count != 0 && valid_resource_use && left_units.Count <= max_units && right_units.Count <= max_units;
+        Start_Button.interactable = left_units.Count != 0 && right_units.Count != 0 && valid_resource_use && left_units.Count <= max_units && right_units.Count <= max_units &&
+            ((selected_hex.Is_Water && !left_units.Exists(x => !x.Tags.Contains(Unit.Tag.Amphibious) && !x.Tags.Contains(Unit.Tag.Naval)) && !right_units.Exists(x => !x.Tags.Contains(Unit.Tag.Amphibious) && !x.Tags.Contains(Unit.Tag.Naval))) ||
+            (!selected_hex.Is_Water && !left_units.Exists(x => x.Tags.Contains(Unit.Tag.Naval)) && !right_units.Exists(x => x.Tags.Contains(Unit.Tag.Naval))));
     }
     
     private List<UIElementData> Create_Unit_Row(Unit unit, bool selection, bool left)

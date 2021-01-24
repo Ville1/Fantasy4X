@@ -9,7 +9,7 @@ public class Map
     public static readonly float Z_LEVEL = 0.0f;
 
     public enum Direction { North_East, East, South_East, South_West, West, North_West }
-    public enum MovementType { Land, Water, Amphibious }
+    public enum MovementType { Land, Water, Amphibious, Immobile }
 
     public int Width { get; private set; }
     public int Height { get; private set; }

@@ -404,8 +404,26 @@ public class WorldMapHex : Hex {
 
     public bool Passable_For(WorldMapEntity entity)
     {
-        return Base_Movement_Cost > 0.0f && (Has_Harbor || entity.Movement_Type == Map.MovementType.Amphibious || (entity.Movement_Type == Map.MovementType.Land && !Is_Water) ||
-            (entity.Movement_Type == Map.MovementType.Water && Is_Water));
+        return Passable_For(entity.Movement_Type);
+    }
+
+    public bool Passable_For(Unit unit)
+    {
+        return Passable_For(unit.Tags.Contains(Unit.Tag.Amphibious) ? Map.MovementType.Amphibious : (unit.Tags.Contains(Unit.Tag.Naval) ? Map.MovementType.Water : Map.MovementType.Land));
+    }
+
+    public bool Passable_For(List<Unit> units)
+    {
+        return Passable_For(Unit.Get_Movement_Type(units));
+    }
+
+    private bool Passable_For(Map.MovementType movement_type)
+    {
+        if(movement_type == Map.MovementType.Immobile) {
+            return false;
+        }
+        return Base_Movement_Cost > 0.0f && (Has_Harbor || movement_type == Map.MovementType.Amphibious || (movement_type == Map.MovementType.Land && !Is_Water) ||
+            (movement_type == Map.MovementType.Water && Is_Water));
     }
 
     public override PathfindingNode PathfindingNode

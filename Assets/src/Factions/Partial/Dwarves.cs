@@ -10,7 +10,7 @@ public partial class Factions
             { City.CitySize.City,       new Yields(0.0f, 3.0f, 3.0f, 2.0f, 0.5f, 0.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(0.0f, 4.0f, 5.0f, 3.0f, 1.0f, 0.0f, 0.0f) }
         }, 3.0f, 100, 2.0f, -0.40f, 1.0f, -0.15f, 1.5f, -0.40f, 1.0f, false, "dwarven city",
-        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "default_dwarf_2", 10), new EmpireModifiers() {
+        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "default_dwarf_2", "ship_2", 10), new EmpireModifiers() {
             Passive_Income = 3.0f,
             Max_Mana = 100.0f
         });

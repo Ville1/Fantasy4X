@@ -25,6 +25,7 @@ public class Army : WorldMapEntity {
     public float Raiding_Income { get; private set; }
     public List<string> Camp_Animation { get; private set; }
     public float Camp_Animation_FPS { get; private set; }
+    public string Fleet_Sprite { get; private set; }
 
     private bool text_initialized;
     private GameObject TextMesh_game_object;
@@ -44,6 +45,8 @@ public class Army : WorldMapEntity {
             Units = new List<Unit>();
         }
         Current_Movement = Max_Movement;
+        Fleet_Sprite = prototype.Fleet_Sprite;
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(hex.Is_Water ? Fleet_Sprite : Texture, SpriteManager.SpriteType.Unit);
 
         TextMesh_game_object = new GameObject("Army text " + Id);
         TextMesh_game_object.transform.SetParent(GameObject.transform);
@@ -82,11 +85,13 @@ public class Army : WorldMapEntity {
                         MessageManager.Instance.Show_Message("Select hex contains an entity that is not a your army");
                         return;
                     }
+
                     //Check if hex is passable
-                    if (!selected_hex.Passable_For(this)) {
+                    if (!selected_hex.Passable_For(BottomGUIManager.Instance.Selected_Units)) {
                         MessageManager.Instance.Show_Message("Select hex is impassable");
                         return;
                     }
+
                     //Check if hex has army with space for selected units
                     if(selected_hex.Entity != null && (selected_hex.Entity as Army).Max_Size < (selected_hex.Entity as Army).Units.Count + BottomGUIManager.Instance.Selected_Units.Count) {
                         MessageManager.Instance.Show_Message("Select hex contains army which only has space for " +
@@ -152,18 +157,20 @@ public class Army : WorldMapEntity {
         );
     }
 
-    public Army(string name, string texture, int max_size) : base(name, -1, Map.MovementType.Land, -1, texture)
+    public Army(string name, string texture, string fleet_sprite, int max_size) : base(name, -1, Map.MovementType.Land, -1, texture)
     {
         Max_Size = max_size;
         Camp_Animation = null;
         Camp_Animation_FPS = -1.0f;
+        Fleet_Sprite = fleet_sprite;
     }
 
-    public Army(string name, string texture, int max_size, List<string> camp_animation, float camp_animation_fps) : base(name, -1, Map.MovementType.Land, -1, texture)
+    public Army(string name, string texture, string fleet_sprite, int max_size, List<string> camp_animation, float camp_animation_fps) : base(name, -1, Map.MovementType.Land, -1, texture)
     {
         Max_Size = max_size;
         Camp_Animation = camp_animation;
         Camp_Animation_FPS = camp_animation_fps;
+        Fleet_Sprite = fleet_sprite;
     }
 
     public override float Max_Movement
@@ -299,15 +306,14 @@ public class Army : WorldMapEntity {
     public override bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true)
     {
         if(new_hex.Is_Adjancent_To(Hex) && Units_Have_Movement_Left && new_hex.Entity != null && new_hex.Entity is Army && !new_hex.Entity.Is_Owned_By(Owner)) {
-            Attack(new_hex.Entity as Army);
-            return true;
+            return Attack(new_hex.Entity as Army);
         }
         WorldMapHex old_hex = Hex;
         bool success = base.Move(new_hex, ignore_movement_restrictions, update_los);
         if(success)  {
             if (!ignore_movement_restrictions) {
                 foreach (Unit unit in Units) {
-                    unit.Current_Campaing_Map_Movement -= Hex.Movement_Cost;
+                    unit.Current_Campaing_Map_Movement -= Hex.Get_Movement_Cost(Movement_Type);
                 }
             }
             if(Hex.Civilian != null && !Hex.Civilian.Is_Owned_By(Owner)) {
@@ -340,6 +346,7 @@ public class Army : WorldMapEntity {
                     }
                 }
             }
+            SpriteRenderer.sprite = SpriteManager.Instance.Get(Hex.Is_Water ? Fleet_Sprite : Texture, SpriteManager.SpriteType.Unit);
         }
         return success;
     }
@@ -379,12 +386,59 @@ public class Army : WorldMapEntity {
         Update_Text();
     }
 
-    public void Attack(Army army)
+    public bool Attack(Army army)
     {
+        if (!army.Hex.Passable_For(this)) {
+            return false;
+        }
+        bool start_combat = true;
+        if(!army.Hex.Is_Water && army.Units.Exists(x => x.Tags.Contains(Unit.Tag.Naval))) {
+            //Ground attacking a army with naval units
+            List<WorldMapHex> retreat_hexes = army.Hex.Get_Adjancent_Hexes().Where(x => (x.Is_Water || (x.Has_Harbor && x.Is_Owned_By(army.Owner))) && x.Army == null).ToList();
+            WorldMapHex retreat_hex = retreat_hexes.Count != 0 ? RNG.Instance.Random_Item(retreat_hexes) : null;
+            if(retreat_hex == null) {
+                retreat_hexes = army.Hex.Get_Adjancent_Hexes().Where(x => (x.Is_Water || (x.Has_Harbor && x.Is_Owned_By(army.Owner))) && (x.Army == null || x.Army.Is_Owned_By(army.Owner))).ToList();
+                retreat_hex = retreat_hexes.Count != 0 ? RNG.Instance.Random_Item(retreat_hexes) : null;
+            }
+            if (!army.Units.Exists(x => !x.Tags.Contains(Unit.Tag.Naval))) {
+                //All units are naval units
+                if(retreat_hex != null) {
+                    if(retreat_hex.Army == null) {
+                        army.Move(retreat_hex, true);
+                    } else {
+                        foreach(Unit unit in army.Units) {
+                            retreat_hex.Army.Add_Unit(unit);
+                        }
+                        //TODO: If this army gets filled / is full, merge to other adjacent armies before deleting
+                        army.Delete();
+                    }
+                }
+                start_combat = false;
+            } else {
+                List<Unit> naval_units = army.Units.Where(x => x.Tags.Contains(Unit.Tag.Naval)).ToList();
+                Army retreat_army = null;
+                if(retreat_hex != null) {
+                    if(retreat_hex.Army != null) {
+                        retreat_army = retreat_hex.Army;
+                    } else {
+                        retreat_army = new Army(retreat_hex, army.Owner.Faction.Army_Prototype, army.Owner, null);
+                    }
+                }
+                foreach(Unit naval_unit in naval_units) {
+                    if(retreat_army != null) {
+                        retreat_army.Add_Unit(naval_unit);
+                    }
+                    army.Units.Remove(naval_unit);
+                }
+            }
+        }
         foreach (Unit u in Units) {
             u.Current_Campaing_Map_Movement = 0.0f;
         }
-        CombatManager.Instance.Start_Combat(this, army, army.Hex);
+        if (start_combat) {
+            CombatManager.Instance.Start_Combat(this, army, army.Hex);
+        }
+        return true;
     }
 
     public void Start_Combat()

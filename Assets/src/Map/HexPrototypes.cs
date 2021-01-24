@@ -48,7 +48,7 @@ public class HexPrototypes {
         world_map_hex_prototypes.Add(new WorldMapHex("haunted forest", "Haunted Forest", "haunted_forest_2", null, new Yields(0, 1, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 2.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Special }, default_grassland_seed, null));
         world_map_hex_prototypes.Add(new WorldMapHex("water", "Water", "water", null, new Yields(3, 0, 0, 0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 1.0f, 0, -1, false,
-            new List<WorldMapHex.Tag>(), default_grassland_seed, null) { Is_Water = true });
+            new List<WorldMapHex.Tag>(), new Dictionary<string, int>() { { "water", 100 } }, null) { Is_Water = true });
         world_map_hex_prototypes.Add(new WorldMapHex("city ruins", "City Ruins", "ruins_2", null, new Yields(1, 0, 0, 2, 1, 1, 1), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Special }, new Dictionary<string, int>() { { "grass", 100 }, { "scrubs", 35 }, { "trees", 15 }, { "houses", 15 }, { "street", 5 } }, null));
         world_map_hex_prototypes.Add(new WorldMapHex("grave yard", "Grave Yard", "placeholder", null, new Yields(0, 0, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
@@ -68,6 +68,7 @@ public class HexPrototypes {
             new Dictionary<string, int>() { { "cave", 50 }, { "cave rocks", 5 }, { "cave street", 200 }, { "cave houses", 250 } }));
 
         combat_map_hex_prototypes = new Dictionary<string, CombatMapHex>();
+        combat_map_hex_prototypes.Add("water", new CombatMapHex("Water", "water", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open, CombatMapHex.Tag.Water }));
         combat_map_hex_prototypes.Add("grass", new CombatMapHex("Grass", "combat_grass", 1.0f, 0.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
         combat_map_hex_prototypes.Add("scrubs", new CombatMapHex("Scrubs", "combat_scrubs", 1.0f, 1.0f, 0, 0, 0.0f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Open }));
         combat_map_hex_prototypes.Add("trees", new CombatMapHex("Trees", "forest", 2.0f, 2.0f, 0, 1, 0.50f, new List<CombatMapHex.Tag>() { CombatMapHex.Tag.Forest }));

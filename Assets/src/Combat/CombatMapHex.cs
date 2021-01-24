@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 
 public class CombatMapHex : Hex {
-    public enum Tag { Open, Forest, Urban, Hill, Underground }
+    public enum Tag { Open, Forest, Urban, Hill, Underground, Water }
 
     public static Color Owned_Unit_Color = new Color(0.0f, 0.0f, 1.0f);
     public static Color Enemy_Unit_Color = new Color(1.0f, 0.0f, 0.0f);

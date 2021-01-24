@@ -46,7 +46,7 @@ public class Unit : Trainable
 
     private static int current_id = 0;
     
-    public enum UnitType { Undefined, Infantry, Cavalry }
+    public enum UnitType { Undefined, Infantry, Cavalry, Ship }
     public enum ArmorType { Unarmoured, Light, Medium, Heavy }
     public enum AttackArch { None, Low, High }
     public enum Tag
@@ -59,7 +59,9 @@ public class Unit : Trainable
         Siege_Weapon,
         Large,
         Blocks_Hex_Working,
-        Limited_Recruitment
+        Limited_Recruitment,
+        Naval,
+        Amphibious
     }
 
     public string Name { get; private set; }
@@ -109,7 +111,7 @@ public class Unit : Trainable
     public List<StatusBar> Bars { get; private set; }
     public float Mana_Upkeep { get; private set; }
     public ArmorType Armor { get; private set; }
-    public bool Requires_Coast { get { return false; } }
+    public bool Requires_Coast { get { return Tags.Contains(Tag.Naval); } }
 
 
     public bool Has_Moved_This_Turn { get; private set; }
@@ -503,6 +505,9 @@ public class Unit : Trainable
 
     public float Get_Relative_Strenght_When_On_Hex(WorldMapHex hex, bool current_str, bool attacker)
     {
+        if (!hex.Passable_For(this)) {
+            return 0.0f;
+        }
         float current = current_str ? Current_Relative_Strenght : Relative_Strenght;
         float multiplier = 1.0f;
         foreach(Ability ability in Abilities) {
@@ -690,6 +695,9 @@ public class Unit : Trainable
 
     private float Calculate_Morale_Loss_On_Attack(bool is_melee)
     {
+        if(!Uses_Morale || !Uses_Stamina) {
+            return 0.0f;
+        }
         float cost = is_melee ? default_attack_stamina_cost : default_ranged_stamina_cost;
         float[] data = is_melee ? MORALE_LOSS_ON_MELEE_ATTACK_NO_STAMINA : MORALE_LOSS_ON_RANGED_ATTACK_NO_STAMINA;
         if (Current_Stamina >= cost || Relative_Morale <= data[1]) {
@@ -1197,6 +1205,27 @@ public class Unit : Trainable
     public override string ToString()
     {
         return string.Format("{0} (#{1})", Name, Id);
+    }
+
+    public static Map.MovementType Get_Movement_Type(List<Unit> units)
+    {
+        if(units == null || units.Count == 0) {
+            return Map.MovementType.Immobile;
+        }
+        Map.MovementType type = Map.MovementType.Land;
+        int total = units.Count;
+        int land_count = units.Where(x => !x.Tags.Contains(Tag.Naval) && !x.Tags.Contains(Tag.Amphibious)).ToArray().Length;
+        int water_count = units.Where(x => x.Tags.Contains(Tag.Naval)).ToArray().Length;
+        int amphibious_count = units.Where(x => x.Tags.Contains(Tag.Amphibious)).ToArray().Length;
+        if (land_count != 0 && water_count != 0) {
+            return Map.MovementType.Immobile;
+        }
+        if (amphibious_count == total) {
+            type = Map.MovementType.Amphibious;
+        } else if (water_count != 0 && land_count == 0) {
+            type = Map.MovementType.Water;
+        }
+        return type;
     }
 
     private class MovementInfo

@@ -24,12 +24,12 @@ public class WorldMapEntity : Ownable {
     public List<WorldMapHex> Stored_Path { get; set; }
     public int Stored_Path_Index { get; set; }
     public Flag Flag { get; private set; }
-    public Map.MovementType Movement_Type { get; private set; }
     public bool Was_Deleted { get; private set; }
 
     private float animation_frame_time_left;
     protected bool wait_turn;
     private bool sleep;
+    private Map.MovementType movement_type;
 
     public WorldMapEntity(WorldMapHex hex, WorldMapEntity prototype, Player owner, bool civilian)
     {
@@ -93,6 +93,17 @@ public class WorldMapEntity : Ownable {
         Texture = texture;
     }
 
+    public Map.MovementType Movement_Type {
+        get {
+            if(this is Army) {
+                return Unit.Get_Movement_Type((this as Army).Units);
+            }
+            return movement_type;
+        }
+        private set {
+            movement_type = value;
+        }
+    }
 
     public virtual bool Wait_Turn
     {

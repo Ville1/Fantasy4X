@@ -176,7 +176,7 @@ public class UnitInfoGUIManager : MonoBehaviour
         if(Unit.Can_Ranged_Attack) {
             Ranged_Attack_Text.text = Helper.Float_To_String(Unit.Ranged_Attack.Total, 0);
             Range_Text.text = Unit.Range.ToString();
-            Ammo_Text.text = Unit.Max_Ammo.ToString();
+            Ammo_Text.text = Unit.Max_Ammo > 0 ? Unit.Max_Ammo.ToString() : "N/A";
             Ranged_Damage_Types_Text.text = string.Join(", ", Unit.Ranged_Attack.Type_Weights.OrderByDescending(x => x.Value).Select(x => string.Format("{0} {1}%", Helper.Snake_Case_To_UI(x.Key.ToString()), Helper.Float_To_String(x.Value * 100.0f, 0))).ToArray());
         }
         Bottom_Container.gameObject.transform.position = new Vector3(
@@ -195,8 +195,8 @@ public class UnitInfoGUIManager : MonoBehaviour
             });
         }
 
-        Morale_Text.text = Helper.Float_To_String(Unit.Max_Morale, 0);
-        Stamina_Text.text = Helper.Float_To_String(Unit.Max_Stamina, 0);
+        Morale_Text.text = Unit.Uses_Morale ? Helper.Float_To_String(Unit.Max_Morale, 0) : "N/A";
+        Stamina_Text.text = Unit.Uses_Stamina ? Helper.Float_To_String(Unit.Max_Stamina, 0) : "N/A";
         Movement_Text.text = string.Format("{0} / {1}", Helper.Float_To_String(Unit.Max_Movement, 0), Helper.Float_To_String(Unit.Max_Campaing_Map_Movement, 0));
         LoS_Text.text = Unit.LoS.ToString();
         Discipline_Text.text = Helper.Float_To_String(Unit.Discipline, 0);

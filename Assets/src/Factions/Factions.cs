@@ -182,7 +182,7 @@ public partial class Factions
             { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
         }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 1.0f, false, null,
-        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "flag_bearer", 10, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
+        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "flag_bearer", "ship_2", 10, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
             Passive_Income = 3.0f,
             Max_Mana = 100.0f,
             Percentage_Village_Yield_Bonus = new Yields(10.0f, 10.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f)
@@ -216,7 +216,7 @@ public partial class Factions
             Improvement_Constuction_Speed_Bonus = 0.05f
         };
         Logistics.Link(Topography, 3);
-        
+
         Technology Ballistics = new Technology(Kingdom, "Ballistics", 450, new List<AI.Tag>() { AI.Tag.Military });
         Topography.Link(Ballistics, 3);
 
@@ -607,8 +607,8 @@ public partial class Factions
             Kingdom.Improvements.First(x => x.Name == "Windmill"), Kingdom.Improvements.First(x => x.Name == "Lumber Mill"), Kingdom.Improvements.First(x => x.Name == "Forester's Lodge")},
             1.0f, 25, 15, 0.5f, null, 0.0f));
 
-        Kingdom.Units.Add(new Worker("Civilian Ship", 3.0f, Map.MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
-            1.0f, 50, 100, 1.0f, null, 0.0f));
+        /*Kingdom.Units.Add(new Worker("Civilian Ship", 3.0f, Map.MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
+            1.0f, 50, 100, 1.0f, null, 0.0f));*/
 
         Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector_2", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, Education, 10, 0.0f));
 
@@ -723,6 +723,24 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
+        Kingdom.Units.Add(new Unit("Foot Knights", Unit.UnitType.Infantry, "foot_knight", 2.0f, 500, 500, 2.5f, 0.0f, 2, Noble_Residency, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle") },
+            2.0f, true, 12.5f, 200.0f, 200.0f,
+            new Damage(17.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.25f,
+            null, 0, 0, null, null,
+            30.0f, 35.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.25f }, { Damage.Type.Thrust, 1.10f }, { Damage.Type.Impact, 0.75f } },
+            20.0f, 12.0f, Unit.ArmorType.Heavy, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("knight upkeep")
+            },
+            new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
+
+        Kingdom.Units.Add(new Unit("Sloop", Unit.UnitType.Ship, "sloop", 4.0f, 200, 100, 1.0f, 0.0f, 2, null, new List<Building>(),
+            4.0f, false, 10.0f, 100.0f, -1.0f,
+            new Damage(12.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,
+            new Damage(10.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 6, -1, null, null,
+            10.0f, 10.0f, new Dictionary<Damage.Type, float>(),
+            10.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("skirmisher", 0.50f)
+            }, new List<Unit.Tag>() { Unit.Tag.Naval }));
 
         /*Kingdom.Units.Add(new Unit("Dummy", Unit.UnitType.Infantry, "default_unit", 2.0f, 10, 10, 0.1f, 0.0f, 5, Acoustics, new List<Building>(),
             2.0f, true, 10.0f, 100.0f, 0.0f,
@@ -796,7 +814,7 @@ public partial class Factions
                 { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
                 { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f, true, null,
-            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Garrison", "neutral_guard", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Garrison", "neutral_guard", "ship_2", 100), new EmpireModifiers() {
                 Passive_Income = 5.0f,
                 Max_Mana = 1000.0f,
                 Population_Growth_Bonus = -0.95f
@@ -822,7 +840,7 @@ public partial class Factions
                 { City.CitySize.City,       new Yields(1.0f, 2.0f, 4.0f, 0.5f, 1.0f, 0.0f, 0.0f) },
                 { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 1.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 2.0f, -0.40f, 1.0f, -0.30f, 1.0f, -0.50f, 0.5f, true, null,
-            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Bandits", "default_unit", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Bandits", "default_unit", "ship_2", 100), new EmpireModifiers() {
                 Passive_Income = 3.0f,
                 Max_Mana = 100.0f,
                 Population_Growth_Bonus = -0.95f
@@ -876,7 +894,7 @@ public partial class Factions
                 { City.CitySize.City,       new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) },
                 { City.CitySize.Metropolis, new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }
             }, 3.0f, 100, 1.0f, -0.10f, 1.0f, -0.10f, 1.0f, -0.10f, 0.5f, false, null,
-            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", "ship_2", 100), new EmpireModifiers() {
                 Max_Mana = 500.0f
             });
         wild_life.Uses_Special_AI = true;
