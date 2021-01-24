@@ -151,9 +151,6 @@ public class CombatManager : MonoBehaviour {
             } else {
                 CameraManager.Instance.Set_Camera_Location(Map.Center_Of_Deployment_2);
             }
-        } else {
-            Current_Army.End_Combat_Turn();
-            Turn++;
         }
 
         if(!Retreat_Phase && !end_retreat_phase && !Deployment_Mode) {
@@ -165,6 +162,8 @@ public class CombatManager : MonoBehaviour {
         if (end_retreat_phase) {
             Retreat_Phase = false;
             end_retreat_phase = false;
+            Current_Army.End_Combat_Turn();
+            Turn++;
         }
 
         bool has_units = false;
@@ -198,7 +197,7 @@ public class CombatManager : MonoBehaviour {
                 }
                 u.Hex.Borders = CombatMapHex.Owned_Unit_Color;
             }
-            CombatUIManager.Instance.Current_Unit = Current_Army.Units.First(x => x.Hex != null);
+            CombatUIManager.Instance.Current_Unit = Current_Army.Units.OrderByDescending(x => x.Controllable ? 1 : 0).First(x => x.Hex != null);
         } else {
             CombatUIManager.Instance.Current_Unit = Current_Army.Units[0];
         }

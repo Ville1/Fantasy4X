@@ -16,11 +16,14 @@ public class CombatUIManager : MonoBehaviour {
     public Image Unit_Image;
     public Text Unit_Name_Text;
     public Text Unit_Movement_Text;
+    public Text Ammo_Text;
+    public Image Ammo_Icon_Image;
     public Image Can_Attack_Image;
     public Button Deploy_Button;
     public Button Next_Unit_Button;
     public Button Previous_Unit_Button;
     public Button Toggle_Run_Button;
+    public Toggle Run_Toggle;
 
     public GameObject Manpower_GameObject;
     public Image Manpower_Bar;
@@ -355,6 +358,8 @@ public class CombatUIManager : MonoBehaviour {
         Unit_Name_Text.color = Current_Unit.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
         Unit_Movement_Text.text = string.Format("{0} / {1}", Math.Round(Current_Unit.Current_Movement, 1), Current_Unit.Max_Movement);
         Can_Attack_Image.gameObject.SetActive(Current_Unit.Can_Attack);
+        Ammo_Icon_Image.gameObject.SetActive(Current_Unit.Max_Ammo > 0);
+        Ammo_Text.text = Current_Unit.Max_Ammo > 0 ? string.Format("{0} / {1}", Current_Unit.Current_Ammo, Current_Unit.Max_Ammo) : string.Empty;
 
         Manpower_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * Current_Unit.Manpower, bar_height);
         Manpower_Text.text = Mathf.RoundToInt(Current_Unit.Manpower * 100.0f).ToString() + "%";
@@ -378,9 +383,10 @@ public class CombatUIManager : MonoBehaviour {
         Next_Unit_Button.interactable = true;
         Previous_Unit_Button.interactable = true;
         Toggle_Run_Button.interactable = Current_Unit.Can_Run && !CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn && !Current_Unit.Hex.Is_Adjancent_To_Enemy(Current_Unit.Owner);
+        Run_Toggle.interactable = Toggle_Run_Button.interactable;
         if (!Current_Unit.Can_Run) {
             run = false;
-            Toggle_Run_Button.GetComponentInChildren<Text>().text = "Run";
+            Run_Toggle.isOn = false;
         }
 
         TooltipManager.Instance.Register_Tooltip(Unit_Image.gameObject, Current_Unit.Tooltip, gameObject);
@@ -439,7 +445,7 @@ public class CombatUIManager : MonoBehaviour {
                 return;
             }
             run = value;
-            Toggle_Run_Button.GetComponentInChildren<Text>().text = run ? "Run" : "Walk";
+            Run_Toggle.isOn = run;
             Update_Current_Unit();
         }
     }
@@ -447,6 +453,11 @@ public class CombatUIManager : MonoBehaviour {
     public void Toggle_Running_On_Click()
     {
         Run = !Run;
+    }
+
+    public void Toggle_Running_On_Change()
+    {
+        Run = Run_Toggle.isOn;
     }
 
     public void Info_On_Click()
