@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class CombatHexInspectorManager : MonoBehaviour
@@ -9,6 +10,7 @@ public class CombatHexInspectorManager : MonoBehaviour
 
     public Text Name_Text;
     public Image Hex_Image;
+    public Text Tags_Text;
     public Text Movement_Cost_Text;
     public Text Cover_Text;
     public Text Elevation_Text;
@@ -57,6 +59,7 @@ public class CombatHexInspectorManager : MonoBehaviour
             CombatMapHex hex = MouseManager.Instance.Hex_Under_Cursor as CombatMapHex;
             Name_Text.text = hex.Terrain;
             Hex_Image.sprite = SpriteManager.Instance.Get(hex.Sprite, SpriteManager.SpriteType.Terrain);
+            Tags_Text.text = string.Join(", ", hex.Tags.Select(x => Helper.Snake_Case_To_UI(x.ToString())).ToArray());
             Hex_Image.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Hex_Image.sprite.rect.height > Hex_Image.sprite.rect.width ? 100.0f : 50.0f);
             Movement_Cost_Text.text = Helper.Float_To_String(hex.Movement_Cost, 1);
             Cover_Text.text = string.Format("{0}%", Helper.Float_To_String(hex.Cover * 100.0f, 0));

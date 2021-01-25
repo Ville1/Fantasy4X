@@ -698,7 +698,8 @@ public partial class Factions
             null, 0, 0, null, null,
             19.0f, 15.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Impact, 1.0f } },
             15.0f, 11.0f, Unit.ArmorType.Medium, new List<Ability>() {
-                AbilityPrototypes.Instance.Get("armor piercing", 0.10f)
+                AbilityPrototypes.Instance.Get("armor piercing", 0.10f),
+                AbilityPrototypes.Instance.Get("duelist", 0.10f)
             },
             new List<Unit.Tag>() { Unit.Tag.Limited_Recruitment }));
         Kingdom.Units.Add(new Unit("Squires", Unit.UnitType.Cavalry, "squire", 3.0f, 250, 350, 2.0f, 0.0f, 3, Military_Science, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
@@ -733,7 +734,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        Kingdom.Units.Add(new Unit("Noble Knights", Unit.UnitType.Cavalry, "noble_knight", 3.0f, 650, 750, 5.0f, 0.0f, 2, Advanced_Armors, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
+        Kingdom.Units.Add(new Unit("Noble Knights", Unit.UnitType.Cavalry, "noble_knight", 3.0f, 650, 750, 5.0f, 0.0f, 2, Chivalry, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
             Kingdom.Buildings.First(x => x.Name == "Stable")},
             3.0f, true, 7.5f, 200.0f, 200.0f,
             new Damage(20.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.50f,
@@ -743,9 +744,22 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("lance charge", 0.35f),
                 AbilityPrototypes.Instance.Get("rough terrain penalty", 0.35f),
                 AbilityPrototypes.Instance.Get("inspiring presence", 1.0f),
+                AbilityPrototypes.Instance.Get("city culture", 1.0f),
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields, Unit.Tag.Limited_Recruitment }));
+        Kingdom.Units.Add(new Unit("King's Guard", Unit.UnitType.Infantry, "kings_guard", 2.0f, 325, 480, 2.5f, 0.0f, 2, Military_History, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
+            Kingdom.Buildings.First(x => x.Name == "Military Academy")},
+            2.0f, true, 12.5f, 175.0f, 175.0f,
+            new Damage(22.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.15f }, { Damage.Type.Impact, 0.10f } }), 0.35f,
+            new Damage(14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.00f } }), 8, 20, null, null,
+            29.0f, 23.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.25f }, { Damage.Type.Thrust, 1.10f }, { Damage.Type.Impact, 0.75f } },
+            18.0f, 13.0f, Unit.ArmorType.Heavy, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("armor piercing", 0.10f),
+                AbilityPrototypes.Instance.Get("armor piercing ranged", 0.10f),
+                AbilityPrototypes.Instance.Get("city defence bonus", 0.10f)
+            },
+            new List<Unit.Tag>()));
         Kingdom.Units.Add(new Unit("Sloop", Unit.UnitType.Ship, "sloop", 4.0f, 200, 100, 1.0f, 0.0f, 2, null, new List<Building>(),
             4.0f, false, 10.0f, 100.0f, -1.0f,
             new Damage(12.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,

@@ -582,6 +582,24 @@ public class AbilityPrototypes {
             }
         });
 
+        prototypes.Add("duelist", new Ability("Duelist", true, true) {
+            On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                int adjacent_enemies = attacker.Hex.Get_Adjancent_Hexes().Where(x => x.Unit != null && x.Unit.Owner.Id != attacker.Owner.Id && !x.Unit.Is_Routed).Select(x => x.Unit).ToArray().Length;
+                return new Ability.DamageData() {
+                    Attack_Multiplier = adjacent_enemies == 1 ? ability.Potency : 0.0f
+                };
+            },
+            On_Calculate_Melee_Damage_As_Defender = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                int adjacent_enemies = target.Hex.Get_Adjancent_Hexes().Where(x => x.Unit != null && x.Unit.Owner.Id != target.Owner.Id && !x.Unit.Is_Routed).Select(x => x.Unit).ToArray().Length;
+                return new Ability.DamageData() {
+                    Defence_Multiplier = adjacent_enemies == 1 ? ability.Potency : 0.0f
+                };
+            },
+            Get_Relative_Strength_Multiplier_Bonus = delegate (Ability ability) {
+                return ability.Potency * 0.5f;
+            }
+        });
+
         //TODO: rough terrain penalty & ranged attacks
         //TODO: lance charge in urban? impassable houses?
         //TODO: stealth? Does not get destroyed when losing city defence?

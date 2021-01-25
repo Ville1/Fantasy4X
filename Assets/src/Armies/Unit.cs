@@ -21,10 +21,11 @@ public class Unit : Trainable
     private static readonly int on_rout_morale_damage_aoe_radios = 3;
     private static readonly float morale_damage_bonus_on_charge = 0.25f;
     private static readonly float ROUTED_RELATIVE_STRENGHT = 0.25f;
-    private static readonly float ROUT_AOE_MORALE_LOSS = 1.50f;
+    private static readonly float ROUT_AOE_MORALE_LOSS = 1.25f;
     private static readonly float ROUT_AOE_MORALE_GAIN = 0.50f;
     private static readonly float[] MORALE_LOSS_ON_MELEE_ATTACK_NO_STAMINA = new float[2] { 1.0f, 0.1f };
     private static readonly float[] MORALE_LOSS_ON_RANGED_ATTACK_NO_STAMINA = new float[2] { 1.0f, 0.1f };
+    private static readonly float ROUTED_ATTACK_PENALTY = 0.90f;
 
     private static readonly Dictionary<AttackArch, float> ARCH_ATTACK_MULTIPLIERS = new Dictionary<AttackArch, float>() {
         { AttackArch.None, 0.1f },
@@ -704,9 +705,9 @@ public class Unit : Trainable
             Has_Attacked_This_Turn = true;
             StatusBar.Update_Bars(this);
             StatusBar.Update_Bars(target);
-            CombatLogManager.Instance.Print_Log(string.Format("{0} {1} {2} ({3}/{4} dmg dealt, {5}/{6} dmg taken)", Name, Last_Move_This_Turn_Was_Running ? "charge" : "melee attack",
-                target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f), Mathf.RoundToInt(attacker_result.Manpower_Delta * -100.0f),
-                Mathf.RoundToInt(attacker_result.Morale_Delta * -1.0f)));
+            CombatLogManager.Instance.Print_Log(string.Format("{0} {1}{2} {3} ({4}/{5} dmg dealt, {6}/{7} dmg taken)", Name, Last_Move_This_Turn_Was_Running ? "charge" : "melee attack",
+                Is_Single_Entity ? "s" : string.Empty, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f),
+                Mathf.RoundToInt(attacker_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(attacker_result.Morale_Delta * -1.0f)));
             CombatTopPanelManager.Instance.Update_GUI();
         }
 
@@ -750,6 +751,11 @@ public class Unit : Trainable
         result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = Stamina_Effect - 1.0f, Description = "Stamina" });
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = target.Morale_Effect - 1.0f, Description = "Morale" });
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = target.Stamina_Effect - 1.0f, Description = "Stamina" });
+
+        if (Is_Routed) {
+            attack *= (1.0f - ROUTED_ATTACK_PENALTY);
+            result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = -ROUTED_ATTACK_PENALTY, Description = "Routed" });
+        }
 
         //Charge TODO: double loops
         float ability_charge_multiplier = 1.0f;
@@ -883,7 +889,7 @@ public class Unit : Trainable
             if (Max_Ammo > 0) {
                 Current_Ammo--;
             }
-            CombatLogManager.Instance.Print_Log(string.Format("{0} ranged attack {1} ({2}/{3} dmg dealt)", Name, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f),
+            CombatLogManager.Instance.Print_Log(string.Format("{0} ranged attack{1} {2} ({3}/{4} dmg dealt)", Name, Is_Single_Entity ? "s" : string.Empty, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f),
                 Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f)));
         }
 
@@ -1006,6 +1012,10 @@ public class Unit : Trainable
         }
 
         if(Manpower == 0.0f) {
+            CombatLogManager.Instance.Print_Log(string.Format("{0} {1} destroyed", Name, Is_Single_Entity ? "was" : "were"));
+            if (!Is_Routed) {
+                Apply_On_Rout_Morale_AoE(Morale_Value, on_rout_morale_damage_aoe_radios);
+            }
             Undeploy();
         }
     }
@@ -1017,7 +1027,7 @@ public class Unit : Trainable
             if(hex.Unit != null && hex.Unit.Id != Id && hex.Unit.Current_Morale != 0.0f) {
                 if (hex.Unit.Army.Is_Owned_By(Army.Owner)) {
                     //Morale dmg
-                    float morale_delta = Math.Max(1.0f, ((morale_value * hex.Unit.Discipline_Morale_Damage_Multiplier) - Mathf.Max(0.0f, (hex.Unit.Morale_Value - morale_value) * 0.5f)) * ROUT_AOE_MORALE_LOSS);
+                    float morale_delta = -Math.Max(1.0f, ((morale_value * hex.Unit.Discipline_Morale_Damage_Multiplier) - Mathf.Max(0.0f, (hex.Unit.Morale_Value - morale_value) * 0.5f)) * ROUT_AOE_MORALE_LOSS);
                     hex.Unit.Alter_Morale(morale_delta);
                     if (hex.Unit.Current_Morale == 0.0f) {
                         newly_routed_units.Add(hex.Unit);
@@ -1042,8 +1052,9 @@ public class Unit : Trainable
             Is_Single_Entity ? "s" : string.Empty,
             Mathf.RoundToInt(delta)),
             CombatLogManager.LogLevel.Verbose);
-        EffectManager.Instance.Play_Floating_Text(Hex, string.Format("{0}{1}", delta > 0.0f ? "+" : "-", Mathf.RoundToInt(delta).ToString()), EffectManager.TextType.Morale);
+        EffectManager.Instance.Play_Floating_Text(Hex, string.Format("{0}{1}", delta > 0.0f ? "+" : string.Empty, Mathf.RoundToInt(delta).ToString()), EffectManager.TextType.Morale);
         Current_Morale = Mathf.Clamp(Current_Morale + delta, 0.0f, Max_Morale);
+        StatusBar.Update_Bars(this);
         if (Current_Morale == 0.0f) {
             CombatLogManager.Instance.Print_Log(string.Format("{0} rout{1}", Name, Is_Single_Entity ? "s" : string.Empty));
         }
