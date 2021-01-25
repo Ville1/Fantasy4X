@@ -11,7 +11,6 @@ public class CombatMapHex : Hex {
     public static Color Current_Enemy_Unit_Color = new Color(1.0f, 0.0f, 0.5f);
 
     public string Terrain { get; set; }
-    public string Texture { get; private set; }
     public float Movement_Cost { get; private set; }
     public float Run_Stamina_Penalty { get; private set; }
     public int Elevation { get; private set; }
@@ -24,7 +23,7 @@ public class CombatMapHex : Hex {
 
     private bool hidden;
 
-    public CombatMapHex(int q, int r, GameObject parent, CombatMapHex prototype, CombatMap map) : base(q, r, parent, map.Height)
+    public CombatMapHex(int q, int r, GameObject parent, CombatMapHex prototype, CombatMap map) : base(q, r, parent, map.Height, prototype)
     {
         Change_To(prototype);
         Map = map;
@@ -33,10 +32,10 @@ public class CombatMapHex : Hex {
     /// <summary>
     /// Prototype constructor
     /// </summary>
-    public CombatMapHex(string terrain, string texture, float movement_cost, float run_stamina_penalty, int elevation, int height, float cover, List<Tag> tags) : base()
+    public CombatMapHex(string terrain, string sprite, Dictionary<string, int> alternative_sprites, float movement_cost, float run_stamina_penalty, int elevation, int height, float cover, List<Tag> tags) :
+        base(sprite, alternative_sprites)
     {
         Terrain = terrain;
-        Texture = texture;
         Movement_Cost = movement_cost;
         Run_Stamina_Penalty = run_stamina_penalty;
         Elevation = elevation;
@@ -48,14 +47,13 @@ public class CombatMapHex : Hex {
     public void Change_To(CombatMapHex prototype)
     {
         Terrain = prototype.Terrain;
-        Texture = prototype.Texture;
         Movement_Cost = prototype.Movement_Cost;
         Run_Stamina_Penalty = prototype.Run_Stamina_Penalty;
         Elevation = prototype.Elevation;
         Height = prototype.Height;
         Cover = prototype.Cover;
         Tags = Helper.Copy_List(prototype.Tags);
-        SpriteRenderer.sprite = SpriteManager.Instance.Get(Texture, SpriteManager.SpriteType.Terrain);
+        Change_To(prototype as Hex);
     }
 
     public bool Hidden
@@ -65,7 +63,7 @@ public class CombatMapHex : Hex {
         }
         set {
             hidden = value;
-            SpriteRenderer.sprite = SpriteManager.Instance.Get(hidden ? "clouds" : Texture, SpriteManager.SpriteType.Terrain);
+            SpriteRenderer.sprite = SpriteManager.Instance.Get(hidden ? "clouds" : Sprite, SpriteManager.SpriteType.Terrain);
             if(Unit != null) {
                 Unit.GameObject.SetActive(!hidden);
             }

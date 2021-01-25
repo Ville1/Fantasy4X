@@ -158,7 +158,7 @@ public class UnitInfoGUIManager : MonoBehaviour
                 break;
         }
         Type_Text.text = string.Format("{0} {1} {2}", Helper.Snake_Case_To_UI(Unit.Armor.ToString(), true), Unit.Can_Ranged_Attack ? "ranged" : "melee", Unit.Type == Unit.UnitType.Undefined ? "unit" : Helper.Snake_Case_To_UI(Unit.Type.ToString()));
-        Tags_Text.text = string.Join(", ", Unit.Tags.Select(x => Helper.Snake_Case_To_UI(x.ToString())).ToArray());
+        Tags_Text.text = string.Join(", ", Unit.Tags.Where(x => !Unit.HIDDEN_TAGS.Contains(x)).Select(x => Helper.Snake_Case_To_UI(x.ToString())).ToArray());
         Relative_Strenght_Text.text = Helper.Float_To_String(Is_Preview ? Unit.Relative_Strenght : Unit.Current_Relative_Strenght, 0);
         Manpower_Image.gameObject.SetActive(!Is_Preview);
         Manpower_Text.gameObject.SetActive(!Is_Preview);

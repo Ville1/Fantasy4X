@@ -516,7 +516,7 @@ public class AbilityPrototypes {
             }
         });
         prototypes.Add("village influence", new Ability("Village Influence", false, true) {
-            On_Turn_End = delegate (Ability ability, Unit unit) {
+            On_Campaign_Turn_End = delegate (Ability ability, Unit unit) {
                 if(unit.Army.Hex.Village != null) {
                     if (unit.Army.Hex.Village.Cultural_Influence.ContainsKey(unit.Owner)) {
                         unit.Army.Hex.Village.Cultural_Influence[unit.Owner] += ability.Potency;
@@ -527,7 +527,7 @@ public class AbilityPrototypes {
             }
         });
         prototypes.Add("village yield bonus", new Ability("Village Yield Bonus", false, true) {
-            On_Turn_End = delegate (Ability ability, Unit unit) {
+            On_Campaign_Turn_End = delegate (Ability ability, Unit unit) {
                 if (unit.Army.Hex.Village != null) {
                     unit.Army.Hex.Apply_Status_Effect(new HexStatusEffect("Village yield bonus ability", 2) {//2 turns, because Army.End_Turn gets called before WorldMapHex.End_Turn
                         Yield_Delta = new Yields(ability.Potency, ability.Potency, ability.Potency, 0.0f, 0.0f, 0.0f, 0.0f)
@@ -566,6 +566,19 @@ public class AbilityPrototypes {
         prototypes.Add("skirmisher", new Ability("Skirmisher", true, true) {
             Get_Disengagement_Movement_Cost = delegate (Ability ability, Unit unit) {
                 return ability.Potency;
+            }
+        });
+
+        prototypes.Add("inspiring presence", new Ability("Inspiring Presence", false, true) {
+            On_Combat_Turn_Start = delegate (Ability ability, Unit unit) {
+                foreach(Unit adjacent_unit in unit.Hex.Get_Adjancent_Hexes().Where(x => x.Unit != null && x.Unit.Owner.Id == unit.Owner.Id && !x.Unit.Abilities.Exists(y => y.Name == ability.Name)).
+                        Select(x => x.Unit).ToArray()) {
+                    float missing_relative_morale = Math.Max(0.0f, adjacent_unit.Manpower - adjacent_unit.Relative_Morale);
+                    if(missing_relative_morale != 0.0f) {
+                        float amount_restored = Math.Min(ability.Potency, missing_relative_morale * adjacent_unit.Max_Morale);
+                        adjacent_unit.Alter_Morale(amount_restored);
+                    }
+                }
             }
         });
 

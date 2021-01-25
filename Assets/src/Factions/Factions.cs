@@ -539,7 +539,8 @@ public partial class Factions
             Village_Cultural_Influence = 1.0f,
             Garrison_Upkeep_Reduction = 0.05f,
             City_Defence_Bonus = 0.10f,
-            Tags = new Dictionary<AI.Tag, float>() { { AI.Tag.Military, 10.0f }, { AI.Tag.Culture, 2.0f } }
+            Tags = new Dictionary<AI.Tag, float>() { { AI.Tag.Military, 10.0f }, { AI.Tag.Culture, 2.0f } },
+            Recruitment_Limits = new Dictionary<string, int>() { { "Noble Knights", 1 } }
         });
 
         Kingdom.Spells.Add(new Spell("Vision", 10.0f, 5, null, true, delegate (Spell spell, Player caster, WorldMapHex hex) {
@@ -732,7 +733,19 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-
+        Kingdom.Units.Add(new Unit("Noble Knights", Unit.UnitType.Cavalry, "noble_knight", 3.0f, 650, 750, 5.0f, 0.0f, 2, Advanced_Armors, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
+            Kingdom.Buildings.First(x => x.Name == "Stable")},
+            3.0f, true, 7.5f, 200.0f, 200.0f,
+            new Damage(20.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.50f,
+            null, 0, 0, null, null,
+            28.0f, 33.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.35f }, { Damage.Type.Thrust, 1.20f }, { Damage.Type.Impact, 0.85f } },
+            22.0f, 11.0f, Unit.ArmorType.Heavy, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("lance charge", 0.35f),
+                AbilityPrototypes.Instance.Get("rough terrain penalty", 0.35f),
+                AbilityPrototypes.Instance.Get("inspiring presence", 1.0f),
+                AbilityPrototypes.Instance.Get("knight upkeep")
+            },
+            new List<Unit.Tag>() { Unit.Tag.Medium_Shields, Unit.Tag.Limited_Recruitment }));
         Kingdom.Units.Add(new Unit("Sloop", Unit.UnitType.Ship, "sloop", 4.0f, 200, 100, 1.0f, 0.0f, 2, null, new List<Building>(),
             4.0f, false, 10.0f, 100.0f, -1.0f,
             new Damage(12.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,
@@ -740,7 +753,7 @@ public partial class Factions
             10.0f, 10.0f, new Dictionary<Damage.Type, float>(),
             10.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("skirmisher", 0.50f)
-            }, new List<Unit.Tag>() { Unit.Tag.Naval }));
+            }, new List<Unit.Tag>() { Unit.Tag.Naval, Unit.Tag.Crewed_Single_Entity }));
 
         /*Kingdom.Units.Add(new Unit("Dummy", Unit.UnitType.Infantry, "default_unit", 2.0f, 10, 10, 0.1f, 0.0f, 5, Acoustics, new List<Building>(),
             2.0f, true, 10.0f, 100.0f, 0.0f,

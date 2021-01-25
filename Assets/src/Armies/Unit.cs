@@ -61,8 +61,10 @@ public class Unit : Trainable
         Blocks_Hex_Working,
         Limited_Recruitment,
         Naval,
-        Amphibious
+        Amphibious,
+        Crewed_Single_Entity
     }
+    public static readonly List<Tag> HIDDEN_TAGS = new List<Tag>() { Tag.Crewed_Single_Entity };
 
     public string Name { get; private set; }
     public UnitType Type { get; private set; }
@@ -118,8 +120,8 @@ public class Unit : Trainable
     public bool Has_Attacked_This_Turn { get; private set; }
     public bool Last_Move_This_Turn_Was_Running { get; private set; }
     public bool Wait_Turn { get; set; } 
-
-
+    public bool Is_Single_Entity { get { return Tags.Contains(Tag.Crewed_Single_Entity); } }
+    
     private float animation_frame_time_left;
     private bool can_run;
     private float relative_strenght;
@@ -593,6 +595,18 @@ public class Unit : Trainable
         Last_Move_This_Turn_Was_Running = false;
     }
 
+    public void Start_Combat_Turn()
+    {
+        if (Hex == null) {
+            return;
+        }
+        foreach (Ability ability in Abilities) {
+            if (ability.On_Combat_Turn_Start != null) {
+                ability.On_Combat_Turn_Start(ability, this);
+            }
+        }
+    }
+
     public void End_Combat_Turn()
     {
         if(Hex == null) {
@@ -602,10 +616,16 @@ public class Unit : Trainable
         Current_Movement = Max_Movement;
         Can_Attack = true;
 
-        if(Uses_Stamina && !Has_Moved_This_Turn && !Has_Attacked_This_Turn && !Hex.Is_Adjancent_To_Enemy(Owner)) {
+        if (Uses_Stamina && !Has_Moved_This_Turn && !Has_Attacked_This_Turn && !Hex.Is_Adjancent_To_Enemy(Owner)) {
             Current_Stamina += (default_stamina_regeneration * Max_Stamina);
             Current_Stamina = Mathf.Clamp(Current_Stamina, 0.0f, Max_Stamina);
             StatusBar.Update_Bars(this);
+        }
+
+        foreach(Ability ability in Abilities) {
+            if(ability.On_Combat_Turn_End != null) {
+                ability.On_Combat_Turn_End(ability, this);
+            }
         }
 
         Has_Moved_This_Turn = false;
@@ -981,7 +1001,7 @@ public class Unit : Trainable
         }
 
         if (had_morale && Current_Morale == 0.0f) {
-            CombatLogManager.Instance.Print_Log(string.Format("{0} routs", Name));
+            CombatLogManager.Instance.Print_Log(string.Format("{0} rout{1}", Name, Is_Single_Entity ? "s" : string.Empty));
             Apply_On_Rout_Morale_AoE(Morale_Value, on_rout_morale_damage_aoe_radios);
         }
 
@@ -998,24 +1018,34 @@ public class Unit : Trainable
                 if (hex.Unit.Army.Is_Owned_By(Army.Owner)) {
                     //Morale dmg
                     float morale_delta = Math.Max(1.0f, ((morale_value * hex.Unit.Discipline_Morale_Damage_Multiplier) - Mathf.Max(0.0f, (hex.Unit.Morale_Value - morale_value) * 0.5f)) * ROUT_AOE_MORALE_LOSS);
-                    hex.Unit.Current_Morale = Mathf.Clamp(hex.Unit.Current_Morale - morale_delta, 0.0f, hex.Unit.Max_Morale);
-                    CombatLogManager.Instance.Print_Log(string.Format("{0} lose {1} morale", hex.Unit.Name, Mathf.RoundToInt(morale_delta)), CombatLogManager.LogLevel.Verbose);
-                    EffectManager.Instance.Play_Floating_Text(hex, "-" + Mathf.RoundToInt(morale_delta).ToString(), EffectManager.TextType.Morale);
+                    hex.Unit.Alter_Morale(morale_delta);
                     if (hex.Unit.Current_Morale == 0.0f) {
                         newly_routed_units.Add(hex.Unit);
-                        CombatLogManager.Instance.Print_Log(string.Format("{0} routs", hex.Unit.Name));
                     }
                 } else {
                     //Morale bonus
                     float morale_delta = Math.Max(1.0f, (morale_value - Mathf.Max(0.0f, (hex.Unit.Morale_Value - morale_value) * 0.5f)) * ROUT_AOE_MORALE_GAIN);
-                    CombatLogManager.Instance.Print_Log(string.Format("{0} gain {1} morale", hex.Unit.Name, Mathf.RoundToInt(morale_delta)), CombatLogManager.LogLevel.Verbose);
-                    EffectManager.Instance.Play_Floating_Text(hex, "+" + Mathf.RoundToInt(morale_delta).ToString(), EffectManager.TextType.Morale);
-                    hex.Unit.Current_Morale = Mathf.Clamp(hex.Unit.Current_Morale + morale_delta, 0.0f, hex.Unit.Max_Morale);
+                    hex.Unit.Alter_Morale(morale_delta);
                 }
             }
         }
         foreach(Unit u in newly_routed_units) {
             u.Apply_On_Rout_Morale_AoE(u.Morale_Value, on_rout_morale_damage_aoe_radios);
+        }
+    }
+
+    public void Alter_Morale(float delta)
+    {
+        CombatLogManager.Instance.Print_Log(string.Format("{0} {1}{2} {3} morale",
+            Name,
+            delta > 0.0f ? "gain" : "lose",
+            Is_Single_Entity ? "s" : string.Empty,
+            Mathf.RoundToInt(delta)),
+            CombatLogManager.LogLevel.Verbose);
+        EffectManager.Instance.Play_Floating_Text(Hex, string.Format("{0}{1}", delta > 0.0f ? "+" : "-", Mathf.RoundToInt(delta).ToString()), EffectManager.TextType.Morale);
+        Current_Morale = Mathf.Clamp(Current_Morale + delta, 0.0f, Max_Morale);
+        if (Current_Morale == 0.0f) {
+            CombatLogManager.Instance.Print_Log(string.Format("{0} rout{1}", Name, Is_Single_Entity ? "s" : string.Empty));
         }
     }
 

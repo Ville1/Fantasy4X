@@ -371,8 +371,8 @@ public class Army : WorldMapEntity {
                 if(raid && ability.On_Worked_Hex_Raid != null) {
                     raided_yields.Add(ability.On_Worked_Hex_Raid(ability, unit, Hex));
                 }
-                if(ability.On_Turn_End != null) {
-                    ability.On_Turn_End(ability, unit);
+                if(ability.On_Campaign_Turn_End != null) {
+                    ability.On_Campaign_Turn_End(ability, unit);
                 }
             }
         }
@@ -388,7 +388,7 @@ public class Army : WorldMapEntity {
 
     public bool Attack(Army army)
     {
-        if (!army.Hex.Passable_For(this)) {
+        if (!army.Hex.Passable_For(this) || (Hex.Is_Water && army.Hex.Has_Harbor)) {
             return false;
         }
         bool start_combat = true;
@@ -464,6 +464,13 @@ public class Army : WorldMapEntity {
             Delete();
         } else {
             Update_Text();
+        }
+    }
+
+    public void Start_Combat_Turn()
+    {
+        foreach (Unit u in Units) {
+            u.Start_Combat_Turn();
         }
     }
 

@@ -23,6 +23,7 @@ public class TopGUIManager : MonoBehaviour {
             return;
         }
         Instance = this;
+        Panel.SetActive(false);
     }
 
     /// <summary>

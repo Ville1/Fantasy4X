@@ -197,6 +197,7 @@ public class CombatManager : MonoBehaviour {
                 }
                 u.Hex.Borders = CombatMapHex.Owned_Unit_Color;
             }
+            Current_Army.Start_Combat_Turn();
             CombatUIManager.Instance.Current_Unit = Current_Army.Units.OrderByDescending(x => x.Controllable ? 1 : 0).FirstOrDefault(x => x.Hex != null);
         } else {
             CombatUIManager.Instance.Current_Unit = Current_Army.Units[0];

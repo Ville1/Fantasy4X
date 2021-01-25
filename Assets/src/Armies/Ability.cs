@@ -12,6 +12,7 @@ public class Ability {
     public delegate CityEffects Get_City_Effects_Delegate(Ability ability, City city);
     public delegate Yields On_Worked_Hex_Raid_Delegate(Ability ability, Unit unit, WorldMapHex hex);
     public delegate void On_Turn_End_Delegate(Ability ability, Unit unit);
+    public delegate void On_Turn_Start_Delegate(Ability ability, Unit unit);
     public delegate float Get_Disengagement_Movement_Cost_Multiplier_End_Delegate(Ability ability, Unit unit);
 
     public string Name { get; private set; }
@@ -41,7 +42,9 @@ public class Ability {
     public Get_City_Effects_Delegate Get_City_Effects { get; set; }
     public Allow_Ranged_Attack_Delegate On_Allow_Ranged_Attack { get; set; }
     public On_Worked_Hex_Raid_Delegate On_Worked_Hex_Raid { get; set; }
-    public On_Turn_End_Delegate On_Turn_End { get; set; }
+    public On_Turn_End_Delegate On_Campaign_Turn_End { get; set; }
+    public On_Turn_End_Delegate On_Combat_Turn_End { get; set; }
+    public On_Turn_Start_Delegate On_Combat_Turn_Start { get; set; }
     public Get_Disengagement_Movement_Cost_Multiplier_End_Delegate Get_Disengagement_Movement_Cost { get; set; }
 
     public Ability(string name, float potency, bool potency_as_percent, bool uses_potency)
@@ -79,7 +82,9 @@ public class Ability {
         clone.Get_City_Effects = Get_City_Effects;
         clone.On_Allow_Ranged_Attack = On_Allow_Ranged_Attack;
         clone.On_Worked_Hex_Raid = On_Worked_Hex_Raid;
-        clone.On_Turn_End = On_Turn_End;
+        clone.On_Campaign_Turn_End = On_Campaign_Turn_End;
+        clone.On_Combat_Turn_End = On_Combat_Turn_End;
+        clone.On_Combat_Turn_Start = On_Combat_Turn_Start;
         clone.Get_Disengagement_Movement_Cost = Get_Disengagement_Movement_Cost;
         return clone;
     }

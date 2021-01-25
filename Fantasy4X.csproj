@@ -162,6 +162,7 @@
     <Compile Include="Assets\src\UI\CameraManager.cs" />
     <Compile Include="Assets\src\UI\CityGUIManager.cs" />
     <Compile Include="Assets\src\UI\CityOrVillageOverviewGUIManager.cs" />
+    <Compile Include="Assets\src\UI\CombatHexInspectorManager.cs" />
     <Compile Include="Assets\src\UI\CombatLogManager.cs" />
     <Compile Include="Assets\src\UI\CombatTopPanelManager.cs" />
     <Compile Include="Assets\src\UI\CombatUIManager.cs" />

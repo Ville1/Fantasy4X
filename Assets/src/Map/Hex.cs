@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class Hex : Ownable {
     public static readonly string GAME_OBJECT_NAME_PREFIX = "Hex";
@@ -20,15 +22,23 @@ public class Hex : Ownable {
     public GameObject GameObject { get; private set; }
     public SpriteRenderer SpriteRenderer { get { return GameObject.GetComponent<SpriteRenderer>(); } }
     public bool Destroyed { get; private set; }
-    
+    public Dictionary<string, int> Alternative_Sprites { get; private set; }
+    public List<string> Animation_Sprites { get; private set; }
+    public float Animation_FPS { get; private set; }
+
     protected Color highlight_color;
     protected bool show_coordinates;
     protected GameObject text_game_object;
     protected TextMesh TextMesh { get { return text_game_object.GetComponent<TextMesh>(); } }
     protected Color? border_color;
     protected GameObject border_game_object;
+    protected string sprite;
+    protected string default_sprite;
+    protected float animation_frame_time_left;
+    protected int animation_index;
+    protected List<Sprite> animation_sprites;
 
-    public Hex(int q, int r, GameObject parent, int map_height)
+    public Hex(int q, int r, GameObject parent, int map_height, Hex prototype)
     {
         Q = q;
         R = r;
@@ -49,14 +59,75 @@ public class Hex : Ownable {
         show_coordinates = false;
         text_game_object = GameObject.GetComponentInChildren<TextMesh>().gameObject;
         text_game_object.SetActive(false);
+
+        Change_To(prototype);
     }
 
     /// <summary>
     /// Prototype contructor
     /// </summary>
-    public Hex()
-    { }
+    public Hex(string sprite, Dictionary<string, int> alternative_sprites)
+    {
+        default_sprite = sprite;
+        this.sprite = sprite;
+        Alternative_Sprites = alternative_sprites == null ? null : Helper.Copy_Dictionary(alternative_sprites);
+        Animation_Sprites = null;
+        Animation_FPS = -1.0f;
+    }
 
+    public void Change_To(Hex prototype)
+    {
+        default_sprite = prototype.default_sprite;
+        Alternative_Sprites = prototype.Alternative_Sprites == null ? null : Helper.Copy_Dictionary(prototype.Alternative_Sprites);
+        sprite = default_sprite;
+        Animation_Sprites = prototype.Animation_Sprites != null ? Helper.Copy_List(prototype.Animation_Sprites) : null;
+        animation_sprites = Animation_Sprites != null ? Animation_Sprites.Select(x => SpriteManager.Instance.Get(x, SpriteManager.SpriteType.Terrain)).ToList() : null;
+        Animation_FPS = prototype.Animation_FPS;
+        animation_frame_time_left = 0.0f;
+        animation_index = 0;
+        if (Alternative_Sprites != null && Alternative_Sprites.Count != 0) {
+            int random = RNG.Instance.Next(0, 100);
+            string random_sprite = Alternative_Sprites.OrderBy(x => x.Value).Where(x => x.Value >= random).Select(x => x.Key).FirstOrDefault();
+            sprite = random_sprite != null ? random_sprite : sprite;
+        }
+        SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
+    }
+
+    public void Add_Animation(List<string> sprites, float fps)
+    {
+        Animation_Sprites = sprites;
+        Animation_FPS = fps;
+    }
+
+    public string Sprite
+    {
+        get {
+            return string.IsNullOrEmpty(sprite) ? default_sprite : sprite;
+        }
+        private set {
+            default_sprite = value;
+            sprite = value;
+        }
+    }
+
+    public int Sprite_Index
+    {
+        get {
+            return (Alternative_Sprites == null || Alternative_Sprites.Count == 0 || !Alternative_Sprites.ContainsKey(sprite)) ? 0 : Alternative_Sprites.OrderBy(x => x.Value).Select(x => x.Key).ToList().IndexOf(sprite) + 1;
+        }
+        set {
+            if (Alternative_Sprites == null || Alternative_Sprites.Count == 0) {
+                return;
+            }
+            if (value == 0) {
+                sprite = Sprite;
+            } else {
+                sprite = Alternative_Sprites.OrderBy(x => x.Value).Select(x => x.Key).ToList()[value - 1];
+            }
+            SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
+        }
+    }
+    
     public Vector3 Position
     {
         get {

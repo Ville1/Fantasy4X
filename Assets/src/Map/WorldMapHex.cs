@@ -18,7 +18,6 @@ public class WorldMapHex : Hex {
     public string Terrain { get; set; }
     public string Internal_Name { get; private set; }
     public Yields Base_Yields { get; set; }
-    public Dictionary<string, int> Alternative_Sprites { get; private set; }
     public int Elevation { get; private set; }
     public int Height { get; private set; }
     public WorldMapEntity Entity { get; set; }
@@ -42,8 +41,6 @@ public class WorldMapHex : Hex {
     public StatusEffectList<HexStatusEffect> Status_Effects { get; private set; }
     public Dictionary<string, int> CombatMap_Seed { get; private set; }
     public Dictionary<string, int> CombatMap_City_Seed { get; private set; }
-    public List<string> Animation_Sprites { get; private set; }
-    public float Animation_FPS { get; private set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -52,15 +49,10 @@ public class WorldMapHex : Hex {
     private Player owner;
     private List<Player> prospected_by;
     private float movement_cost;
-    private string sprite;
-    private string default_sprite;
-    private float animation_frame_time_left;
-    private int animation_index;
-    private List<Sprite> animation_sprites;
     private GameObject yields_gameobject;
     private List<GameObject> yield_icons;
 
-    public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent, map.Height)
+    public WorldMapHex(int q, int r, GameObject parent, WorldMapHex prototype, Map map) : base(q, r, parent, map.Height, prototype)
     {
         Change_To(prototype);
         this.map = map;
@@ -78,13 +70,10 @@ public class WorldMapHex : Hex {
     /// Prototype constructor
     /// </summary>
     public WorldMapHex(string internal_name, string terrain, string sprite, Dictionary<string, int> alternative_sprites, Yields yields, float happiness, float health, float order, float movement_cost, int elevation, int height,
-        bool can_spawn_minerals, List<Tag> tags, Dictionary<string, int> combatMap_seed, Dictionary<string, int> combatMap_City_Seed) : base()
+        bool can_spawn_minerals, List<Tag> tags, Dictionary<string, int> combatMap_seed, Dictionary<string, int> combatMap_City_Seed) : base(sprite, alternative_sprites)
     {
         Internal_Name = internal_name;
         Terrain = terrain;
-        default_sprite = sprite;
-        this.sprite = sprite;
-        Alternative_Sprites = alternative_sprites == null ? null : Helper.Copy_Dictionary(alternative_sprites);
         Base_Yields = new Yields(yields);
         Base_Movement_Cost = movement_cost;
         Elevation = elevation;
@@ -97,16 +86,12 @@ public class WorldMapHex : Hex {
         CombatMap_Seed = Helper.Copy_Dictionary(combatMap_seed);
         CombatMap_City_Seed = combatMap_City_Seed != null ? Helper.Copy_Dictionary(combatMap_City_Seed) : null;
         Is_Water = false;
-        Animation_Sprites = null;
-        Animation_FPS = -1.0f;
     }
 
     public void Change_To(WorldMapHex prototype)
     {
         Internal_Name = prototype.Internal_Name;
         Terrain = prototype.Terrain;
-        default_sprite = prototype.default_sprite;
-        Alternative_Sprites = prototype.Alternative_Sprites == null ? null : Helper.Copy_Dictionary(prototype.Alternative_Sprites);
         Base_Yields = new Yields(prototype.Base_Yields);
         Base_Movement_Cost = prototype.Base_Movement_Cost;
         Elevation = prototype.Elevation;
@@ -119,57 +104,11 @@ public class WorldMapHex : Hex {
         Tags = Helper.Copy_List(prototype.Tags);
         CombatMap_Seed = Helper.Copy_Dictionary(prototype.CombatMap_Seed);
         CombatMap_City_Seed = prototype.CombatMap_City_Seed != null ? Helper.Copy_Dictionary(prototype.CombatMap_City_Seed) : null;
-        sprite = default_sprite;
-        Animation_Sprites = prototype.Animation_Sprites != null ? Helper.Copy_List(prototype.Animation_Sprites) : null;
-        animation_sprites = Animation_Sprites != null ? Animation_Sprites.Select(x => SpriteManager.Instance.Get(x, SpriteManager.SpriteType.Terrain)).ToList() : null;
-        Animation_FPS = prototype.Animation_FPS;
-        animation_frame_time_left = 0.0f;
-        animation_index = 0;
-        if (Alternative_Sprites != null && Alternative_Sprites.Count != 0) {
-            int random = RNG.Instance.Next(0, 100);
-            string random_sprite = Alternative_Sprites.OrderBy(x => x.Value).Where(x => x.Value >= random).Select(x => x.Key).FirstOrDefault();
-            sprite = random_sprite != null ? random_sprite : sprite;
-        }
-        SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
         yields_gameobject = null;
         yield_icons = null;
-    }
-
-    public void Add_Animation(List<string> sprites, float fps)
-    {
-        Animation_Sprites = sprites;
-        Animation_FPS = fps;
+        Change_To(prototype as Hex);
     }
     
-    public string Sprite
-    {
-        get {
-            return string.IsNullOrEmpty(sprite) ? default_sprite : sprite;
-        }
-        private set {
-            default_sprite = value;
-            sprite = value;
-        }
-    }
-
-    public int Sprite_Index
-    {
-        get {
-            return (Alternative_Sprites == null || Alternative_Sprites.Count == 0 || !Alternative_Sprites.ContainsKey(sprite)) ? 0 : Alternative_Sprites.OrderBy(x => x.Value).Select(x => x.Key).ToList().IndexOf(sprite) + 1;
-        }
-        set {
-            if(Alternative_Sprites == null || Alternative_Sprites.Count == 0) {
-                return;
-            }
-            if(value == 0) {
-                sprite = Sprite;
-            } else {
-                sprite = Alternative_Sprites.OrderBy(x => x.Value).Select(x => x.Key).ToList()[value - 1];
-            }
-            SpriteRenderer.sprite = SpriteManager.Instance.Get(sprite, SpriteManager.SpriteType.Terrain);
-        }
-    }
-
     public float Movement_Cost
     {
         get {
