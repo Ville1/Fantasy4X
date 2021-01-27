@@ -163,7 +163,7 @@ public class HexPrototypes {
                 { "street", 75 },
                 { "houses", 100 }
             }));
-        world_map_hex_prototypes.Add(new WorldMapHex("dwarven city", "Dwarven City", "placeholder", null, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 1, false,
+        world_map_hex_prototypes.Add(new WorldMapHex("dwarven city", "Dwarven City", "dwarf_city_2", null, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 1, false,
             new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Underground }, new Dictionary<string, int>() {
                 { "cave", 100 },
                 { "cave rocks", 50 },

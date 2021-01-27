@@ -250,6 +250,20 @@ public class Technology {
                 SpriteManager.SpriteType.Improvement
             ));
         }
+        foreach (Spell spell in player.Faction.Spells.Where(x => x.Technology_Required != null && x.Technology_Required.Name == Name).ToList()) {
+            icons.Add(new IconData(
+                spell.Name,
+                "mana_icon_big",
+                SpriteManager.SpriteType.UI
+            ));
+        }
+        foreach (Blessing blessing in player.Faction.Blessings.Where(x => x.Technology_Required != null && x.Technology_Required.Name == Name).ToList()) {
+            icons.Add(new IconData(
+                blessing.Name,
+                "faith_icon_big",
+                SpriteManager.SpriteType.UI
+            ));
+        }
         if (EmpireModifiers != null && !EmpireModifiers.Empty) {
             icons.Add(new IconData(
                 EmpireModifiers.Tooltip,

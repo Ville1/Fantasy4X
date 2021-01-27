@@ -127,11 +127,11 @@ public partial class Factions
                         i++;
                     }
                 }
-
+                
                 string[] row = new string[] { unit.Name, Helper.Float_To_String(unit.Relative_Strenght, 0), unit.Production_Required.ToString(), unit.Cost.ToString(), Helper.Float_To_String(unit.Upkeep, 2), Helper.Float_To_String(unit.Max_Campaing_Map_Movement, 1),
                     Helper.Float_To_String(unit.Max_Movement, 1), Helper.Float_To_String(unit.Max_Morale, 0), Helper.Float_To_String(unit.Max_Stamina, 0), Helper.Float_To_String(unit.LoS, 1),
-                    Helper.Float_To_String(unit.Melee_Attack.Total, 0), Helper.Float_To_String(unit.Charge * 100.0f, 0) + "%", melee_attack_types.ToString(), Helper.Float_To_String(unit.Ranged_Attack.Total, 0), ranged_attack_types.ToString(),
-                    unit.Range.ToString(), unit.Max_Ammo.ToString(), Helper.Float_To_String(unit.Melee_Defence, 0), Helper.Float_To_String(unit.Ranged_Defence, 0), Helper.Float_To_String(((unit.Ranged_Defence - unit.Melee_Defence) / unit.Melee_Defence) * 100.0f, 0) + "%"
+                    unit.Melee_Attack != null ? Helper.Float_To_String(unit.Melee_Attack.Total, 0) : "0.0", Helper.Float_To_String(unit.Charge * 100.0f, 0) + "%", melee_attack_types.ToString(), unit.Ranged_Attack != null ? Helper.Float_To_String(unit.Ranged_Attack.Total, 0) : "0.0",
+                    ranged_attack_types.ToString(), unit.Range.ToString(), unit.Max_Ammo.ToString(), Helper.Float_To_String(unit.Melee_Defence, 0), Helper.Float_To_String(unit.Ranged_Defence, 0), Helper.Float_To_String(((unit.Ranged_Defence - unit.Melee_Defence) / unit.Melee_Defence) * 100.0f, 0) + "%"
                 };
                 List<string> resistances = new List<string>();
                 foreach (Damage.Type type in Enum.GetValues(typeof(Damage.Type))) {
@@ -716,7 +716,7 @@ public partial class Factions
         Kingdom.Units.Add(new Unit("Knights", Unit.UnitType.Cavalry, "knight", 3.0f, 500, 600, 4.0f, 0.0f, 2, Noble_Residency, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
             Kingdom.Buildings.First(x => x.Name == "Stable")},
             3.0f, true, 7.5f, 200.0f, 200.0f,
-            new Damage(18.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.50f,
+            new Damage(18.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f }, { Damage.Type.Light, 1.05f }, { Damage.Type.Dark, 0.95f } }), 0.50f,
             null, 0, 0, null, null,
             25.0f, 29.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.25f }, { Damage.Type.Thrust, 1.10f }, { Damage.Type.Impact, 0.85f } },
             20.0f, 12.0f, Unit.ArmorType.Heavy, new List<Ability>() {
@@ -729,7 +729,7 @@ public partial class Factions
             2.0f, true, 12.5f, 200.0f, 200.0f,
             new Damage(17.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.25f,
             null, 0, 0, null, null,
-            30.0f, 35.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.25f }, { Damage.Type.Thrust, 1.10f }, { Damage.Type.Impact, 0.75f } },
+            30.0f, 35.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.25f }, { Damage.Type.Thrust, 1.10f }, { Damage.Type.Impact, 0.75f }, { Damage.Type.Light, 1.05f }, { Damage.Type.Dark, 0.95f } },
             20.0f, 12.0f, Unit.ArmorType.Heavy, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
@@ -739,7 +739,7 @@ public partial class Factions
             3.0f, true, 7.5f, 200.0f, 200.0f,
             new Damage(20.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.50f,
             null, 0, 0, null, null,
-            28.0f, 33.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.35f }, { Damage.Type.Thrust, 1.20f }, { Damage.Type.Impact, 0.85f } },
+            28.0f, 33.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.35f }, { Damage.Type.Thrust, 1.20f }, { Damage.Type.Impact, 0.85f }, { Damage.Type.Light, 1.10f }, { Damage.Type.Dark, 0.90f } },
             22.0f, 11.0f, Unit.ArmorType.Heavy, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("lance charge", 0.35f),
                 AbilityPrototypes.Instance.Get("rough terrain penalty", 0.35f),
@@ -764,7 +764,7 @@ public partial class Factions
             4.0f, false, 10.0f, 100.0f, -1.0f,
             new Damage(12.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,
             new Damage(10.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 6, -1, null, null,
-            10.0f, 10.0f, new Dictionary<Damage.Type, float>(),
+            10.0f, 10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 0.75f }, { Damage.Type.Fire, 0.50f } },
             10.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("skirmisher", 0.50f)
             }, new List<Unit.Tag>() { Unit.Tag.Naval, Unit.Tag.Crewed_Single_Entity }));
@@ -841,7 +841,7 @@ public partial class Factions
                 { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
                 { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 1.0f, -0.40f, 1.0f, -0.30f, 1.5f, -0.20f, 0.5f, true, null,
-            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Garrison", "neutral_guard", "ship_2", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Garrison", "neutral_guard", "ship_2", 100, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
                 Passive_Income = 5.0f,
                 Max_Mana = 1000.0f,
                 Population_Growth_Bonus = -0.95f
@@ -867,7 +867,7 @@ public partial class Factions
                 { City.CitySize.City,       new Yields(1.0f, 2.0f, 4.0f, 0.5f, 1.0f, 0.0f, 0.0f) },
                 { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 1.0f, 2.0f, 0.0f, 0.0f) }
             }, 3.0f, 100, 2.0f, -0.40f, 1.0f, -0.30f, 1.0f, -0.50f, 0.5f, true, null,
-            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Bandits", "default_unit", "ship_2", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Bandits", "default_unit", "ship_2", 100, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
                 Passive_Income = 3.0f,
                 Max_Mana = 100.0f,
                 Population_Growth_Bonus = -0.95f
@@ -921,7 +921,7 @@ public partial class Factions
                 { City.CitySize.City,       new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) },
                 { City.CitySize.Metropolis, new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }
             }, 3.0f, 100, 1.0f, -0.10f, 1.0f, -0.10f, 1.0f, -0.10f, 0.5f, false, null,
-            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", "ship_2", 100), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", "ship_2", 100, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
                 Max_Mana = 500.0f
             });
         wild_life.Uses_Special_AI = true;

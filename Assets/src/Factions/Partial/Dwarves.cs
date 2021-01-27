@@ -10,7 +10,7 @@ public partial class Factions
             { City.CitySize.City,       new Yields(0.0f, 3.0f, 3.0f, 2.0f, 0.5f, 0.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(0.0f, 4.0f, 5.0f, 3.0f, 1.0f, 0.0f, 0.0f) }
         }, 3.0f, 100, 2.0f, -0.40f, 1.0f, -0.15f, 1.5f, -0.40f, 1.0f, false, "dwarven city",
-        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "default_dwarf_2", "ship_2", 10), new EmpireModifiers() {
+        new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "dwarf_flag_bearer", "ship_2", 10, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
             Passive_Income = 3.0f,
             Max_Mana = 100.0f
         });
@@ -103,10 +103,10 @@ public partial class Factions
         Technology Dukedom = new Technology(faction, "Dukedom", 400, new List<AI.Tag>() { });
         County.Link(Dukedom, 3);
 
-        faction.Improvements.Add(new Improvement(faction, "Aboveground Farm", "dwarven_farm", "dwarven_farm_inactive", new Yields(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 11, 0, false, new List<string>() { "Grassland", "Plains", "Flower Field", "Hill" }, null, null));
-        faction.Improvements.Add(new Improvement(faction, "Logging Camp", "logging_camp", "logging_camp_inactive", new Yields(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 9, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Timber }), null, null));
-        faction.Improvements.Add(new Improvement(faction, "Tunnel", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, -0.5f, 19, 0, true, HexPrototypes.Instance.All_Non_Structures.Concat(new List<string>() { "Mountain", "Volcano" }).ToList(), null, null));
-        faction.Improvements.Add(new Improvement(faction, "Deep Mine", "mine", "mine_inactive", new Yields(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 25, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), Deep_Mines, delegate (Improvement improvement) {
+        faction.Improvements.Add(new Improvement(faction, "Aboveground Farm", "dwarven_farm_2", "dwarven_farm_inactive_2", new Yields(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 11, 0, false, new List<string>() { "Grassland", "Plains", "Flower Field", "Hill" }, null, null));
+        faction.Improvements.Add(new Improvement(faction, "Logging Camp", "logging_camp_2", "logging_camp_inactive_2", new Yields(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 9, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Timber }), null, null));
+        faction.Improvements.Add(new Improvement(faction, "Tunnel", "tunnel_2", "tunnel_inactive_2", new Yields(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, -0.5f, 19, 0, true, HexPrototypes.Instance.All_Non_Structures.Concat(new List<string>() { "Mountain", "Volcano" }).ToList(), null, null));
+        faction.Improvements.Add(new Improvement(faction, "Deep Mine", "deep_mine", "deep_mine_inactive", new Yields(-1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 25, 0, true, HexPrototypes.Instance.Get_Names((WorldMapHex.Tag?)null, null, true), Deep_Mines, delegate (Improvement improvement) {
             if (improvement.Hex.Mineral != null) {
                 improvement.Special_Yield_Delta = new Yields(0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f);
             } else {
@@ -115,7 +115,7 @@ public partial class Factions
         }));
 
 
-        faction.Improvements.Add(new Improvement(faction, "Lumber Mill", "large_hut", "large_hut_inactive", new Yields(-1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.All_Non_Structures, Mechanization,
+        faction.Improvements.Add(new Improvement(faction, "Lumber Mill", "large_hut_2", "large_hut_inactive_2", new Yields(-1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 13, 0, false, HexPrototypes.Instance.All_Non_Structures, Mechanization,
             delegate (Improvement improvement) {
                 int adjancent_lumber_camps = 0;
                 foreach (WorldMapHex hex in improvement.Hex.Get_Adjancent_Hexes()) {
@@ -137,7 +137,7 @@ public partial class Factions
             }
         ));
 
-        faction.Improvements.Add(new Improvement(faction, "Magma Extractor", "tunnel", "mine_inactive", new Yields(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 50, 0, false, new List<string>() { "Volcano" }, Magma_Industry, null));
+        faction.Improvements.Add(new Improvement(faction, "Magma Extractor", "tunnel_2_stone", "tunnel_2_stone_inactive", new Yields(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f), 0.0f, -1.0f, 0.0f, 50, 0, false, new List<string>() { "Volcano" }, Magma_Industry, null));
 
         faction.Buildings.Add(new Building("Mushroom Farm", "placeholder", 120, 50, 0.5f, new Yields(2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, delegate (Building building) {
             building.Yield_Delta = new Yields();
@@ -326,16 +326,16 @@ public partial class Factions
         });
 
 
-        faction.Units.Add(new Worker("Miner", 2.0f, Map.MovementType.Land, 2, "dwarven_miner", new List<string>() { "default_working_1", "default_working_2", "default_working_3", "default_working_4", "default_working_5" }, 5.0f, new List<Improvement>()
+        faction.Units.Add(new Worker("Miner", 2.0f, Map.MovementType.Land, 2, "dwarf_miner", new List<string>() { "dwarf_working_1", "dwarf_working_2", "dwarf_working_3" }, 5.0f, new List<Improvement>()
             { faction.Improvements.First(x => x.Name == "Aboveground Farm"), faction.Improvements.First(x => x.Name == "Logging Camp"), faction.Improvements.First(x => x.Name == "Tunnel"),
             faction.Improvements.First(x => x.Name == "Deep Mine")},
             1.0f, 35, 20, 0.75f, null, 0.25f));
-        faction.Units.Add(new Prospector("Wanderer", 2.0f, 3, "default_dwarf_2", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f,
+        faction.Units.Add(new Prospector("Wanderer", 2.0f, 3, "dwarf_wanderer", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f,
             10, 20, 0.5f, null, 3, 0.25f));
-        faction.Units.Add(new Unit("Rabble", Unit.UnitType.Infantry, "dwarven_miner", 2.0f, 45, 25, 0.5f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 75.0f, 150.0f,
-            new Damage(4.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.95f }, { Damage.Type.Impact, 0.05f } }), 0.25f,
+        faction.Units.Add(new Unit("Rabble", Unit.UnitType.Infantry, "dwarf_rabble", 2.0f, 45, 25, 0.5f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 75.0f, 150.0f,
+            new Damage(7.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.95f }, { Damage.Type.Impact, 0.05f } }), 0.25f,
             new Damage(3.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 3, 5, "stones", null,
-            11.0f, 7.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Impact, 1.0f } },
+            11.0f, 7.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 1.10f } },
             4.0f, 4.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.05f),
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.15f),
@@ -345,10 +345,10 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("no high shots")
             }, new List<Unit.Tag>()));
-        faction.Units.Add(new Unit("Militia", Unit.UnitType.Infantry, "dwarf_militia", 2.0f, 80, 70, 1.0f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 85.0f, 150.0f,
-            new Damage(3.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.5f } }), 0.1f,
+        faction.Units.Add(new Unit("Militia", Unit.UnitType.Infantry, "dwarf_militia_2", 2.0f, 80, 70, 1.0f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 85.0f, 150.0f,
+            new Damage(6.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.5f } }), 0.1f,
             null, 0, 0, null, null,
-            13.0f, 14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Thrust, 1.0f }, { Damage.Type.Impact, 1.0f } },
+            14.0f, 16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Thrust, 1.0f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 1.10f } },
             8.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
@@ -356,22 +356,22 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("increases order", 0.25f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        faction.Units.Add(new Unit("Warrior", Unit.UnitType.Infantry, "dwarf_warrior", 2.0f, 300, 225, 1.75f, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
+        faction.Units.Add(new Unit("Warrior", Unit.UnitType.Infantry, "dwarf_warrior_2", 2.0f, 300, 225, 1.75f, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 150.0f, 200.0f,
             new Damage(16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
             null, 0, 0, null, null,
-            27.0f, 27.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.9f }, { Damage.Type.Impact, 1.0f } },
+            27.0f, 27.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.9f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 1.10f } },
             11.0f, 8.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.20f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        faction.Units.Add(new Unit("Marksdwarf", Unit.UnitType.Infantry, "default_dwarf_2", 2.0f, 285, 240, 1.5f, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
+        faction.Units.Add(new Unit("Marksdwarf", Unit.UnitType.Infantry, "marksdwarf", 2.0f, 285, 240, 1.5f, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 125.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
             new Damage(14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 6, 20, null, null,
-            15.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Impact, 1.0f } },
+            15.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 1.10f } },
             11.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
@@ -380,11 +380,11 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.25f),
                 AbilityPrototypes.Instance.Get("straight shot bonus", 0.25f)
             }, new List<Unit.Tag>()));
-        faction.Units.Add(new Unit("Fortress Guard", Unit.UnitType.Infantry, "default_dwarf_2", 2.0f, 290, 265, 1.75f, 0.0f, 2, Fortress_Guard, new List<Building>() { faction.Buildings.First(x => x.Name == "Captain of the Guard's Office") },
+        faction.Units.Add(new Unit("Fortress Guard", Unit.UnitType.Infantry, "fortress_guard", 2.0f, 290, 265, 1.75f, 0.0f, 2, Fortress_Guard, new List<Building>() { faction.Buildings.First(x => x.Name == "Captain of the Guard's Office") },
             2.0f, true, 10.0f, 150.0f, 200.0f,
             new Damage(12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 0.25f,
             new Damage(8.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 5, 20, null, null,
-            25.0f, 27.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.9f }, { Damage.Type.Impact, 1.0f } },
+            25.0f, 27.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.9f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 1.10f } },
             11.0f, 12.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
@@ -396,11 +396,11 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("increases order", 1.00f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
 
-        faction.Units.Add(new Unit("Catapult", Unit.UnitType.Infantry, "dwarf_catapult", 2.0f, 500, 350, 1.50f, 0.0f, 2, Mechanization, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
+        faction.Units.Add(new Unit("Catapult", Unit.UnitType.Siege_Weapon, "catapult", 2.0f, 500, 350, 1.50f, 0.0f, 2, Mechanization, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
             1.0f, false, 10.0f, 125.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
-            new Damage(18.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 12, 30, "big_stones", new List<string>() { "dwarf_catapult_ranged_1", "dwarf_catapult_ranged_2", "dwarf_catapult_ranged_3" },
-            14.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Impact, 1.0f } },
+            new Damage(18.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 14, 30, "big_stones", null,
+            14.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 0.75f } },
             15.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.05f),
                 AbilityPrototypes.Instance.Get("underground combat bonus", 0.10f),
@@ -409,13 +409,13 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("anti infantry ranged", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.35f),
                 AbilityPrototypes.Instance.Get("city attack bonus", 0.35f)
-            }, new List<Unit.Tag>() { Unit.Tag.Siege_Weapon }));
+            }, new List<Unit.Tag>() { Unit.Tag.Crewed_Single_Entity, Unit.Tag.Mechanical_Ranged, Unit.Tag.No_Move_Attack }));
 
-        faction.Units.Add(new Unit("Field Catapult", Unit.UnitType.Infantry, "default_dwarf_2", 2.0f, 380, 310, 1.75f, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
+        faction.Units.Add(new Unit("Field Catapult", Unit.UnitType.Siege_Weapon, "field_catapult", 2.0f, 380, 310, 1.75f, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
             2.0f, false, 10.0f, 150.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
-            new Damage(10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 10, 30, "stones", null,
-            15.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Impact, 1.0f } },
+            new Damage(10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 12, 30, "stones", null,
+            15.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 0.75f } },
             15.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.05f),
                 AbilityPrototypes.Instance.Get("underground combat bonus", 0.10f),
@@ -424,13 +424,13 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("anti infantry ranged", 0.25f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.10f),
                 AbilityPrototypes.Instance.Get("city attack bonus", 0.10f)
-            }, new List<Unit.Tag>() { Unit.Tag.Siege_Weapon }));
+            }, new List<Unit.Tag>() { Unit.Tag.Crewed_Single_Entity, Unit.Tag.Mechanical_Ranged }));
 
-        faction.Units.Add(new Unit("Ballista", Unit.UnitType.Infantry, "default_dwarf_2", 2.0f, 500, 410, 1.75f, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
+        faction.Units.Add(new Unit("Ballista", Unit.UnitType.Siege_Weapon, "dwarf_wanderer", 2.0f, 500, 410, 1.75f, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
             1.0f, false, 10.0f, 125.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
-            new Damage(16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.85f }, { Damage.Type.Impact, 0.15f } }), 12, 20, null, null,
-            14.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Impact, 1.0f } },
+            new Damage(16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.85f }, { Damage.Type.Impact, 0.15f } }), 14, 20, null, null,
+            14.0f, 12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.85f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 0.75f } },
             16.0f, 7.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.05f),
                 AbilityPrototypes.Instance.Get("underground combat bonus", 0.10f),
@@ -440,7 +440,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("anti large ranged", 0.35f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.35f),
                 AbilityPrototypes.Instance.Get("city attack bonus", 0.25f)
-            }, new List<Unit.Tag>() { Unit.Tag.Siege_Weapon }));
+            }, new List<Unit.Tag>() { Unit.Tag.Crewed_Single_Entity, Unit.Tag.Mechanical_Ranged, Unit.Tag.No_Move_Attack }));
 
         return faction;
     }

@@ -21,7 +21,7 @@ public class Unit : Trainable
     private static readonly int on_rout_morale_damage_aoe_radios = 3;
     private static readonly float morale_damage_bonus_on_charge = 0.25f;
     private static readonly float ROUTED_RELATIVE_STRENGHT = 0.25f;
-    private static readonly float ROUT_AOE_MORALE_LOSS = 1.25f;
+    private static readonly float ROUT_AOE_MORALE_LOSS = 1.00f;
     private static readonly float ROUT_AOE_MORALE_GAIN = 0.50f;
     private static readonly float[] MORALE_LOSS_ON_MELEE_ATTACK_NO_STAMINA = new float[2] { 1.0f, 0.1f };
     private static readonly float[] MORALE_LOSS_ON_RANGED_ATTACK_NO_STAMINA = new float[2] { 1.0f, 0.1f };
@@ -47,7 +47,7 @@ public class Unit : Trainable
 
     private static int current_id = 0;
     
-    public enum UnitType { Undefined, Infantry, Cavalry, Ship }
+    public enum UnitType { Undefined, Infantry, Cavalry, Ship, Siege_Weapon }
     public enum ArmorType { Unarmoured, Light, Medium, Heavy }
     public enum AttackArch { None, Low, High }
     public enum Tag
@@ -57,13 +57,14 @@ public class Unit : Trainable
         Large_Shields,
         Wooden,//Axe again
         Undead,
-        Siege_Weapon,
         Large,
         Blocks_Hex_Working,
         Limited_Recruitment,
         Naval,
         Amphibious,
-        Crewed_Single_Entity
+        Crewed_Single_Entity,
+        Mechanical_Ranged,
+        No_Move_Attack
     }
     public static readonly List<Tag> HIDDEN_TAGS = new List<Tag>() { Tag.Crewed_Single_Entity };
 
@@ -325,6 +326,10 @@ public class Unit : Trainable
                     Current_Stamina = 0.0f;
                 }
             }
+        }
+
+        if (!ignore_movement_restrictions && Tags.Contains(Tag.No_Move_Attack)) {
+            Can_Attack = false;
         }
 
         StatusBar.Update_Bars(this);
@@ -903,10 +908,25 @@ public class Unit : Trainable
         return (((attack + damage_balancer) / (defence + damage_balancer)) * manpower_damage) * Manpower;
     }
 
+    public bool Morale_Affects_Ranged_Attack
+    {
+        get {
+            return !Tags.Contains(Tag.Mechanical_Ranged);
+        }
+    }
+
+    public bool Stamina_Affects_Ranged_Attack
+    {
+        get {
+            return !Tags.Contains(Tag.Mechanical_Ranged);
+        }
+    }
+
     private float Calculate_Ranged_Damage(Unit target, AttackResult result)
     {
-        float morale_effect_attack = (Morale_Effect + 1.0f) / 2.0f;
-        float attack = Ranged_Attack.Total * morale_effect_attack * Stamina_Effect;
+        float morale_effect_attack = Morale_Affects_Ranged_Attack ? (Morale_Effect + 1.0f) / 2.0f : 1.0f;
+        float stamina_effect_attack = Stamina_Affects_Ranged_Attack ? Stamina_Effect : 1.0f;
+        float attack = Ranged_Attack.Total * morale_effect_attack * stamina_effect_attack;
         float ability_attack_delta = 0.0f;
         float ability_attack_multiplier = 1.0f;
         float morale_effect_defence = (target.Morale_Effect + 1.0f) / 2.0f;
@@ -917,7 +937,7 @@ public class Unit : Trainable
         float resistance_multiplier = 0.0f;
         
         result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = morale_effect_attack - 1.0f, Description = "Morale" });
-        result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = Stamina_Effect - 1.0f, Description = "Stamina" });
+        result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = stamina_effect_attack - 1.0f, Description = "Stamina" });
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = morale_effect_defence - 1.0f, Description = "Morale" });
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = stamina_effect_defence - 1.0f, Description = "Stamina" });
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = target.Hex.Cover, Description = "Cover" });

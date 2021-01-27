@@ -239,7 +239,7 @@ public class Improvement {
     public static Improvement Default_Water
     {
         get {
-            return new Improvement(null, "Boat", "boat", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
+            return new Improvement(null, "Boat", "boat_2", null, new Yields(), 0.0f, 0.0f, 0.0f, 0, 0, false, new List<string>(), null, null) { Is_Default = true };
         }
     }
 }

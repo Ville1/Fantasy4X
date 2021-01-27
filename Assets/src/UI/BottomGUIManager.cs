@@ -342,7 +342,7 @@ public class BottomGUIManager : MonoBehaviour
             action_gameobject.GetComponentInChildren<Button>().onClick = on_click_event;
             actions.Add(action_gameobject);
             if (!string.IsNullOrEmpty(Current_Entity.Actions[i].Tooltip)) {
-                TooltipManager.Instance.Register_Tooltip(action_gameobject.GetComponentInChildren<Button>().gameObject, Current_Entity.Actions[i].Tooltip, gameObject);
+                TooltipManager.Instance.Register_Tooltip(action_gameobject.GetComponentInChildren<Image>().gameObject, Current_Entity.Actions[i].Tooltip, gameObject);
             }
         }
     }

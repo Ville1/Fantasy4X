@@ -19,7 +19,8 @@ public class Flag {
     public SpriteRenderer SpriteRenderer { get { return GameObject.GetComponent<SpriteRenderer>(); } }
     public WorldMapHex Hex { get; private set; }
 
-    private bool has_spawnd;
+    private bool is_deleted;
+    private bool has_spawned;
 
     public Flag(WorldMapHex hex)
     {
@@ -28,13 +29,17 @@ public class Flag {
         GameObject.name = string.Format("Flag #{0}", current_id);
         current_id++;
         GameObject.AddComponent<SpriteRenderer>();
-        has_spawnd = false;
+        has_spawned = false;
+        is_deleted = false;
         Update_Position();
         Update_Type();
     }
 
     public void Move(WorldMapHex new_hex)
     {
+        if (is_deleted) {
+            return;
+        }
         Hex = new_hex;
         GameObject.SetActive(Hex.Visible_To_Viewing_Player);
         Update_Position();
@@ -43,6 +48,9 @@ public class Flag {
 
     public void Update_Type()
     {
+        if (is_deleted) {
+            return;
+        }
         GameObject.SetActive(Hex.Visible_To_Viewing_Player);
         OwnerType new_type = OwnerType.Neutral;
         if(Hex.Entity != null) {
@@ -54,10 +62,10 @@ public class Flag {
         } else if (Hex.Village != null) {
             new_type = Hex.Village.Is_Owned_By_Current_Player ? OwnerType.Own : (Hex.Village.Owner.Is_Neutral ? OwnerType.Neutral : OwnerType.Enemy);
         }
-        if (Type == new_type && has_spawnd) {
+        if (Type == new_type && has_spawned) {
             return;
         }
-        has_spawnd = true;
+        has_spawned = true;
         Type = new_type;
         SpriteRenderer.sprite = SpriteManager.Instance.Get(textures[Type], SpriteManager.SpriteType.UI);
     }
@@ -65,6 +73,7 @@ public class Flag {
     public void Delete()
     {
         GameObject.Destroy(GameObject);
+        is_deleted = true;
     }
 
     private void Update_Position()

@@ -96,7 +96,7 @@ public class CombatMapHex : Hex {
     public bool Is_Adjancent_To_Enemy(Player player)
     {
         foreach (CombatMapHex hex in Get_Adjancent_Hexes()) {
-            if (hex.Unit != null && !hex.Unit.Army.Is_Owned_By(player)) {
+            if (hex.Unit != null && !hex.Unit.Is_Routed && !hex.Unit.Army.Is_Owned_By(player)) {
                 return true;
             }
         }
