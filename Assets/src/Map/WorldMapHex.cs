@@ -389,7 +389,7 @@ public class WorldMapHex : Hex {
         if (!blocked && (City != null || Village != null) && entity.Owner != null && entity.Owner.AI != null && entity.Owner.AI is WildLifeAI) {
             blocked = true;
         }
-
+        
         return new PathfindingNode(
             Coordinates,
             GameObject.transform.position.x,

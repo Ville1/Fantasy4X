@@ -768,71 +768,13 @@ public partial class Factions
             10.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("skirmisher", 0.50f)
             }, new List<Unit.Tag>() { Unit.Tag.Naval, Unit.Tag.Crewed_Single_Entity }));
-
-        /*Kingdom.Units.Add(new Unit("Dummy", Unit.UnitType.Infantry, "default_unit", 2.0f, 10, 10, 0.1f, 0.0f, 5, Acoustics, new List<Building>(),
-            2.0f, true, 10.0f, 100.0f, 0.0f,
-            10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.00f } }, 0.25f,
-            0.0f, new Dictionary<Damage.Type, float>(), 0, 0, null,
-            15.0f, 10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.00f }, { Damage.Type.Thrust, 1.00f }, { Damage.Type.Impact, 1.00f } },
-            10.0f, 10.0f, Unit.ArmorType.Unarmoured, new List<Ability>(),
-            new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Dummy2", Unit.UnitType.Infantry, "default_unit", 2.0f, 10, 10, 0.1f, 0.0f, 5, Acoustics, new List<Building>(),
-            2.0f, true, 10.0f, 0.0f, 0.0f,
-            15.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.00f } }, 0.25f,
-            0.0f, new Dictionary<Damage.Type, float>(), 0, 0, null,
-            10.0f, 10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.00f }, { Damage.Type.Thrust, 1.00f }, { Damage.Type.Impact, 1.00f } },
-            10.0f, 10.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
-                AbilityPrototypes.Instance.Get("forest combat bonus", 0.50f)
-            }, new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Dummy3", Unit.UnitType.Infantry, "default_unit", 2.0f, 10, 10, 0.1f, 0.0f, 5, Acoustics, new List<Building>(),
-            2.0f, true, 10.0f, 0.0f, 0.0f,
-            10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.00f } }, 0.25f,
-            10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.00f } }, 6, 10, null,
-            10.0f, 10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.00f }, { Damage.Type.Thrust, 1.00f }, { Damage.Type.Impact, 1.00f } },
-            10.0f, 10.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
-                AbilityPrototypes.Instance.Get("straight shots only", 0.0f)
-            }, new List<Unit.Tag>()));*/
-
-        /*all.Add(new Faction("High Kingdom of IDK", 250, 1, new Dictionary<City.CitySize, Yields>() {
-            { City.CitySize.Town,       new Yields(2.0f, 2.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f) },
-            { City.CitySize.City,       new Yields(1.0f, 2.0f, 2.0f, 2.0f, 2.0f, 0.0f, 0.0f) },
-            { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 3.0f, 3.0f, 3.0f, 0.0f, 0.0f) }
-        }, 3.0f, 100, 3.0f, -0.50f, 1.0f, -0.30f, 1.5f, -0.20f, 0.90f, false,
-        new Technology("Root", 5, new List<AI.Tag>()), new Army("Army", "default_unit", 10), new EmpireModifiers() {
-            Passive_Income = 3.0f,
-            Max_Mana = 100.0f,
-            Population_Growth_Bonus = -0.35f
-        }));
-        Faction High_Kingdom = all.Last();
-
-        Technology Placeholder_Tech = new Technology("Placeholder", 20000, new List<AI.Tag>() { AI.Tag.Military });
-        High_Kingdom.Root_Technology.Link(Placeholder_Tech, 0);
-
-        /*Kingdom.Units.Add(new Worker("Peasant", 2.0f, Map.MovementType.Land, 2, "peasant", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>()
-            { Kingdom.Improvements.First(x => x.Name == "Farm"), Kingdom.Improvements.First(x => x.Name == "Plantation"), Kingdom.Improvements.First(x => x.Name == "Hunting Lodge"),
-            Kingdom.Improvements.First(x => x.Name == "Logging Camp"), Kingdom.Improvements.First(x => x.Name == "Quarry"), Kingdom.Improvements.First(x => x.Name == "Mine"),
-            Kingdom.Improvements.First(x => x.Name == "Windmill"), Kingdom.Improvements.First(x => x.Name == "Lumber Mill"), Kingdom.Improvements.First(x => x.Name == "Forester's Lodge")},
-            1.0f, 25, 15, 0.5f, null));*/
-
-
-        /* High_Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, null, 10));
-
-         High_Kingdom.Units.Add(new Unit("Pathfinder", Unit.UnitType.Infantry, "scout", 3.0f, 50, 75, 0.5f, 0.0f, 3, null, null, 2.0f, true, 9.0f, 75.0f, 100.0f,
-             9.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.5f } }, 0.1f,
-             0.0f, new Dictionary<Damage.Type, float>(), 0, 0,
-             8.0f, 5.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Impact, 1.0f } }, 7.0f, 6.0f, new List<Ability>() {
-                 AbilityPrototypes.Instance.Get("forest combat bonus", 0.25f),
-                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.25f)
-             }, new List<Unit.Tag>()));
-         High_Kingdom.Units.Add(new Unit("Volunteer Defender", Unit.UnitType.Infantry, "default_unit", 2.0f, 85, 100, 0.50f, 0.0f, 2, null, new List<Building>(),
-             2.0f, true, 10.0f, 90.0f, 90.0f,
-             13.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }, 0.25f,
-             0.0f, new Dictionary<Damage.Type, float>(), 0, 0,
-             12.0f, 6.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.90f }, { Damage.Type.Thrust, 0.65f }, { Damage.Type.Impact, 1.0f } }, 7.0f, 7.0f, new List<Ability>() {
-                 AbilityPrototypes.Instance.Get("urban combat bonus", 0.10f),
-                 AbilityPrototypes.Instance.Get("city defence bonus", 0.25f),
-                 AbilityPrototypes.Instance.Get("village defence bonus", 0.10f)
-             }, new List<Unit.Tag>()));*/
+        Kingdom.Transports.Add(new Unit("Transport", Unit.UnitType.Ship, "ship_2", 1.0f, 300, 100, 2.0f, 0.0f, 2, null, new List<Building>(),
+            2.0f, false, 10.0f, 75.0f, -1.0f,
+            new Damage(6.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,
+            new Damage(5.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 6, -1, null, null,
+            11.0f, 14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 0.75f }, { Damage.Type.Fire, 0.50f } },
+            8.0f, 6.0f, Unit.ArmorType.Light, new List<Ability>() {
+            }, new List<Unit.Tag>() { Unit.Tag.Naval, Unit.Tag.Crewed_Single_Entity, Unit.Tag.Embark_Transport }));
 
         all.Add(Dwarves());
 

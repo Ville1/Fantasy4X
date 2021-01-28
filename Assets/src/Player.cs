@@ -25,6 +25,8 @@ public class Player {
     public Technology Root_Technology { get; private set; }
     public bool Is_Neutral { get; private set; }
     public StatusEffectList<EmpireModifierStatusEffect> Status_Effects { get; private set; }
+    public bool Has_Transport { get { return Transport_Prototype != null; } }
+    public Unit Transport_Prototype { get { return Faction.Transports.Where(x => x.Technology_Required == null || Researched_Technologies.Exists(y => y.Name == x.Technology_Required.Name)).FirstOrDefault(); } }
 
     private Dictionary<string, object> temp_data;
     private bool defeated;
@@ -34,7 +36,7 @@ public class Player {
     private CooldownManager<Spell> spells_on_cooldown;
     private CooldownManager<Blessing> blessings_on_cooldown;
     private Dictionary<Blessing, int> active_blessings;
-
+    
     public City Capital
     {
         get {
@@ -550,19 +552,16 @@ public class Player {
             }
             army.Stored_Path = army_data.Path == null || army_data.Path.Count == 0 ? null : army_data.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
             army.Sleep = army_data.Sleep;
-            World_Map_Entities.Add(army);
         }
         foreach(WorkerSaveData worker_data in data.Workers) {
             WorldMapHex hex = World.Instance.Map.Get_Hex_At(worker_data.Hex_X, worker_data.Hex_Y);
             Worker worker = new Worker(hex, Faction.Units.First(x => x.Name == worker_data.Name) as Worker, this);
             worker.Load(worker_data);
-            World_Map_Entities.Add(worker);
         }
         foreach (ProspectorSaveData prospector_data in data.Prospectors) {
             WorldMapHex hex = World.Instance.Map.Get_Hex_At(prospector_data.Hex_X, prospector_data.Hex_Y);
             Prospector prospector = new Prospector(hex, Faction.Units.First(x => x.Name == prospector_data.Name) as Prospector, this);
             prospector.Load(prospector_data);
-            World_Map_Entities.Add(prospector);
         }
         if(AI != null) {
             (AI as AI).Load(data.AI_Data);

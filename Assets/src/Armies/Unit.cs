@@ -26,6 +26,7 @@ public class Unit : Trainable
     private static readonly float[] MORALE_LOSS_ON_MELEE_ATTACK_NO_STAMINA = new float[2] { 1.0f, 0.1f };
     private static readonly float[] MORALE_LOSS_ON_RANGED_ATTACK_NO_STAMINA = new float[2] { 1.0f, 0.1f };
     private static readonly float ROUTED_ATTACK_PENALTY = 0.90f;
+    private static readonly float STARTING_MORALE_WHEN_MISSING_MANPOWER = 0.5f;
 
     private static readonly Dictionary<AttackArch, float> ARCH_ATTACK_MULTIPLIERS = new Dictionary<AttackArch, float>() {
         { AttackArch.None, 0.1f },
@@ -64,9 +65,10 @@ public class Unit : Trainable
         Amphibious,
         Crewed_Single_Entity,
         Mechanical_Ranged,
-        No_Move_Attack
+        No_Move_Attack,
+        Embark_Transport
     }
-    public static readonly List<Tag> HIDDEN_TAGS = new List<Tag>() { Tag.Crewed_Single_Entity };
+    public static readonly List<Tag> HIDDEN_TAGS = new List<Tag>() { Tag.Crewed_Single_Entity, Tag.Embark_Transport };
 
     public string Name { get; private set; }
     public UnitType Type { get; private set; }
@@ -116,7 +118,6 @@ public class Unit : Trainable
     public float Mana_Upkeep { get; private set; }
     public ArmorType Armor { get; private set; }
     public bool Requires_Coast { get { return Tags.Contains(Tag.Naval); } }
-
 
     public bool Has_Moved_This_Turn { get; private set; }
     public bool Has_Attacked_This_Turn { get; private set; }
@@ -582,11 +583,13 @@ public class Unit : Trainable
     public void Start_Combat()
     {
         Combat_Refill();
+        Current_Morale = Max_Morale - (STARTING_MORALE_WHEN_MISSING_MANPOWER * (Max_Morale * (1.0f - Manpower)));
     }
 
     public void End_Combat()
     {
         Combat_Refill();
+        Undeploy();
     }
 
     private void Combat_Refill()
@@ -1268,7 +1271,7 @@ public class Unit : Trainable
         return string.Format("{0} (#{1})", Name, Id);
     }
 
-    public static Map.MovementType Get_Movement_Type(List<Unit> units)
+    public static Map.MovementType Get_Movement_Type(List<Unit> units, bool embarking = true)
     {
         if(units == null || units.Count == 0) {
             return Map.MovementType.Immobile;
@@ -1278,13 +1281,15 @@ public class Unit : Trainable
         int land_count = units.Where(x => !x.Tags.Contains(Tag.Naval) && !x.Tags.Contains(Tag.Amphibious)).ToArray().Length;
         int water_count = units.Where(x => x.Tags.Contains(Tag.Naval)).ToArray().Length;
         int amphibious_count = units.Where(x => x.Tags.Contains(Tag.Amphibious)).ToArray().Length;
-        if (land_count != 0 && water_count != 0) {
-            return Map.MovementType.Immobile;
-        }
-        if (amphibious_count == total) {
+        if(land_count != 0 && water_count != 0) {
+            type = Map.MovementType.Immobile;
+        } else if (amphibious_count == total) {
             type = Map.MovementType.Amphibious;
         } else if (water_count != 0 && land_count == 0) {
             type = Map.MovementType.Water;
+        }
+        if(embarking && (units[0].Army.Hex.Is_Water || (type == Map.MovementType.Land && units[0].Army.Hex.Has_Harbor && units[0].Army.Owner.Has_Transport))) {
+            return Map.MovementType.Amphibious;
         }
         return type;
     }

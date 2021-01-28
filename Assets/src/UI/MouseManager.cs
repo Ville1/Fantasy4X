@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -115,15 +116,16 @@ public class MouseManager : MonoBehaviour
                     if(BottomGUIManager.Instance.Current_Entity.Move(Hex_Under_Cursor as WorldMapHex)) {
                         if (BottomGUIManager.Instance.Current_Entity is Worker) {
                             (BottomGUIManager.Instance.Current_Entity as Worker).Update_Actions_List();
+                            BottomGUIManager.Instance.Update_Entity_Info();
+                        } else {
+                            BottomGUIManager.Instance.Update_Current_Entity();
                         }
-                        BottomGUIManager.Instance.Update_Entity_Info();
                         BottomGUIManager.Instance.Current_Entity.Clear_Stored_Path();
                         PathRenderer.Instance.Clear_Path();
                     } else {
-                        List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(BottomGUIManager.Instance.Current_Entity),
-                            BottomGUIManager.Instance.Current_Entity.Hex.Get_Specific_PathfindingNode(BottomGUIManager.Instance.Current_Entity),
-                            (Hex_Under_Cursor as WorldMapHex).Get_Specific_PathfindingNode(BottomGUIManager.Instance.Current_Entity));
-                        if(path.Count != 0) {
+                        List<PathfindingNode> path = World.Instance.Map.Path(BottomGUIManager.Instance.Current_Entity.Hex, Hex_Under_Cursor as WorldMapHex, BottomGUIManager.Instance.Current_Entity, true,
+                            true);
+                        if (path.Count != 0) {
                             BottomGUIManager.Instance.Current_Entity.Create_Stored_Path(path);
                             while(BottomGUIManager.Instance.Current_Entity.Current_Movement > 0.0f) {
                                 if (!BottomGUIManager.Instance.Current_Entity.Follow_Stored_Path()) {

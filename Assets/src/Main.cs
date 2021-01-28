@@ -337,6 +337,9 @@ public class Main : MonoBehaviour {
         SaveManager.Instance.Data.Max_Rounds = Max_Rounds;
         SaveManager.Instance.Data.Round = Round;
         SaveManager.Instance.Data.Current_Player = SaveManager.Get_Player_Id(Current_Player);
+        SaveManager.Instance.Data.Neutral_Cities = new NeutralCitiesSaveData() { Armies = Neutral_Cities_Player.World_Map_Entities.Where(x => x is Army).Select(x => (x as Army).Save_Data).ToList() };
+        SaveManager.Instance.Data.Bandits = new BanditsSaveData() { Armies = Bandit_Player.World_Map_Entities.Where(x => x is Army).Select(x => (x as Army).Save_Data).ToList() };
+        SaveManager.Instance.Data.Wild_Life = new WildLifeSaveData() { Armies = Wild_Life_Player.World_Map_Entities.Where(x => x is Army).Select(x => (x as Army).Save_Data).ToList() };
         World.Instance.Start_Saving();
     }
 
@@ -369,6 +372,33 @@ public class Main : MonoBehaviour {
         World.Instance.Map.Update_LoS();
         foreach (Player player in Players) {
             player.Update_Score();
+        }
+        
+        Dictionary<ArmySaveData, Faction> neutral_armies = new Dictionary<ArmySaveData, Faction>();
+        neutral_armies = neutral_armies.Concat(SaveManager.Instance.Data.Neutral_Cities.Armies.ToDictionary(x => x, x => Factions.Neutral_Cities)).ToDictionary(x => x.Key, x => x.Value);
+        neutral_armies = neutral_armies.Concat(SaveManager.Instance.Data.Bandits.Armies.ToDictionary(x => x, x => Factions.Bandits)).ToDictionary(x => x.Key, x => x.Value);
+        neutral_armies = neutral_armies.Concat(SaveManager.Instance.Data.Wild_Life.Armies.ToDictionary(x => x, x => Factions.Wild_Life)).ToDictionary(x => x.Key, x => x.Value);
+
+        foreach (KeyValuePair<ArmySaveData, Faction> neutral_army in neutral_armies) {
+            WorldMapHex hex = World.Instance.Map.Get_Hex_At(neutral_army.Key.Hex_X, neutral_army.Key.Hex_Y);
+            Army army = new Army(hex, neutral_army.Value.Army_Prototype, Neutral_Cities_Player, null);
+            hex.Entity = army;
+            foreach (UnitSaveData unit_data in neutral_army.Key.Units) {
+                Unit unit = new Unit(neutral_army.Value.Units.First(x => x.Name == unit_data.Name) as Unit);
+                unit.Load(unit_data);
+                army.Add_Unit(unit);
+            }
+            army.Stored_Path = neutral_army.Key.Path == null || neutral_army.Key.Path.Count == 0 ? null : neutral_army.Key.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
+            army.Sleep = neutral_army.Key.Sleep;
+            if(neutral_army.Value.Name == Neutral_Cities_Player.Faction.Name) {
+                Neutral_Cities_Player.World_Map_Entities.Add(army);
+            } else if (neutral_army.Value.Name == Bandit_Player.Faction.Name) {
+                Bandit_Player.World_Map_Entities.Add(army);
+            } else if (neutral_army.Value.Name == Wild_Life_Player.Faction.Name) {
+                Wild_Life_Player.World_Map_Entities.Add(army);
+            } else {
+                CustomLogger.Instance.Error("Unidentified neutral army belonging to faction {0}", neutral_army.Value.Name);
+            }
         }
         Turn_Start_Update_GUI();
         Update_Flags();

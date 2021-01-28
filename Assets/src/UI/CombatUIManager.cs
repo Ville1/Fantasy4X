@@ -294,7 +294,7 @@ public class CombatUIManager : MonoBehaviour {
         bool top_row = true;
         int column = 0;
         if (!CombatManager.Instance.Other_Players_Turn) {
-            foreach(Unit unit in CombatManager.Instance.Current_Army.Units.Where(x => x.Hex != null || CombatManager.Instance.Deployment_Mode).ToList()) {
+            foreach(Unit unit in CombatManager.Instance.Current_Army.Units.Where(x => CombatManager.Instance.Hex.Passable_For(x) && (x.Hex != null || CombatManager.Instance.Deployment_Mode)).ToList()) {
                 GameObject item = GameObject.Instantiate(
                     Unit_List_Prototype,
                     new Vector3(
@@ -382,7 +382,7 @@ public class CombatUIManager : MonoBehaviour {
 
         Next_Unit_Button.interactable = true;
         Previous_Unit_Button.interactable = true;
-        Toggle_Run_Button.interactable = Current_Unit.Can_Run && !CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn && !Current_Unit.Hex.Is_Adjancent_To_Enemy(Current_Unit.Owner);
+        Toggle_Run_Button.interactable = Current_Unit.Can_Run && !CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn && Current_Unit.Hex != null && !Current_Unit.Hex.Is_Adjancent_To_Enemy(Current_Unit.Owner);
         Run_Toggle.interactable = Toggle_Run_Button.interactable;
         if (!Current_Unit.Can_Run) {
             run = false;
@@ -425,7 +425,7 @@ public class CombatUIManager : MonoBehaviour {
                 MessageManager.Instance.Show_Message("Unit can't be deployed here");
                 return;
             }
-            foreach(Unit u in CombatManager.Instance.Current_Army.Units) {
+            foreach(Unit u in CombatManager.Instance.Current_Army.Units.Where(x => CombatManager.Instance.Hex.Passable_For(x)).ToArray()) {
                 if(u.Hex == null) {
                     Current_Unit = u;
                     break;
@@ -465,6 +465,11 @@ public class CombatUIManager : MonoBehaviour {
         if(Current_Unit != null) {
             UnitInfoGUIManager.Instance.Open(Current_Unit, false);
         }
+    }
+
+    public void End_Combat()
+    {
+        Clear_Movement_And_Attack_Range();
     }
 
     private void Clear_Movement_And_Attack_Range()

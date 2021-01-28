@@ -287,7 +287,15 @@ public class WorldMapEntity : Ownable {
         if(!Has_Stored_Path) {
             return false;
         }
-        bool success = Move(Stored_Path[Stored_Path_Index]);
+        WorldMapHex next_hex = Stored_Path[Stored_Path_Index];
+        if(next_hex == Hex) {
+            Stored_Path_Index++;
+            if (!Has_Stored_Path) {
+                return false;
+            }
+            next_hex = Stored_Path[Stored_Path_Index];
+        }
+        bool success = Move(next_hex);
         if (success) {
             if(Hex == Stored_Path_Target) {
                 Clear_Stored_Path();

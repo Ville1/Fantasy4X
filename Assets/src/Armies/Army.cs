@@ -245,7 +245,7 @@ public class Army : WorldMapEntity {
             if(Units == null) {
                 return false;
             }
-            return Units.Count < Max_Size;
+            return Units.Where(x => !x.Tags.Contains(Unit.Tag.Embark_Transport)).ToList().Count < Max_Size;
         }
     }
 
@@ -309,6 +309,7 @@ public class Army : WorldMapEntity {
             return Attack(new_hex.Entity as Army);
         }
         WorldMapHex old_hex = Hex;
+        
         bool success = base.Move(new_hex, ignore_movement_restrictions, update_los);
         if(success)  {
             if (!ignore_movement_restrictions) {
@@ -347,6 +348,24 @@ public class Army : WorldMapEntity {
                 }
             }
             SpriteRenderer.sprite = SpriteManager.Instance.Get(Hex.Is_Water ? Fleet_Sprite : Texture, SpriteManager.SpriteType.Unit);
+            if(Unit.Get_Movement_Type(Units.Where(x => !x.Tags.Contains(Unit.Tag.Embark_Transport)).ToList(), false) == Map.MovementType.Land) {
+                if(old_hex.Has_Harbor && Hex.Is_Water) {
+                    //Embark
+                    List<Unit> transports = new List<Unit>();
+                    foreach(Unit unit in Units) {
+                        Unit transport = new Unit(Owner.Transport_Prototype);
+                        transport.Current_Campaing_Map_Movement = 0.0f;
+                        transports.Add(transport);
+                    }
+                    foreach(Unit transport in transports) {
+                        Add_Unit(transport);
+                    }
+                } else if(old_hex.Is_Water && !Hex.Is_Water) {
+                    //Disembark
+                    Units = Units.Where(x => !x.Tags.Contains(Unit.Tag.Embark_Transport)).ToList();
+                }
+            }
+            Update_Text();
         }
         return success;
     }
@@ -460,7 +479,7 @@ public class Army : WorldMapEntity {
         foreach (Unit unit in defeated_units) {
             Units.Remove(unit);
         }
-        if(Units.Count == 0) {
+        if(Units.Count == 0 || (Unit.Get_Movement_Type(Units, false) == Map.MovementType.Land && Hex.Is_Water)) {
             Delete();
         } else {
             Update_Text();
@@ -572,10 +591,11 @@ public class Army : WorldMapEntity {
         if (!text_initialized || Was_Deleted) {
             return;
         }
-        if(Relative_Strenght < 1000.0f) {
-            TextMesh.text = Mathf.RoundToInt(Relative_Strenght).ToString();
+        float str = Get_Relative_Strenght_When_On_Hex(Hex, true, false);
+        if(str < 1000.0f) {
+            TextMesh.text = Mathf.RoundToInt(str).ToString();
         } else {
-            TextMesh.text = string.Format("{0}k", Math.Round(Relative_Strenght / 1000.0f, 1));
+            TextMesh.text = string.Format("{0}k", Math.Round(str / 1000.0f, 1));
         }
     }
 

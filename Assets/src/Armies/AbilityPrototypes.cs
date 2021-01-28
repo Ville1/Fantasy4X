@@ -599,7 +599,7 @@ public class AbilityPrototypes {
                 return ability.Potency * 0.5f;
             }
         });
-
+        
         //TODO: rough terrain penalty & ranged attacks
         //TODO: lance charge in urban? impassable houses?
         //TODO: stealth? Does not get destroyed when losing city defence?

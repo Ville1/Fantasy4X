@@ -99,7 +99,7 @@ public class CombatManager : MonoBehaviour {
         Map = new CombatMap(map_width, map_height, hex);
         CameraManager.Instance.Set_Camera_Location(Map.Center_Of_Deployment_1);
         Deployment_Mode = true;
-        CombatUIManager.Instance.Current_Unit = Current_Army.Units[0];
+        CombatUIManager.Instance.Current_Unit = Current_Army.Units.Where(x => Hex.Passable_For(x)).First();
         Map.Set_Deployment_Mode(Current_Army);
         EffectManager.Instance.Update_Target_Map();
         Retreat_Phase = false;
@@ -115,6 +115,7 @@ public class CombatManager : MonoBehaviour {
     public void End_Combat(bool victory)
     {
         active_combat = false;
+        CombatUIManager.Instance.End_Combat();
         World.Instance.Map.Active = true;
         MasterUIManager.Instance.Combat_UI = false;
         WorldMapHex hex = Map.WorldMapHex;
@@ -139,7 +140,7 @@ public class CombatManager : MonoBehaviour {
     public void Next_Turn()
     {
         if (Deployment_Mode) {
-            foreach(Unit u in Current_Army.Units) {
+            foreach(Unit u in Current_Army.Units.Where(x => Hex.Passable_For(x)).ToArray()) {
                 if(u.Hex == null) {
                     MessageManager.Instance.Show_Message("You still have undeployed units remaining");
                     return;
@@ -198,12 +199,12 @@ public class CombatManager : MonoBehaviour {
                 u.Hex.Borders = CombatMapHex.Owned_Unit_Color;
             }
             Current_Army.Start_Combat_Turn();
-            CombatUIManager.Instance.Current_Unit = Current_Army.Units.OrderByDescending(x => x.Controllable ? 1 : 0).FirstOrDefault(x => x.Hex != null);
+            CombatUIManager.Instance.Current_Unit = Current_Army.Units.Where(x => Hex.Passable_For(x)).OrderByDescending(x => x.Controllable ? 1 : 0).FirstOrDefault(x => x.Hex != null);
         } else {
-            CombatUIManager.Instance.Current_Unit = Current_Army.Units[0];
+            CombatUIManager.Instance.Current_Unit = Current_Army.Units.Where(x => Hex.Passable_For(x)).FirstOrDefault();
         }
         
-        foreach (Unit u in Other_Army.Units) {
+        foreach (Unit u in Other_Army.Units.Where(x => Hex.Passable_For(x)).ToArray()) {
             if (Deployment_Mode) {
                 u.Hex.Borders = null;
             } else if(u.Hex != null) {
@@ -215,7 +216,7 @@ public class CombatManager : MonoBehaviour {
         }
         CombatUIManager.Instance.Update_GUI();
         CombatTopPanelManager.Instance.Update_GUI();
-        if(CombatUIManager.Instance.Current_Unit.Hex != null && Current_Player.AI == null) {
+        if(CombatUIManager.Instance.Current_Unit != null && CombatUIManager.Instance.Current_Unit.Hex != null && Current_Player.AI == null) {
             CameraManager.Instance.Set_Camera_Location(CombatUIManager.Instance.Current_Unit.Hex);
         }
     }
@@ -243,7 +244,7 @@ public class CombatManager : MonoBehaviour {
 
     public void Next_Unit()
     {
-        List<Unit> units = Deployment_Mode ? Current_Army.Units : Current_Army.Units.Where(x => x.Hex != null).ToList();
+        List<Unit> units = Deployment_Mode ? Current_Army.Units.Where(x => Hex.Passable_For(x)).ToList() : Current_Army.Units.Where(x => x.Hex != null && Hex.Passable_For(x)).ToList();
         int current_index = units.IndexOf(CombatUIManager.Instance.Current_Unit);
         current_index++;
         if(current_index >= units.Count) {
@@ -254,7 +255,7 @@ public class CombatManager : MonoBehaviour {
 
     public void Previous_Unit()
     {
-        List<Unit> units = Deployment_Mode ? Current_Army.Units : Current_Army.Units.Where(x => x.Hex != null).ToList();
+        List<Unit> units = Deployment_Mode ? Current_Army.Units.Where(x => Hex.Passable_For(x)).ToList() : Current_Army.Units.Where(x => x.Hex != null && Hex.Passable_For(x)).ToList();
         int current_index = units.IndexOf(CombatUIManager.Instance.Current_Unit);
         current_index--;
         if (current_index < 0) {

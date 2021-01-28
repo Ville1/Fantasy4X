@@ -8,6 +8,7 @@ public class Faction {
     public int Starting_Cash { get; private set; }
     public int Capital_Starting_Population { get; private set; }
     public List<Trainable> Units { get; private set; }
+    public List<Unit> Transports { get; private set; }
     public List<Building> Buildings { get; private set; }
     public List<Improvement> Improvements { get; private set; }
     public Technology Root_Technology { get; private set; }
@@ -41,6 +42,7 @@ public class Faction {
         Starting_Cash = starting_cash;
         Capital_Starting_Population = capital_starting_population;
         Units = new List<Trainable>();
+        Transports = new List<Unit>();
         Buildings = new List<Building>();
         City_Yields = city_yields;
         Pop_Food_Consumption = pop_food_consumption;

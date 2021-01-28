@@ -12,6 +12,8 @@ public class BottomGUIManager : MonoBehaviour
     public Text Current_Entity_Name_Text;
     public Text Current_Entity_Movement_Text;
     public Text Current_Entity_Info_Text;
+    public GameObject Current_Entity_Transport_Container;
+    public Text Current_Entity_Transport_Text;
     public Button Next_Button;
     public Button Wait_Button;
     public Button Sleep_Button;
@@ -145,6 +147,9 @@ public class BottomGUIManager : MonoBehaviour
             //Happens sometimes on AI turns, when ai wins the game
             return;
         }
+        if (CombatManager.Instance.Active_Combat) {
+            return;
+        }
 
         Update_Entity_Info();
         Update_Actions();
@@ -202,8 +207,8 @@ public class BottomGUIManager : MonoBehaviour
         Current_Entity_Image.overrideSprite = SpriteManager.Instance.Get(current_entity.Texture, SpriteManager.SpriteType.Unit);
         Current_Entity_Name_Text.text = Current_Entity.Is_Owned_By_Current_Player ? current_entity.Name : string.Format("Enemy {0}", current_entity.Name);
         Current_Entity_Name_Text.color = Current_Entity.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
-        Current_Entity_Movement_Text.text = string.Format("Movement: {0} / {1}", Helper.Float_To_String(current_entity.Current_Movement, 1), current_entity.Max_Movement);
-
+        Current_Entity_Movement_Text.text = string.Format("{0} / {1}", Helper.Float_To_String(current_entity.Current_Movement, 1), current_entity.Max_Movement);
+        
         Current_Entity_Info_Text.text = current_entity.Wait_Turn ? "wait" : (current_entity.Sleep ? "sleep" : string.Empty);
         if (Current_Entity is Worker) {
             Update_Actions();

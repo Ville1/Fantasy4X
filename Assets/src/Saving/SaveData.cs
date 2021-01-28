@@ -8,6 +8,9 @@ public class SaveData {
     public int Max_Rounds;
     public int Round;
     public int Current_Player;
+    public NeutralCitiesSaveData Neutral_Cities;
+    public BanditsSaveData Bandits;
+    public WildLifeSaveData Wild_Life;
 }
 
 [Serializable]
@@ -60,4 +63,22 @@ public class TechnologySaveData
 {
     public string Name;
     public float Progress;
+}
+
+[Serializable]
+public class NeutralCitiesSaveData
+{
+    public List<ArmySaveData> Armies;
+}
+
+[Serializable]
+public class BanditsSaveData
+{
+    public List<ArmySaveData> Armies;
+}
+
+[Serializable]
+public class WildLifeSaveData
+{
+    public List<ArmySaveData> Armies;
 }

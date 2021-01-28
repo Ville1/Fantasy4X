@@ -32,6 +32,10 @@ public class Map
     private int serialization_phase;
     private int serialization_index;
     private List<WorldMapHex> serialization_hexes;
+    private List<BodyOfWaterData> bodies_of_water;
+    
+    private WorldMapEntity Dummy_Boat { get { dummy_boat = dummy_boat != null ? dummy_boat : new Worker("Dummy Boat", 3.0f, MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f,
+        new List<Improvement>(), 1.0f, 50, 100, 1.0f, null, 0.0f); return dummy_boat; } }
 
     public Map(int width, int height, float mineral_spawn_rate)
     {
@@ -42,6 +46,7 @@ public class Map
         Height = height;
         Mineral_Spawn_Rate = mineral_spawn_rate;
         GameObject = GameObject.Find(GAME_OBJECT_NAME);
+        bodies_of_water = new List<BodyOfWaterData>();
 
         Cities = new List<City>();
         Villages = new List<Village>();
@@ -49,8 +54,6 @@ public class Map
         hexes = new List<List<WorldMapHex>>();
         edge_hexes = new List<WorldMapHex>();
         visible = true;
-        dummy_boat = new Worker("Dummy Boat", 3.0f, MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f, new List<Improvement>(),
-            1.0f, 50, 100, 1.0f, null, 0.0f);
 
         //Generate
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -296,6 +299,7 @@ public class Map
         Height = data.Height;
         Mineral_Spawn_Rate = data.Mineral_Spawn_Rate;
         GameObject = GameObject.Find(GAME_OBJECT_NAME);
+        bodies_of_water = new List<BodyOfWaterData>();
 
         Cities = new List<City>();
         Villages = new List<Village>();
@@ -582,7 +586,7 @@ public class Map
                 continue;
             }
             foreach(TradePartner partner in partners) {
-                List<WorldMapHex> path = Path(city.Hex, partner.Hex, dummy_boat, false);
+                List<WorldMapHex> path = Hex_Path(city.Hex, partner.Hex, Dummy_Boat, false);
                 if(path.Count == 0) {
                     continue;
                 }
@@ -604,7 +608,7 @@ public class Map
             if(hex.Coordinates.Distance(connection_hex.Coordinates) > max_direct_distance) {
                 continue;
             }
-            List<WorldMapHex> path = Path(hex, connection_hex, null, false, false, true);
+            List<WorldMapHex> path = Hex_Path(hex, connection_hex, null, false, false, true);
             if (path.Count == 0) {
                 continue;
             }
@@ -957,25 +961,79 @@ public class Map
         return line;
     }
 
-    public List<WorldMapHex> Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false,
-        bool road_spawning = false, bool water = false)
+    public List<PathfindingNode> Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false,
+        bool road_spawning = false)
+    {
+        if(entity != null && entity is Army && (entity as Army).Movement_Type == MovementType.Land && entity.Owner.Has_Transport && ((!hex_1.Is_Water && hex_2.Is_Water) || (hex_1.Is_Water && !hex_2.Is_Water))) {
+            //Embarking
+            WorldMapHex water_hex = hex_1.Is_Water ? hex_1 : hex_2;
+            BodyOfWaterData body_of_water = bodies_of_water.FirstOrDefault(x => x.Water.Contains(water_hex));
+            if(body_of_water == null) {
+                body_of_water = new BodyOfWaterData();
+                Find_Body_Of_Water_Recursive(body_of_water, water_hex);
+                bodies_of_water.Add(body_of_water);
+            }
+            if(!body_of_water.Harbors.Exists(x => x.Is_Owned_By(entity.Owner))) {
+                //No harbors available
+                return new List<PathfindingNode>();
+            }
+            Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_from_hex_1 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
+            Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_to_hex_2 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
+            bool embark = hex_2.Is_Water;
+            foreach (WorldMapHex harbor_hex in body_of_water.Harbors.Where(x => x.Is_Owned_By(entity.Owner)).ToArray()) {
+                List<PathfindingNode> path = Node_Path(hex_1, harbor_hex, embark ? entity : null, use_los, false, false);
+                if(path != null && path.Count != 0) {
+                    harbor_paths_from_hex_1.Add(path, harbor_hex);
+                    if (harbor_hex.Is_Adjancent_To(hex_2)) {
+                        //TODO: Why is this needed? Node_Path should work
+                        harbor_paths_to_hex_2.Add(new List<PathfindingNode>() { harbor_hex.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(Dummy_Boat) }, harbor_hex);
+                    } else {
+                        path = Node_Path(harbor_hex, hex_2, embark ? Dummy_Boat : entity, use_los, false, false);
+                        if (path != null && path.Count != 0) {
+                            harbor_paths_to_hex_2.Add(path, harbor_hex);
+                        }
+                    }
+                }
+            }
+            if (harbor_paths_from_hex_1.Count == 0 || harbor_paths_to_hex_2.Count == 0) {
+                //Could not find a path to/from harbor
+                return new List<PathfindingNode>();
+            }
+            List<PathfindingNode> final_path = new List<PathfindingNode>();
+            final_path = final_path.Concat(harbor_paths_from_hex_1.OrderBy(x => x.Key.Count).FirstOrDefault().Key).ToList();
+            WorldMapHex final_harbor = harbor_paths_from_hex_1.OrderBy(x => x.Key.Count).FirstOrDefault().Value;
+            final_path.Add(final_harbor.Get_Specific_PathfindingNode(entity));
+            final_path = final_path.Concat(harbor_paths_to_hex_2.Where(x => x.Value == final_harbor).OrderBy(x => x.Key.Count).FirstOrDefault().Key).ToList();
+
+            if (include_start_and_end) {
+                final_path.Insert(0, hex_1.Get_Specific_PathfindingNode(entity));
+                final_path.Add(hex_2.Get_Specific_PathfindingNode(entity));
+            }
+            return final_path;
+        }
+        return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning);
+    }
+
+    private List<PathfindingNode> Node_Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false,
+        bool road_spawning = false)
     {
         List<PathfindingNode> node_path = entity != null ?
             Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity, null, use_los), hex_2.Get_Specific_PathfindingNode(entity, null, use_los)) :
-            (water ? Pathfinding.Path(Get_PathfindingNodes(road_spawning, true), hex_1.Water_PathfindingNode, hex_2.Water_PathfindingNode) :
-            Pathfinding.Path(Get_PathfindingNodes(road_spawning), hex_1.PathfindingNode, hex_2.PathfindingNode));
-        if(node_path.Count == 0) {
-            return new List<WorldMapHex>();
+            Pathfinding.Path(Get_PathfindingNodes(road_spawning), hex_1.PathfindingNode, hex_2.PathfindingNode);
+        if (node_path.Count == 0) {
+            return new List<PathfindingNode>();
         }
         if (!include_start_and_end) {
             node_path.RemoveAt(node_path.Count - 1);
             node_path.RemoveAt(0);
         }
-        List<WorldMapHex> path = new List<WorldMapHex>();
-        for(int i = 0; i < node_path.Count; i++) {
-            path.Add(Get_Hex_At(node_path[i].Coordinates));
-        }
-        return path;
+        return node_path;
+    }
+
+    public List<WorldMapHex> Hex_Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false,
+        bool road_spawning = false)
+    {
+        return Path(hex_1, hex_2, entity, use_los, include_start_and_end).Select(x => Get_Hex_At(x.Coordinates)).ToList();
     }
 
     public void Update(float delta_s)
@@ -992,6 +1050,30 @@ public class Map
                     }
                 }
             }
+        }
+    }
+
+    private void Find_Body_Of_Water_Recursive(BodyOfWaterData data, WorldMapHex hex)
+    {
+        data.Water.Add(hex);
+        foreach(WorldMapHex adjacent_hex in hex.Get_Adjancent_Hexes()) {
+            if(adjacent_hex.Has_Harbor && !data.Harbors.Contains(adjacent_hex)) {
+                data.Harbors.Add(adjacent_hex);
+            } else if(adjacent_hex.Is_Water && !data.Water.Contains(adjacent_hex)) {
+                Find_Body_Of_Water_Recursive(data, adjacent_hex);
+            }
+        }
+    }
+
+    private class BodyOfWaterData
+    {
+        public List<WorldMapHex> Water { get; set; }
+        public List<WorldMapHex> Harbors { get; set; }
+
+        public BodyOfWaterData()
+        {
+            Water = new List<WorldMapHex>();
+            Harbors = new List<WorldMapHex>();
         }
     }
 }
