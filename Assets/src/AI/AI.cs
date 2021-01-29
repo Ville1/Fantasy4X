@@ -1007,8 +1007,7 @@ public class AI : IConfigListener, I_AI
         Dictionary<WorldMapHex, float> hexes_and_preferences = new Dictionary<WorldMapHex, float>();
         Dictionary<WorldMapHex, List<PathfindingNode>> hexes_and_paths = new Dictionary<WorldMapHex, List<PathfindingNode>>();
         foreach (WorldMapHex hex in hexes_to_be_evaluated) {
-            List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(worker), worker.Hex.Get_Specific_PathfindingNode(worker),
-                hex.Get_Specific_PathfindingNode(worker));
+            List<PathfindingNode> path = World.Instance.Map.Path(worker.Hex, hex, worker, true, true);
             if(path.Count == 0) {
                 continue;
             }
@@ -1110,8 +1109,7 @@ public class AI : IConfigListener, I_AI
         Dictionary<WorldMapHex, List<PathfindingNode>> hexes_and_paths = new Dictionary<WorldMapHex, List<PathfindingNode>>();
 
         foreach (WorldMapHex hex in hexes_needing_prospecting) {
-            List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(prospector), prospector.Hex.Get_Specific_PathfindingNode(prospector),
-                hex.Get_Specific_PathfindingNode(prospector));
+            List<PathfindingNode> path = World.Instance.Map.Path(prospector.Hex, hex, prospector, true, true);
             if (path.Count != 0) {
                 hexes_and_distances.Add(hex, path.Count);
                 hexes_and_paths.Add(hex, path);
@@ -1128,7 +1126,8 @@ public class AI : IConfigListener, I_AI
         List<WorldMapHex> hexes_sorted_by_distance = hexes_and_distances.OrderBy(x => x.Value).Select(x => x.Key).ToList();
 
         Log("Moving prospector towards hex " + hexes_sorted_by_distance[0].ToString(), LogType.Economy);
-        if (!prospector.Move(World.Instance.Map.Get_Hex_At(hexes_and_paths[hexes_sorted_by_distance[0]][1].Coordinates))) {
+        if (!prospector.Move(World.Instance.Map.Get_Hex_At(hexes_and_paths[hexes_sorted_by_distance[0]][1].Coordinates), false, true,
+            hexes_and_paths[hexes_sorted_by_distance[0]].Count > 2 ? World.Instance.Map.Get_Hex_At(hexes_and_paths[hexes_sorted_by_distance[0]][2].Coordinates) : null)) {
             prospector.Wait_Turn = true;
         }
         last_action_was_visible = prospector.Hex.Visible_To_Viewing_Player;
@@ -1146,8 +1145,7 @@ public class AI : IConfigListener, I_AI
         List<PathfindingNode> path = null;
 
         foreach (City city in undefended_enemy_cities) {
-            List<PathfindingNode> path_to_city = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army),
-                city.Hex.Get_Specific_PathfindingNode(army));
+            List<PathfindingNode> path_to_city = World.Instance.Map.Path(army.Hex, city.Hex, army, true, true);
             if (path_to_city.Count != 0 && path_to_city.Count <= army.Max_Movement * scout_attack_undefended_city_range_multiplier) {
                 Log("Attacking undefended city #" + city.Id, LogType.Military);
                 path = path_to_city;
@@ -1159,8 +1157,7 @@ public class AI : IConfigListener, I_AI
         if (path == null) {
             //TODO: re-evaluate if target moved
             foreach (WorldMapEntity civilian in undefended_enemy_civilians) {
-                List<PathfindingNode> path_to_civilian = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army),
-                    civilian.Hex.Get_Specific_PathfindingNode(army));
+                List<PathfindingNode> path_to_civilian = World.Instance.Map.Path(army.Hex, civilian.Hex, army, true, true);
                 if (path_to_civilian.Count != 0 && path_to_civilian.Count <= army.Max_Movement * scout_attack_undefended_civilian_range_multiplier) {
                     Log("Attacking undefended civilian #" + civilian.Id, LogType.Military);
                     path = path_to_civilian;
@@ -1172,12 +1169,12 @@ public class AI : IConfigListener, I_AI
 
         if (scouting_armies[army] == null) {
             WorldMapHex target_hex = World.Instance.Map.Random_Hex;
-            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), target_hex.Get_Specific_PathfindingNode(army));
+            path = World.Instance.Map.Path(army.Hex, target_hex, army, true, true);
             int max_iterations = 1000;
             int iteration = 0;
             while (target_hex.Is_Explored_By(Player) && path.Count != 0) {
                 target_hex = World.Instance.Map.Random_Hex;
-                path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), target_hex.Get_Specific_PathfindingNode(army));
+                path = World.Instance.Map.Path(army.Hex, target_hex, army, true, true);
                 iteration++;
                 if (iteration > max_iterations) {
                     Log("Could not find unexplored hex", LogType.Military);
@@ -1186,7 +1183,7 @@ public class AI : IConfigListener, I_AI
             }
             while (path.Count == 0) {
                 target_hex = World.Instance.Map.Random_Hex;
-                path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), target_hex.Get_Specific_PathfindingNode(army));
+                path = World.Instance.Map.Path(army.Hex, target_hex, army, true, true);
             }
 
             Log("New target assigned: " + target_hex.ToString(), LogType.Military);
@@ -1195,7 +1192,7 @@ public class AI : IConfigListener, I_AI
 
         Log("Moving scout army towards hex " + scouting_armies[army].ToString(), LogType.Military);
         if (path == null) {
-            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), scouting_armies[army].Get_Specific_PathfindingNode(army));
+            path = World.Instance.Map.Path(army.Hex, scouting_armies[army], army, true, true);
             if (path.Count == 0) {
                 Log("Path blocked", LogType.Military);
                 scouting_armies[army] = null;
@@ -1203,7 +1200,7 @@ public class AI : IConfigListener, I_AI
                 return;
             }
         }
-        if (!army.Move(World.Instance.Map.Get_Hex_At(path[1].Coordinates))) {
+        if (!army.Move(World.Instance.Map.Get_Hex_At(path[1].Coordinates), false, true, path.Count > 2 ? World.Instance.Map.Get_Hex_At(path[2].Coordinates) : null)) {
             army.Wait_Turn = true;
         } else if (army.Hex == scouting_armies[army]) {
             Log("Destination reached: " + army.Hex.ToString(), LogType.Military);
@@ -1227,14 +1224,14 @@ public class AI : IConfigListener, I_AI
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         Log("Moving defence army towards it's city #" + city.Id, LogType.Military);
-        List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), city.Hex.Get_Specific_PathfindingNode(army));
+        List<PathfindingNode> path = World.Instance.Map.Path(army.Hex, city.Hex, army, true, true);
         if (path.Count == 0) {
             Log("Path blocked", LogType.Military);
             army.Wait_Turn = true;
             last_action_was_visible = false;
             return;
         }
-        if (!army.Move(World.Instance.Map.Get_Hex_At(path[1].Coordinates))) {
+        if (!army.Move(World.Instance.Map.Get_Hex_At(path[1].Coordinates), false, true, path.Count > 2 ? World.Instance.Map.Get_Hex_At(path[2].Coordinates) : null)) {
             army.Wait_Turn = true;
         }
         Update_Scouting();
@@ -1301,8 +1298,7 @@ public class AI : IConfigListener, I_AI
                     army.Get_Relative_Strenght_When_On_Hex(enemy_army.Hex, true, true)) {
                     continue;
                 }
-                List<PathfindingNode> path_to_enemy = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, enemy_army.Hex),
-                    army.Hex.Get_Specific_PathfindingNode(army), enemy_army.Hex.Get_Specific_PathfindingNode(army, enemy_army.Hex, true));
+                List<PathfindingNode> path_to_enemy = World.Instance.Map.Path(army.Hex, enemy_army.Hex, army, true, true, false, enemy_army.Hex);
                 if(path_to_enemy.Count == 0) {
                     continue;
                 }
@@ -1384,7 +1380,7 @@ public class AI : IConfigListener, I_AI
 
         if (main_armies[army].Type == ArmyOrder.OrderType.Move_To) {
             Log("Following orders to move to " + main_armies[army].Hex_Target.ToString(), LogType.Military);
-            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), main_armies[army].Hex_Target.Get_Specific_PathfindingNode(army));
+            path = World.Instance.Map.Path(army.Hex, main_armies[army].Hex_Target, army, true, true);
         } else if(main_armies[army].Type == ArmyOrder.OrderType.Defend_Civilian) {
             Log("Following orders to defend civilian at " + main_armies[army].Hex_Target.ToString(), LogType.Military);
             if (main_armies[army].Hex_Target.Civilian == null) {
@@ -1400,7 +1396,7 @@ public class AI : IConfigListener, I_AI
                 last_action_was_visible = false;
                 return;
             }
-            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), main_armies[army].Hex_Target.Get_Specific_PathfindingNode(army));
+            path = World.Instance.Map.Path(army.Hex, main_armies[army].Hex_Target, army, true, true);
         } else if(main_armies[army].Type == ArmyOrder.OrderType.Merge) {
             Log("Following orders to merge with army #" + main_armies[army].Army_Target.Id, LogType.Military);
             if (main_armies[army].Army_Target.Max_Size < main_armies[army].Army_Target.Units.Count + army.Units.Count) {
@@ -1422,8 +1418,7 @@ public class AI : IConfigListener, I_AI
                 last_action_was_visible = help_hex.Visible_To_Viewing_Player;
                 return;
             }
-            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, main_armies[army].Army_Target.Hex),
-                army.Hex.Get_Specific_PathfindingNode(army, main_armies[army].Army_Target.Hex), main_armies[army].Army_Target.Hex.Get_Specific_PathfindingNode(army, main_armies[army].Army_Target.Hex));
+            path = World.Instance.Map.Path(army.Hex, main_armies[army].Army_Target.Hex, army, true, true, false, main_armies[army].Army_Target.Hex);
         } else if(main_armies[army].Type == ArmyOrder.OrderType.Attack_City) {
             Log("Following orders to attack city #" + main_armies[army].Hex_Target.City.Id, LogType.Military);
             if(main_armies[army].Hex_Target.Current_LoS == WorldMapHex.LoS_Status.Visible && main_armies[army].Hex_Target.Entity != null &&
@@ -1434,8 +1429,7 @@ public class AI : IConfigListener, I_AI
                 last_action_was_visible = false;
                 return;
             }
-            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, main_armies[army].Hex_Target),
-                army.Hex.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target), main_armies[army].Hex_Target.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target));
+            path = World.Instance.Map.Path(army.Hex, main_armies[army].Hex_Target, army, true, true, false, main_armies[army].Hex_Target);
         } else if(main_armies[army].Type == ArmyOrder.OrderType.Attack_Army) {
             Log("Following orders to attack army #" + main_armies[army].Army_Target.Id, LogType.Military);
             if(main_armies[army].Army_Target.Hex.Current_LoS != WorldMapHex.LoS_Status.Visible) {
@@ -1453,8 +1447,7 @@ public class AI : IConfigListener, I_AI
                 last_action_was_visible = false;
                 return;
             }
-            path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army, true, main_armies[army].Army_Target.Hex),
-                army.Hex.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target), main_armies[army].Hex_Target.Get_Specific_PathfindingNode(army, main_armies[army].Hex_Target));
+            path = World.Instance.Map.Path(army.Hex, main_armies[army].Hex_Target, army, true, true, false, main_armies[army].Hex_Target);
         }
 
         if(path == null) {
@@ -1470,7 +1463,7 @@ public class AI : IConfigListener, I_AI
             last_action_was_visible = false;
             return;
         }
-        if (!army.Move(World.Instance.Map.Get_Hex_At(path[1].Coordinates))) {
+        if (!army.Move(World.Instance.Map.Get_Hex_At(path[1].Coordinates), false, true, path.Count > 2 ? World.Instance.Map.Get_Hex_At(path[2].Coordinates) : null)) {
             army.Wait_Turn = true;
         }
         Update_Scouting();
@@ -1842,7 +1835,7 @@ public class AI : IConfigListener, I_AI
                 closest_distance = enemy.Hex.Distance(unit.Hex);
             }
         }
-        if (closest_enemy.Hex.Is_Adjancent_To(unit.Hex)) {
+        if (closest_enemy == null || closest_enemy.Hex.Is_Adjancent_To(unit.Hex)) {
             unit.Wait_Turn = true;
             return;
         }

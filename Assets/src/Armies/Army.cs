@@ -316,14 +316,14 @@ public class Army : WorldMapEntity {
         }
     }
 
-    public override bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true)
+    public override bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true, WorldMapHex jump_over_hex = null)
     {
         if(new_hex.Is_Adjancent_To(Hex) && Units_Have_Movement_Left && new_hex.Entity != null && new_hex.Entity is Army && !new_hex.Entity.Is_Owned_By(Owner)) {
             return Attack(new_hex.Entity as Army);
         }
-        WorldMapHex old_hex = Hex;
+        WorldMapHex old_hex = jump_over_hex == null ? Hex : new_hex;
         
-        bool success = base.Move(new_hex, ignore_movement_restrictions, update_los);
+        bool success = base.Move(new_hex, ignore_movement_restrictions, update_los, jump_over_hex);
         if(success)  {
             if (!ignore_movement_restrictions) {
                 foreach (Unit unit in Units) {

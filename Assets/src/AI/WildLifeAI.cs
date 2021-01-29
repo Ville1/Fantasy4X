@@ -188,7 +188,7 @@ public class WildLifeAI : IConfigListener, I_AI
                         if (!hex_in_los.Passable_For(army) || (hex_in_los.Entity != null && hex_in_los.Entity.Is_Owned_By(Player)) || !Can_Enter_Hex(hex_in_los)) {
                             continue;
                         }
-                        List<PathfindingNode> path = Pathfinding.Path(World.Instance.Map.Get_Specific_PathfindingNodes(army), army.Hex.Get_Specific_PathfindingNode(army), hex_in_los.Get_Specific_PathfindingNode(army));
+                        List<PathfindingNode> path = World.Instance.Map.Path(army.Hex, hex_in_los, army, true, true);
                         if (path.Count != 0) {
                             reachable_hexes.Add(hex_in_los, path);
                         }

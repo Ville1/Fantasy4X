@@ -380,7 +380,7 @@ public class Map
             Add_To_Seed("mushroom forest", 3);
             Add_To_Seed("city ruins", 3);
             //Add_To_Seed("volcano", 0);
-            Add_To_Seed("water", 55);
+            Add_To_Seed("water", 5);
             //Add_To_Seed("swamp", 0);
 
             return seed;
@@ -992,14 +992,14 @@ public class Map
     }
 
     public List<PathfindingNode> Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false,
-        bool road_spawning = false)
+        bool road_spawning = false, WorldMapHex ignore_entity_hex = null)
     {
         if (entity != null && entity is Army && (entity as Army).Movement_Type == MovementType.Land && entity.Owner.Has_Transport && ((!hex_1.Is_Water && hex_2.Is_Water) || (hex_1.Is_Water && !hex_2.Is_Water))) {
             if (!hex_1.Is_Water && hex_2.Is_Water) {
                 //Embarking
                 //Free
                 if ((entity as Army).Free_Embarkment != null && (entity as Army).Free_Embarkment == (hex_2.Georaphic_Feature as BodyOfWaterData)) {
-                    return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning);
+                    return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning, ignore_entity_hex);
                 }
 
                 //Normal
@@ -1012,14 +1012,14 @@ public class Map
                 Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_from_hex_1 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
                 Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_to_hex_2 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
                 foreach (WorldMapHex harbor_hex in body_of_water.Harbors.Where(x => x.Is_Owned_By(entity.Owner)).ToArray()) {
-                    List<PathfindingNode> path = Node_Path(hex_1, harbor_hex, entity, use_los, false, false);
+                    List<PathfindingNode> path = Node_Path(hex_1, harbor_hex, entity, use_los, false, false, ignore_entity_hex);
                     if (path != null && path.Count != 0) {
                         harbor_paths_from_hex_1.Add(path, harbor_hex);
                         if (harbor_hex.Is_Adjancent_To(hex_2)) {
                             //TODO: Why is this needed? Node_Path should work
                             harbor_paths_to_hex_2.Add(new List<PathfindingNode>() { harbor_hex.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(Dummy_Boat) }, harbor_hex);
                         } else {
-                            path = Node_Path(harbor_hex, hex_2, Dummy_Boat, use_los, false, false);
+                            path = Node_Path(harbor_hex, hex_2, Dummy_Boat, use_los, false, false, ignore_entity_hex);
                             if (path != null && path.Count != 0) {
                                 harbor_paths_to_hex_2.Add(path, harbor_hex);
                             }
@@ -1043,18 +1043,18 @@ public class Map
                 return final_path;
             } else if(hex_1.Is_Water && !hex_2.Is_Water) {
                 //Disembarking
-                return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning);
+                return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning, ignore_entity_hex);
             }
         }
         //Normal movement
-        return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning);
+        return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning, ignore_entity_hex);
     }
 
     private List<PathfindingNode> Node_Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false,
-        bool road_spawning = false)
+        bool road_spawning = false, WorldMapHex ignore_entity_hex = null)
     {
         List<PathfindingNode> node_path = entity != null ?
-            Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los), hex_1.Get_Specific_PathfindingNode(entity, null, use_los), hex_2.Get_Specific_PathfindingNode(entity, null, use_los)) :
+            Pathfinding.Path(Get_Specific_PathfindingNodes(entity, use_los, ignore_entity_hex), hex_1.Get_Specific_PathfindingNode(entity, ignore_entity_hex, use_los), hex_2.Get_Specific_PathfindingNode(entity, ignore_entity_hex, use_los)) :
             Pathfinding.Path(Get_PathfindingNodes(road_spawning), hex_1.PathfindingNode, hex_2.PathfindingNode);
         if (node_path.Count == 0) {
             return new List<PathfindingNode>();

@@ -87,10 +87,10 @@ public class Prospector : WorldMapEntity, Trainable
     /// <param name="new_hex"></param>
     /// <param name="ignore_movement_restrictions"></param>
     /// <returns></returns>
-    public override bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true)
+    public override bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true, WorldMapHex jump_over_hex = null)
     {
         Prospecting = false;
-        bool success = base.Move(new_hex, ignore_movement_restrictions, update_los);
+        bool success = base.Move(new_hex, ignore_movement_restrictions, update_los, jump_over_hex);
         if (success && !Main.Instance.Other_Players_Turn) {
             World.Instance.Map.Map_Mode = World.Instance.Map.Map_Mode;
         }

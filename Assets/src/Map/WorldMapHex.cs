@@ -401,7 +401,7 @@ public class WorldMapHex : Hex {
     
     public PathfindingNode Get_Specific_PathfindingNode(WorldMapEntity entity, WorldMapHex ignore_entity_hex = null, bool use_los = true)
     {
-        bool blocked = ((entity.Is_Civilian && Civilian != null) || (!entity.Is_Civilian && Entity != null) && this != ignore_entity_hex);
+        bool blocked = false;// ((entity.Is_Civilian && Civilian != null) || (!entity.Is_Civilian && Entity != null) && this != ignore_entity_hex);
 
         //TODO: Clean this up
         if (!blocked && (City != null || Village != null) && entity.Owner != null && entity.Owner.AI != null && entity.Owner.AI is WildLifeAI) {

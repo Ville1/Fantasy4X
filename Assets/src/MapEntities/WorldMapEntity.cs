@@ -167,12 +167,19 @@ public class WorldMapEntity : Ownable {
     /// <param name="new_hex"></param>
     /// <param name="ignore_movement_restrictions"></param>
     /// <returns></returns>
-    public virtual bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true)
+    public virtual bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true, WorldMapHex jump_over_hex = null)
     {
         if(((Hex == null && !new_hex.Passable_For(this)) || !Hex.Passable_For(this, new_hex)) || (!Is_Civilian && new_hex.Entity != null) || (Is_Civilian && new_hex.Civilian != null)) {
-            return false;
+            if(jump_over_hex != null && ((!Is_Civilian && jump_over_hex.Entity == null) || (Is_Civilian && jump_over_hex.Civilian == null)) &&
+                ((!Is_Civilian && new_hex.Entity != null && new_hex.Entity.Is_Owned_By(Owner)) || (Is_Civilian && new_hex.Civilian != null && new_hex.Civilian.Is_Owned_By(Owner))) &&
+                Current_Movement - new_hex.Get_Movement_Cost(this) > 0.0f) {
+                Current_Movement -= new_hex.Get_Movement_Cost(this);
+                new_hex = jump_over_hex;
+            } else {
+                return false;
+            }
         }
-        if(!ignore_movement_restrictions && (!Hex.Is_Adjancent_To(new_hex) || Current_Movement <= 0.0f)) {
+        if(!ignore_movement_restrictions && ((!Hex.Is_Adjancent_To(new_hex) && jump_over_hex == null) || Current_Movement <= 0.0f)) {
             return false;
         }
 
@@ -303,7 +310,8 @@ public class WorldMapEntity : Ownable {
             }
             next_hex = Stored_Path[Stored_Path_Index];
         }
-        bool success = Move(next_hex);
+        WorldMapHex next_next_hex = Stored_Path.Count > Stored_Path_Index + 1 ? Stored_Path[Stored_Path_Index + 1] : null;
+        bool success = Move(next_hex, false, true, next_next_hex);
         if (success) {
             if(Hex == Stored_Path_Target) {
                 Clear_Stored_Path();
