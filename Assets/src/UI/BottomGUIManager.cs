@@ -11,9 +11,9 @@ public class BottomGUIManager : MonoBehaviour
     public Image Current_Entity_Image;
     public Text Current_Entity_Name_Text;
     public Text Current_Entity_Movement_Text;
+    public GameObject Current_Entity_Embarkment_Container;
+    public Text Current_Entity_Embarkment_Text;
     public Text Current_Entity_Info_Text;
-    public GameObject Current_Entity_Transport_Container;
-    public Text Current_Entity_Transport_Text;
     public Button Next_Button;
     public Button Wait_Button;
     public Button Sleep_Button;
@@ -221,6 +221,14 @@ public class BottomGUIManager : MonoBehaviour
             if ((Current_Entity as Prospector).Prospecting) {
                 Current_Entity_Info_Text.text = string.Format("Prospecting {0} turn{1} left", ((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress),
                     Helper.Plural((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress));
+            }
+        } else if(Current_Entity is Army) {
+            Army army = Current_Entity as Army;
+            if(army.Free_Embarkment != null) {
+                Current_Entity_Embarkment_Container.SetActive(true);
+                Current_Entity_Embarkment_Text.text = army.Free_Embarkment.Name;
+            } else {
+                Current_Entity_Embarkment_Container.SetActive(false);
             }
         }
     }

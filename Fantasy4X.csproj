@@ -119,6 +119,7 @@
     <Compile Include="Assets\src\IStatusEffect.cs" />
     <Compile Include="Assets\src\LogMessages.cs" />
     <Compile Include="Assets\src\Main.cs" />
+    <Compile Include="Assets\src\Map\Geography.cs" />
     <Compile Include="Assets\src\Map\Hex.cs" />
     <Compile Include="Assets\src\Map\HexPrototypes.cs" />
     <Compile Include="Assets\src\Map\HexStatusEffect.cs" />

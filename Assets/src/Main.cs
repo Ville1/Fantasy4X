@@ -92,6 +92,7 @@ public class Main : MonoBehaviour {
         Round = 0;
         Max_Rounds = max_rounds;
         World.Instance.Map.Spawn_Cities_Villages_And_Roads(neutral_cities, max_villages);
+        World.Instance.Map.Finalize_Generation();
         World.Instance.Map.Start_Game();
         EffectManager.Instance.Update_Target_Map();
         foreach (Player player in Players) {
@@ -381,7 +382,18 @@ public class Main : MonoBehaviour {
 
         foreach (KeyValuePair<ArmySaveData, Faction> neutral_army in neutral_armies) {
             WorldMapHex hex = World.Instance.Map.Get_Hex_At(neutral_army.Key.Hex_X, neutral_army.Key.Hex_Y);
-            Army army = new Army(hex, neutral_army.Value.Army_Prototype, Neutral_Cities_Player, null);
+            Player owner = null;
+            if (neutral_army.Value.Name == Neutral_Cities_Player.Faction.Name) {
+                owner = Neutral_Cities_Player;
+            } else if (neutral_army.Value.Name == Bandit_Player.Faction.Name) {
+                owner = Bandit_Player;
+            } else if (neutral_army.Value.Name == Wild_Life_Player.Faction.Name) {
+                owner = Wild_Life_Player;
+            } else {
+                CustomLogger.Instance.Error("Unidentified neutral army belonging to faction {0}", neutral_army.Value.Name);
+                continue;
+            }
+            Army army = new Army(hex, neutral_army.Value.Army_Prototype, owner, null);
             hex.Entity = army;
             foreach (UnitSaveData unit_data in neutral_army.Key.Units) {
                 Unit unit = new Unit(neutral_army.Value.Units.First(x => x.Name == unit_data.Name) as Unit);
@@ -390,15 +402,7 @@ public class Main : MonoBehaviour {
             }
             army.Stored_Path = neutral_army.Key.Path == null || neutral_army.Key.Path.Count == 0 ? null : neutral_army.Key.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
             army.Sleep = neutral_army.Key.Sleep;
-            if(neutral_army.Value.Name == Neutral_Cities_Player.Faction.Name) {
-                Neutral_Cities_Player.World_Map_Entities.Add(army);
-            } else if (neutral_army.Value.Name == Bandit_Player.Faction.Name) {
-                Bandit_Player.World_Map_Entities.Add(army);
-            } else if (neutral_army.Value.Name == Wild_Life_Player.Faction.Name) {
-                Wild_Life_Player.World_Map_Entities.Add(army);
-            } else {
-                CustomLogger.Instance.Error("Unidentified neutral army belonging to faction {0}", neutral_army.Value.Name);
-            }
+            army.Free_Embarkment = neutral_army.Key.Free_Embarkment >= 0 ? World.Instance.Map.Get_Body_of_Water(neutral_army.Key.Free_Embarkment) : null;
         }
         Turn_Start_Update_GUI();
         Update_Flags();

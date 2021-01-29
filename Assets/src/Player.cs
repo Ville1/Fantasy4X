@@ -552,6 +552,7 @@ public class Player {
             }
             army.Stored_Path = army_data.Path == null || army_data.Path.Count == 0 ? null : army_data.Path.Select(x => World.Instance.Map.Get_Hex_At(x.X, x.Y)).ToList();
             army.Sleep = army_data.Sleep;
+            army.Free_Embarkment = army_data.Free_Embarkment >= 0 ? World.Instance.Map.Get_Body_of_Water(army_data.Free_Embarkment) : null;
         }
         foreach(WorkerSaveData worker_data in data.Workers) {
             WorldMapHex hex = World.Instance.Map.Get_Hex_At(worker_data.Hex_X, worker_data.Hex_Y);

@@ -105,6 +105,14 @@ public class WorldMapEntity : Ownable {
         }
     }
 
+    public Map.MovementType Get_Movement_Type(WorldMapHex old_hex, WorldMapHex new_hex)
+    {
+        if (this is Army) {
+            return Unit.Get_Movement_Type((this as Army).Units, Hex, new_hex);
+        }
+        return movement_type;
+    }
+
     public virtual bool Wait_Turn
     {
         get {
@@ -161,7 +169,7 @@ public class WorldMapEntity : Ownable {
     /// <returns></returns>
     public virtual bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true)
     {
-        if(!new_hex.Passable_For(this) || (!Is_Civilian && new_hex.Entity != null) || (Is_Civilian && new_hex.Civilian != null)) {
+        if(((Hex == null && !new_hex.Passable_For(this)) || !Hex.Passable_For(this, new_hex)) || (!Is_Civilian && new_hex.Entity != null) || (Is_Civilian && new_hex.Civilian != null)) {
             return false;
         }
         if(!ignore_movement_restrictions && (!Hex.Is_Adjancent_To(new_hex) || Current_Movement <= 0.0f)) {

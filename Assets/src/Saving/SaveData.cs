@@ -22,6 +22,16 @@ public class MapSaveData
     public List<WorldMapHexSaveData> Hexes;
     public List<CitySaveData> Cities;
     public List<VillageSaveData> Villages;
+    public List<GeographySaveData> Bodies_Of_Water;
+    public List<GeographySaveData> Landmasses;
+}
+
+[Serializable]
+public class GeographySaveData
+{
+    public string Name;
+    public long Id;
+    public List<CoordinateSaveData> Harbors;
 }
 
 [Serializable]

@@ -9,6 +9,7 @@ public class WorldMapHex : Hex {
     private static readonly float UNEXPLORED_MOVEMENT_COST = 10.0f;
     private static string not_explored_texture = "clouds";
     private static long current_icon_id = 0;
+    private static float FREE_EMBARK_PATHFINDING_MOVEMENT_COST = 5.0f;
 
     public enum InfoText { None, Coordinates, Yields, Minerals }
     public enum LoS_Status { Visible, Explored, Unexplored }
@@ -41,6 +42,7 @@ public class WorldMapHex : Hex {
     public StatusEffectList<HexStatusEffect> Status_Effects { get; private set; }
     public Dictionary<string, int> CombatMap_Seed { get; private set; }
     public Dictionary<string, int> CombatMap_City_Seed { get; private set; }
+    public Geography Georaphic_Feature { get; private set; }
 
     private LoS_Status current_los;
     private InfoText current_text;
@@ -64,6 +66,7 @@ public class WorldMapHex : Hex {
         prospected_by = new List<Player>();
         In_Work_Range_Of = new List<City>();
         Status_Effects = new StatusEffectList<HexStatusEffect>();
+        Georaphic_Feature = null;
     }
 
     /// <summary>
@@ -86,6 +89,7 @@ public class WorldMapHex : Hex {
         CombatMap_Seed = Helper.Copy_Dictionary(combatMap_seed);
         CombatMap_City_Seed = combatMap_City_Seed != null ? Helper.Copy_Dictionary(combatMap_City_Seed) : null;
         Is_Water = false;
+        Georaphic_Feature = null;
     }
 
     public void Change_To(WorldMapHex prototype)
@@ -151,6 +155,14 @@ public class WorldMapHex : Hex {
         private set {
             movement_cost = value;
         }
+    }
+
+    public float Get_Movement_Cost(WorldMapEntity entity)
+    {
+        if(entity is Army && entity.Owner.Has_Transport && Is_Water && (entity as Army).Free_Embarkment != null && (entity as Army).Free_Embarkment == Georaphic_Feature as BodyOfWaterData) {
+            return FREE_EMBARK_PATHFINDING_MOVEMENT_COST;
+        }
+        return Get_Movement_Cost(entity.Movement_Type);
     }
 
     public float Get_Movement_Cost(Map.MovementType type)
@@ -346,6 +358,12 @@ public class WorldMapHex : Hex {
         return Passable_For(entity.Movement_Type);
     }
 
+
+    public bool Passable_For(WorldMapEntity entity, WorldMapHex new_hex)
+    {
+        return new_hex.Passable_For(entity.Get_Movement_Type(this, new_hex));
+    }
+
     public bool Passable_For(Unit unit)
     {
         return Passable_For(unit.Tags.Contains(Unit.Tag.Amphibious) ? Map.MovementType.Amphibious : (unit.Tags.Contains(Unit.Tag.Naval) ? Map.MovementType.Water : Map.MovementType.Land));
@@ -395,7 +413,7 @@ public class WorldMapHex : Hex {
             GameObject.transform.position.x,
             GameObject.transform.position.y,
             (use_los && entity.Owner != null && !Is_Explored_By(entity.Owner)) ? UNEXPLORED_MOVEMENT_COST :
-            !blocked ? Get_Movement_Cost(entity.Movement_Type) : -1.0f
+            !blocked ? Get_Movement_Cost(entity) : -1.0f
         );
     }
 
@@ -816,6 +834,16 @@ public class WorldMapHex : Hex {
         }
     }
 
+    public void Assign_To_Feature(Geography data)
+    {
+        if (data.Hexes.Contains(this)) {
+            CustomLogger.Instance.Warning("Hex is already assigned");
+            return;
+        }
+        data.Hexes.Add(this);
+        Georaphic_Feature = data;
+    }
+    
     public WorldMapHexSaveData Save_Data
     {
         get {
@@ -855,6 +883,7 @@ public class WorldMapHex : Hex {
                 Order = x.Order
             }).ToList();
             data.Sprite_Index = Sprite_Index;
+            data.Georaphic_Feature = Georaphic_Feature == null ? -1 : Georaphic_Feature.Id;
             return data;
         }
     }
@@ -867,9 +896,6 @@ public class WorldMapHex : Hex {
         Current_LoS = (LoS_Status)data.Current_Los;
         explored_by = data.Explored_By.Select(x => SaveManager.Get_Player(x)).ToList();
         prospected_by = data.Prospected_By.Select(x => SaveManager.Get_Player(x)).ToList();
-        if(Internal_Name == "swamp") {
-            int i = 0;
-        }
         owner = SaveManager.Get_Player(data.Owner);
         Is_Map_Edge_Road_Connection = data.Is_Map_Edge_Road_Connection;
         if (!string.IsNullOrEmpty(data.Road)) {
@@ -888,5 +914,8 @@ public class WorldMapHex : Hex {
             Status_Effects.Apply_Status_Effect(effect, true);
         }
         Sprite_Index = data.Sprite_Index;
+        if(data.Georaphic_Feature >= 0) {
+            Georaphic_Feature = World.Instance.Map.Assign_Geographic_Feature(this, data);
+        }
     }
 }

@@ -1271,10 +1271,17 @@ public class Unit : Trainable
         return string.Format("{0} (#{1})", Name, Id);
     }
 
-    public static Map.MovementType Get_Movement_Type(List<Unit> units, bool embarking = true)
+    public static Map.MovementType Get_Movement_Type(List<Unit> units, WorldMapHex old_hex = null, WorldMapHex new_hex = null, bool embarking = true)
     {
         if(units == null || units.Count == 0) {
             return Map.MovementType.Immobile;
+        }
+        if(old_hex == null) {
+            old_hex = units[0].Army.Hex;
+        }
+        if(old_hex != units[0].Army.Hex) {
+            //TODO: Is this an error state?
+            CustomLogger.Instance.Warning("old_hex != units[0].Army.Hex");
         }
         Map.MovementType type = Map.MovementType.Land;
         int total = units.Count;
@@ -1288,7 +1295,8 @@ public class Unit : Trainable
         } else if (water_count != 0 && land_count == 0) {
             type = Map.MovementType.Water;
         }
-        if(embarking && (units[0].Army.Hex.Is_Water || (type == Map.MovementType.Land && units[0].Army.Hex.Has_Harbor && units[0].Army.Owner.Has_Transport))) {
+        if(embarking && (old_hex.Is_Water || (type == Map.MovementType.Land && old_hex.Has_Harbor && units[0].Army.Owner.Has_Transport) ||
+            (new_hex != null && type == Map.MovementType.Land && units[0].Army.Free_Embarkment != null && units[0].Army.Owner.Has_Transport && units[0].Army.Free_Embarkment.Id == new_hex.Georaphic_Feature.Id))) {
             return Map.MovementType.Amphibious;
         }
         return type;

@@ -10,6 +10,7 @@ public class HexPanelManager : MonoBehaviour
 
     public GameObject Panel;
     public Text Terrain_Text;
+    public Text Geography_Text;
     public Image Hex_Image;
     public Image Improvement_Image;
     public Text Food_Text;
@@ -85,6 +86,7 @@ public class HexPanelManager : MonoBehaviour
             CityOrVillageOverviewGUIManager.Instance.Current = hex.Trade_Partner;
             TooltipManager.Instance.Unregister_Tooltips_By_Owner(gameObject);
             Terrain_Text.text = hex.Terrain + " " + hex.Coordinates.X + "," + hex.Coordinates.Y;
+            Geography_Text.text = hex.Georaphic_Feature == null ? string.Empty : hex.Georaphic_Feature.Name;
             Hex_Image.sprite = SpriteManager.Instance.Get(hex.Sprite, SpriteManager.SpriteType.Terrain);
             Hex_Image.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Hex_Image.sprite.rect.height > Hex_Image.sprite.rect.width ? 200.0f : 100.0f);
             Improvement_Image.gameObject.SetActive(hex.Improvement != null && hex.Visible_To_Viewing_Player);

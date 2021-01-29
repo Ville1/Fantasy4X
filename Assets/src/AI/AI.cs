@@ -1409,7 +1409,8 @@ public class AI : IConfigListener, I_AI
                 last_action_was_visible = false;
                 return;
             }
-            if (army.Hex.Is_Adjancent_To(main_armies[army].Army_Target.Hex)) {
+            //TODO: Make sure AI uses same rules here, as player does in Army Actions
+            if (army.Hex.Is_Adjancent_To(main_armies[army].Army_Target.Hex) && !army.Is_Embarked && !main_armies[army].Army_Target.Is_Embarked) {
                 foreach(Unit u in army.Units) {
                     u.Current_Campaing_Map_Movement -= main_armies[army].Army_Target.Hex.Movement_Cost;
                     main_armies[army].Army_Target.Units.Add(u);

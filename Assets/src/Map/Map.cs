@@ -33,7 +33,8 @@ public class Map
     private int serialization_index;
     private List<WorldMapHex> serialization_hexes;
     private List<BodyOfWaterData> bodies_of_water;
-    
+    private List<LandmassData> landmasses;
+
     private WorldMapEntity Dummy_Boat { get { dummy_boat = dummy_boat != null ? dummy_boat : new Worker("Dummy Boat", 3.0f, MovementType.Water, 2, "ship", new List<string>() { "peasant_working_1", "peasant_working_2" }, 3.0f,
         new List<Improvement>(), 1.0f, 50, 100, 1.0f, null, 0.0f); return dummy_boat; } }
 
@@ -47,6 +48,7 @@ public class Map
         Mineral_Spawn_Rate = mineral_spawn_rate;
         GameObject = GameObject.Find(GAME_OBJECT_NAME);
         bodies_of_water = new List<BodyOfWaterData>();
+        landmasses = new List<LandmassData>();
 
         Cities = new List<City>();
         Villages = new List<Village>();
@@ -300,6 +302,7 @@ public class Map
         Mineral_Spawn_Rate = data.Mineral_Spawn_Rate;
         GameObject = GameObject.Find(GAME_OBJECT_NAME);
         bodies_of_water = new List<BodyOfWaterData>();
+        landmasses = new List<LandmassData>();
 
         Cities = new List<City>();
         Villages = new List<Village>();
@@ -331,6 +334,11 @@ public class Map
                 edge_hexes.Add(hex);
             }
         }
+
+        //Load geographic features
+        landmasses = data.Landmasses.Select(x => new LandmassData(x) { Harbors = x.Harbors.Select(y => Get_Hex_At(y.X, y.Y)).ToList() }).ToList();
+        bodies_of_water = data.Bodies_Of_Water.Select(x => new BodyOfWaterData(x) { Harbors = x.Harbors.Select(y => Get_Hex_At(y.X, y.Y)).ToList() }).ToList();
+
         CustomLogger.Instance.Debug(string.Format("Edges listed in: {0} ms", stopwatch.ElapsedMilliseconds));
         CustomLogger.Instance.Debug(string.Format("Blank map initialized in: {0} ms", stopwatch_total.ElapsedMilliseconds));
 
@@ -372,7 +380,7 @@ public class Map
             Add_To_Seed("mushroom forest", 3);
             Add_To_Seed("city ruins", 3);
             //Add_To_Seed("volcano", 0);
-            Add_To_Seed("water", 5);
+            Add_To_Seed("water", 55);
             //Add_To_Seed("swamp", 0);
 
             return seed;
@@ -739,6 +747,8 @@ public class Map
         SaveManager.Instance.Data.Map.Width = Width;
         SaveManager.Instance.Data.Map.Height = Height;
         SaveManager.Instance.Data.Map.Mineral_Spawn_Rate = Mineral_Spawn_Rate;
+        SaveManager.Instance.Data.Map.Landmasses = landmasses.Select(x => new GeographySaveData() { Id = x.Id, Name = x.Name, Harbors = x.Harbors.Select(y => new CoordinateSaveData() { X = y.Coordinates.X, Y = y.Coordinates.Y }).ToList() }).ToList();
+        SaveManager.Instance.Data.Map.Bodies_Of_Water = bodies_of_water.Select(x => new GeographySaveData() { Id = x.Id, Name = x.Name, Harbors = x.Harbors.Select(y => new CoordinateSaveData() { X = y.Coordinates.X, Y = y.Coordinates.Y }).ToList() }).ToList();
     }
 
     public float Process_Saving()
@@ -876,6 +886,21 @@ public class Map
         }
     }
 
+    public void Finalize_Generation()
+    {
+        foreach(WorldMapHex hex in All_Hexes) {
+            if (hex.Is_Water && hex.Georaphic_Feature == null) {
+                BodyOfWaterData body_of_water = new BodyOfWaterData();
+                Find_Body_Of_Water_Recursive(body_of_water, hex);
+                bodies_of_water.Add(body_of_water);
+            } else if(!hex.Is_Water && hex.Georaphic_Feature == null) {
+                LandmassData landmass = new LandmassData();
+                Find_Landmass_Recursive(landmass, hex);
+                landmasses.Add(landmass);
+            }
+        }
+    }
+
     public void Start_Game()
     {
         foreach (City city in Cities) {
@@ -961,56 +986,67 @@ public class Map
         return line;
     }
 
+    public BodyOfWaterData Get_Body_of_Water(long id)
+    {
+        return bodies_of_water.FirstOrDefault(x => x.Id == id);
+    }
+
     public List<PathfindingNode> Path(WorldMapHex hex_1, WorldMapHex hex_2, WorldMapEntity entity, bool use_los = true, bool include_start_and_end = false,
         bool road_spawning = false)
     {
-        if(entity != null && entity is Army && (entity as Army).Movement_Type == MovementType.Land && entity.Owner.Has_Transport && ((!hex_1.Is_Water && hex_2.Is_Water) || (hex_1.Is_Water && !hex_2.Is_Water))) {
-            //Embarking
-            WorldMapHex water_hex = hex_1.Is_Water ? hex_1 : hex_2;
-            BodyOfWaterData body_of_water = bodies_of_water.FirstOrDefault(x => x.Water.Contains(water_hex));
-            if(body_of_water == null) {
-                body_of_water = new BodyOfWaterData();
-                Find_Body_Of_Water_Recursive(body_of_water, water_hex);
-                bodies_of_water.Add(body_of_water);
-            }
-            if(!body_of_water.Harbors.Exists(x => x.Is_Owned_By(entity.Owner))) {
-                //No harbors available
-                return new List<PathfindingNode>();
-            }
-            Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_from_hex_1 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
-            Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_to_hex_2 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
-            bool embark = hex_2.Is_Water;
-            foreach (WorldMapHex harbor_hex in body_of_water.Harbors.Where(x => x.Is_Owned_By(entity.Owner)).ToArray()) {
-                List<PathfindingNode> path = Node_Path(hex_1, harbor_hex, embark ? entity : null, use_los, false, false);
-                if(path != null && path.Count != 0) {
-                    harbor_paths_from_hex_1.Add(path, harbor_hex);
-                    if (harbor_hex.Is_Adjancent_To(hex_2)) {
-                        //TODO: Why is this needed? Node_Path should work
-                        harbor_paths_to_hex_2.Add(new List<PathfindingNode>() { harbor_hex.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(Dummy_Boat) }, harbor_hex);
-                    } else {
-                        path = Node_Path(harbor_hex, hex_2, embark ? Dummy_Boat : entity, use_los, false, false);
-                        if (path != null && path.Count != 0) {
-                            harbor_paths_to_hex_2.Add(path, harbor_hex);
+        if (entity != null && entity is Army && (entity as Army).Movement_Type == MovementType.Land && entity.Owner.Has_Transport && ((!hex_1.Is_Water && hex_2.Is_Water) || (hex_1.Is_Water && !hex_2.Is_Water))) {
+            if (!hex_1.Is_Water && hex_2.Is_Water) {
+                //Embarking
+                //Free
+                if ((entity as Army).Free_Embarkment != null && (entity as Army).Free_Embarkment == (hex_2.Georaphic_Feature as BodyOfWaterData)) {
+                    return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning);
+                }
+
+                //Normal
+                WorldMapHex water_hex = hex_1.Is_Water ? hex_1 : hex_2;
+                BodyOfWaterData body_of_water = water_hex.Georaphic_Feature as BodyOfWaterData;
+                if (!body_of_water.Harbors.Exists(x => x.Is_Owned_By(entity.Owner))) {
+                    //No harbors available
+                    return new List<PathfindingNode>();
+                }
+                Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_from_hex_1 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
+                Dictionary<List<PathfindingNode>, WorldMapHex> harbor_paths_to_hex_2 = new Dictionary<List<PathfindingNode>, WorldMapHex>();
+                foreach (WorldMapHex harbor_hex in body_of_water.Harbors.Where(x => x.Is_Owned_By(entity.Owner)).ToArray()) {
+                    List<PathfindingNode> path = Node_Path(hex_1, harbor_hex, entity, use_los, false, false);
+                    if (path != null && path.Count != 0) {
+                        harbor_paths_from_hex_1.Add(path, harbor_hex);
+                        if (harbor_hex.Is_Adjancent_To(hex_2)) {
+                            //TODO: Why is this needed? Node_Path should work
+                            harbor_paths_to_hex_2.Add(new List<PathfindingNode>() { harbor_hex.Get_Specific_PathfindingNode(entity), hex_2.Get_Specific_PathfindingNode(Dummy_Boat) }, harbor_hex);
+                        } else {
+                            path = Node_Path(harbor_hex, hex_2, Dummy_Boat, use_los, false, false);
+                            if (path != null && path.Count != 0) {
+                                harbor_paths_to_hex_2.Add(path, harbor_hex);
+                            }
                         }
                     }
                 }
-            }
-            if (harbor_paths_from_hex_1.Count == 0 || harbor_paths_to_hex_2.Count == 0) {
-                //Could not find a path to/from harbor
-                return new List<PathfindingNode>();
-            }
-            List<PathfindingNode> final_path = new List<PathfindingNode>();
-            final_path = final_path.Concat(harbor_paths_from_hex_1.OrderBy(x => x.Key.Count).FirstOrDefault().Key).ToList();
-            WorldMapHex final_harbor = harbor_paths_from_hex_1.OrderBy(x => x.Key.Count).FirstOrDefault().Value;
-            final_path.Add(final_harbor.Get_Specific_PathfindingNode(entity));
-            final_path = final_path.Concat(harbor_paths_to_hex_2.Where(x => x.Value == final_harbor).OrderBy(x => x.Key.Count).FirstOrDefault().Key).ToList();
+                if (harbor_paths_from_hex_1.Count == 0 || harbor_paths_to_hex_2.Count == 0) {
+                    //Could not find a path to/from harbor
+                    return new List<PathfindingNode>();
+                }
+                List<PathfindingNode> final_path = new List<PathfindingNode>();
+                final_path = final_path.Concat(harbor_paths_from_hex_1.OrderBy(x => x.Key.Count).FirstOrDefault().Key).ToList();
+                WorldMapHex final_harbor = harbor_paths_from_hex_1.OrderBy(x => x.Key.Count).FirstOrDefault().Value;
+                final_path.Add(final_harbor.Get_Specific_PathfindingNode(entity));
+                final_path = final_path.Concat(harbor_paths_to_hex_2.Where(x => x.Value == final_harbor).OrderBy(x => x.Key.Count).FirstOrDefault().Key).ToList();
 
-            if (include_start_and_end) {
-                final_path.Insert(0, hex_1.Get_Specific_PathfindingNode(entity));
-                final_path.Add(hex_2.Get_Specific_PathfindingNode(entity));
+                if (include_start_and_end) {
+                    final_path.Insert(0, hex_1.Get_Specific_PathfindingNode(entity));
+                    final_path.Add(hex_2.Get_Specific_PathfindingNode(entity));
+                }
+                return final_path;
+            } else if(hex_1.Is_Water && !hex_2.Is_Water) {
+                //Disembarking
+                return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning);
             }
-            return final_path;
         }
+        //Normal movement
         return Node_Path(hex_1, hex_2, entity, use_los, include_start_and_end, road_spawning);
     }
 
@@ -1053,27 +1089,43 @@ public class Map
         }
     }
 
-    private void Find_Body_Of_Water_Recursive(BodyOfWaterData data, WorldMapHex hex)
+    public Geography Assign_Geographic_Feature(WorldMapHex hex, WorldMapHexSaveData data)
     {
-        data.Water.Add(hex);
-        foreach(WorldMapHex adjacent_hex in hex.Get_Adjancent_Hexes()) {
-            if(adjacent_hex.Has_Harbor && !data.Harbors.Contains(adjacent_hex)) {
+        if(bodies_of_water.Exists(x => x.Id == data.Georaphic_Feature)) {
+            BodyOfWaterData water = bodies_of_water.First(x => x.Id == data.Georaphic_Feature);
+            water.Hexes.Add(hex);
+            return water;
+        } else if(landmasses.Exists(x => x.Id == data.Georaphic_Feature)) {
+            LandmassData land = landmasses.First(x => x.Id == data.Georaphic_Feature);
+            land.Hexes.Add(hex);
+            return land;
+        } else {
+            CustomLogger.Instance.Error("Geographic feature not found #{0}", data.Georaphic_Feature.ToString());
+            return null;
+        }
+    }
+
+    private void Find_Landmass_Recursive(LandmassData data, WorldMapHex hex)
+    {
+        hex.Assign_To_Feature(data);
+        foreach (WorldMapHex adjacent_hex in hex.Get_Adjancent_Hexes()) {
+            if (adjacent_hex.Has_Harbor && !data.Harbors.Contains(adjacent_hex)) {
                 data.Harbors.Add(adjacent_hex);
-            } else if(adjacent_hex.Is_Water && !data.Water.Contains(adjacent_hex)) {
-                Find_Body_Of_Water_Recursive(data, adjacent_hex);
+            } else if (!adjacent_hex.Is_Water && !data.Hexes.Contains(adjacent_hex)) {
+                Find_Landmass_Recursive(data, adjacent_hex);
             }
         }
     }
 
-    private class BodyOfWaterData
+    private void Find_Body_Of_Water_Recursive(BodyOfWaterData data, WorldMapHex hex)
     {
-        public List<WorldMapHex> Water { get; set; }
-        public List<WorldMapHex> Harbors { get; set; }
-
-        public BodyOfWaterData()
-        {
-            Water = new List<WorldMapHex>();
-            Harbors = new List<WorldMapHex>();
+        hex.Assign_To_Feature(data);
+        foreach(WorldMapHex adjacent_hex in hex.Get_Adjancent_Hexes()) {
+            if(adjacent_hex.Has_Harbor && !data.Harbors.Contains(adjacent_hex)) {
+                data.Harbors.Add(adjacent_hex);
+            } else if(adjacent_hex.Is_Water && !data.Hexes.Contains(adjacent_hex)) {
+                Find_Body_Of_Water_Recursive(data, adjacent_hex);
+            }
         }
     }
 }

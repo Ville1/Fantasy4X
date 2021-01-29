@@ -26,12 +26,14 @@ public class Army : WorldMapEntity {
     public List<string> Camp_Animation { get; private set; }
     public float Camp_Animation_FPS { get; private set; }
     public string Fleet_Sprite { get; private set; }
+    public bool Is_Embarked { get { return Units.Exists(x => x.Tags.Contains(Unit.Tag.Embark_Transport)); } }
+    public BodyOfWaterData Free_Embarkment { get; set; }
+    public LandmassData Embarked_From { get; private set; }
 
     private bool text_initialized;
     private GameObject TextMesh_game_object;
     private TextMesh TextMesh { get { return TextMesh_game_object.GetComponentInChildren<TextMesh>(); } }
-
-
+    
     public Army(WorldMapHex hex, Army prototype, Player owner, Unit first_unit) : base(hex, prototype, owner, false)
     {
         text_initialized = false;
@@ -46,6 +48,8 @@ public class Army : WorldMapEntity {
         }
         Current_Movement = Max_Movement;
         Fleet_Sprite = prototype.Fleet_Sprite;
+        Free_Embarkment = null;
+        Embarked_From = null;
         SpriteRenderer.sprite = SpriteManager.Instance.Get(hex.Is_Water ? Fleet_Sprite : Texture, SpriteManager.SpriteType.Unit);
 
         TextMesh_game_object = new GameObject("Army text " + Id);
@@ -106,6 +110,12 @@ public class Army : WorldMapEntity {
                             return;
                         }
                     }
+                    //No transfering with embarked armies
+                    if(Is_Embarked || (selected_hex.Entity != null && selected_hex.Entity is Army && (selected_hex.Entity as Army).Is_Embarked)) {
+                        MessageManager.Instance.Show_Message("Can't transfer units with/from embarked armies");
+                        return;
+                    }
+
                     if (selected_hex.Entity == null) {
                         selected_hex.Entity = new Army(selected_hex, Owner.Faction.Army_Prototype, Owner, null);
                     }
@@ -141,12 +151,15 @@ public class Army : WorldMapEntity {
             delegate (WorldMapEntity entity) {
                 List<int> disbanded_unit_indices = new List<int>();
                 for(int i = 0; i < Units.Count; i++) {
-                    if (BottomGUIManager.Instance.Selected_Units.Contains(Units[i])) {
+                    if (BottomGUIManager.Instance.Selected_Units.Contains(Units[i]) && !Units[i].Tags.Contains(Unit.Tag.Embark_Transport)) {
                         disbanded_unit_indices.Add(i);
                     }
                 }
                 foreach(int i in disbanded_unit_indices) {
                     Units.RemoveAt(i);
+                }
+                if(Units.Where(x => x.Tags.Contains(Unit.Tag.Embark_Transport)).Count() == Units.Count) {
+                    Units.Clear();
                 }
                 if (Units.Count == 0) {
                     Delete();
@@ -314,7 +327,7 @@ public class Army : WorldMapEntity {
         if(success)  {
             if (!ignore_movement_restrictions) {
                 foreach (Unit unit in Units) {
-                    unit.Current_Campaing_Map_Movement -= Hex.Get_Movement_Cost(Movement_Type);
+                    unit.Current_Campaing_Map_Movement -= Hex.Get_Movement_Cost(Get_Movement_Type(Hex, new_hex));
                 }
             }
             if(Hex.Civilian != null && !Hex.Civilian.Is_Owned_By(Owner)) {
@@ -348,8 +361,8 @@ public class Army : WorldMapEntity {
                 }
             }
             SpriteRenderer.sprite = SpriteManager.Instance.Get(Hex.Is_Water ? Fleet_Sprite : Texture, SpriteManager.SpriteType.Unit);
-            if(Unit.Get_Movement_Type(Units.Where(x => !x.Tags.Contains(Unit.Tag.Embark_Transport)).ToList(), false) == Map.MovementType.Land) {
-                if(old_hex.Has_Harbor && Hex.Is_Water) {
+            if(Unit.Get_Movement_Type(Units.Where(x => !x.Tags.Contains(Unit.Tag.Embark_Transport)).ToList(), null, null, false) == Map.MovementType.Land) {
+                if((old_hex.Has_Harbor || (!old_hex.Is_Water && Free_Embarkment != null && Hex.Georaphic_Feature.Id == Free_Embarkment.Id)) && Hex.Is_Water) {
                     //Embark
                     List<Unit> transports = new List<Unit>();
                     foreach(Unit unit in Units) {
@@ -360,9 +373,16 @@ public class Army : WorldMapEntity {
                     foreach(Unit transport in transports) {
                         Add_Unit(transport);
                     }
+                    Embarked_From = old_hex.Georaphic_Feature as LandmassData;
                 } else if(old_hex.Is_Water && !Hex.Is_Water) {
                     //Disembark
                     Units = Units.Where(x => !x.Tags.Contains(Unit.Tag.Embark_Transport)).ToList();
+                    if(Hex.Georaphic_Feature != Embarked_From) {
+                        Free_Embarkment = old_hex.Georaphic_Feature as BodyOfWaterData;
+                    }
+                    foreach(Unit unit in Units) {
+                        unit.Current_Campaing_Map_Movement = 0.0f;
+                    }
                 }
             }
             Update_Text();
@@ -373,6 +393,11 @@ public class Army : WorldMapEntity {
     public override void End_Turn()
     {
         base.End_Turn();
+        if (Units.Where(x => x.Tags.Contains(Unit.Tag.Embark_Transport)).Count() == Units.Count) {
+            //Only transports in army, this should't happen
+            Delete();
+            return;
+        }
         float manpower_regen = MANPOWER_REGEN_NEUTRAL_LAND;
         if(Hex.City != null) {
             manpower_regen = MANPOWER_REGEN_CITY;
@@ -479,7 +504,7 @@ public class Army : WorldMapEntity {
         foreach (Unit unit in defeated_units) {
             Units.Remove(unit);
         }
-        if(Units.Count == 0 || (Unit.Get_Movement_Type(Units, false) == Map.MovementType.Land && Hex.Is_Water)) {
+        if(Units.Count == 0 || (Unit.Get_Movement_Type(Units, null, null, false) == Map.MovementType.Land && Hex.Is_Water)) {
             Delete();
         } else {
             Update_Text();
@@ -727,6 +752,7 @@ public class Army : WorldMapEntity {
             }).ToList();
             data.Path = Stored_Path != null ? Stored_Path.Select(x => new CoordinateSaveData() { X = x.Coordinates.X, Y = x.Coordinates.Y }).ToList() : null;
             data.Sleep = Sleep;
+            data.Free_Embarkment = Free_Embarkment == null ? -1 : Free_Embarkment.Id;
             return data;
         }
     }

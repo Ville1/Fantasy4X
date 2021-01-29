@@ -35,6 +35,7 @@ public class ArmySaveData
     public List<UnitSaveData> Units;
     public List<CoordinateSaveData> Path;
     public bool Sleep;
+    public long Free_Embarkment;
 }
 
 [Serializable]
