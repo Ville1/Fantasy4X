@@ -216,12 +216,14 @@ public class BottomGUIManager : MonoBehaviour
                 Current_Entity_Info_Text.text = string.Format("Building {0}, {1} turn{2} left", (Current_Entity as Worker).Improvement_Under_Construction.Name,
                     (Current_Entity as Worker).Turns_Left, Helper.Plural((Current_Entity as Worker).Turns_Left));
             }
+            Current_Entity_Embarkment_Container.SetActive(false);
         } else if (Current_Entity is Prospector) {
             Update_Actions();
             if ((Current_Entity as Prospector).Prospecting) {
                 Current_Entity_Info_Text.text = string.Format("Prospecting {0} turn{1} left", ((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress),
                     Helper.Plural((Current_Entity as Prospector).Prospect_Turns - (Current_Entity as Prospector).Prospect_Progress));
             }
+            Current_Entity_Embarkment_Container.SetActive(false);
         } else if(Current_Entity is Army) {
             Army army = Current_Entity as Army;
             if(army.Free_Embarkment != null) {

@@ -332,7 +332,7 @@ public partial class Factions
             1.0f, 35, 20, 0.75f, null, 0.25f));
         faction.Units.Add(new Prospector("Wanderer", 2.0f, 3, "dwarf_wanderer", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f,
             10, 20, 0.5f, null, 3, 0.25f));
-        faction.Units.Add(new Unit("Rabble", Unit.UnitType.Infantry, "dwarf_rabble", 2.0f, 45, 25, 0.5f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 75.0f, 150.0f,
+        faction.Units.Add(new Unit("Rabble", Unit.UnitType.Infantry, "dwarf_rabble", 2.0f, 45, 25, 0.5f, 0, 0.0f, 2, null, null, 2.0f, true, 10.0f, 75.0f, 150.0f,
             new Damage(7.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.95f }, { Damage.Type.Impact, 0.05f } }), 0.25f,
             new Damage(3.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 3, 5, "stones", null,
             11.0f, 7.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 1.10f } },
@@ -345,7 +345,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("no high shots")
             }, new List<Unit.Tag>()));
-        faction.Units.Add(new Unit("Militia", Unit.UnitType.Infantry, "dwarf_militia_2", 2.0f, 80, 70, 1.0f, 0.0f, 2, null, null, 2.0f, true, 10.0f, 85.0f, 150.0f,
+        faction.Units.Add(new Unit("Militia", Unit.UnitType.Infantry, "dwarf_militia_2", 2.0f, 80, 70, 1.0f, 0, 0.0f, 2, null, null, 2.0f, true, 10.0f, 85.0f, 150.0f,
             new Damage(6.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.5f } }), 0.1f,
             null, 0, 0, null, null,
             14.0f, 16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Thrust, 1.0f }, { Damage.Type.Earth, 1.25f }, { Damage.Type.Electric, 1.05f }, { Damage.Type.Fire, 1.10f } },
@@ -356,7 +356,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("increases order", 0.25f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        faction.Units.Add(new Unit("Warrior", Unit.UnitType.Infantry, "dwarf_warrior_2", 2.0f, 300, 225, 1.75f, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
+        faction.Units.Add(new Unit("Warrior", Unit.UnitType.Infantry, "dwarf_warrior_2", 2.0f, 300, 225, 1.75f, 0, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 150.0f, 200.0f,
             new Damage(16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
             null, 0, 0, null, null,
@@ -365,9 +365,10 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("underground combat bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("armor piercing", 0.10f),
-                AbilityPrototypes.Instance.Get("shield piercing", 0.20f)
+                AbilityPrototypes.Instance.Get("shield piercing", 0.20f),
+                AbilityPrototypes.Instance.Get("anti wooden", 0.25f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        faction.Units.Add(new Unit("Marksdwarf", Unit.UnitType.Infantry, "marksdwarf", 2.0f, 285, 240, 1.5f, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
+        faction.Units.Add(new Unit("Marksdwarf", Unit.UnitType.Infantry, "marksdwarf", 2.0f, 285, 240, 1.5f, 0, 0.0f, 2, Extensive_Militia_Forces, new List<Building>() { faction.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 125.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
             new Damage(14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 6, 20, null, null,
@@ -378,9 +379,10 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("armor piercing", 0.05f),
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.25f),
-                AbilityPrototypes.Instance.Get("straight shot bonus", 0.25f)
+                AbilityPrototypes.Instance.Get("straight shot bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("anti wooden", 0.10f)
             }, new List<Unit.Tag>()));
-        faction.Units.Add(new Unit("Fortress Guard", Unit.UnitType.Infantry, "fortress_guard", 2.0f, 290, 265, 1.75f, 0.0f, 2, Fortress_Guard, new List<Building>() { faction.Buildings.First(x => x.Name == "Captain of the Guard's Office") },
+        faction.Units.Add(new Unit("Fortress Guard", Unit.UnitType.Infantry, "fortress_guard", 2.0f, 290, 265, 1.75f, 0, 0.0f, 2, Fortress_Guard, new List<Building>() { faction.Buildings.First(x => x.Name == "Captain of the Guard's Office") },
             2.0f, true, 10.0f, 150.0f, 200.0f,
             new Damage(12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 0.25f,
             new Damage(8.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 5, 20, null, null,
@@ -396,7 +398,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("increases order", 1.00f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
 
-        faction.Units.Add(new Unit("Catapult", Unit.UnitType.Siege_Weapon, "catapult", 2.0f, 500, 350, 1.50f, 0.0f, 2, Mechanization, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
+        faction.Units.Add(new Unit("Catapult", Unit.UnitType.Siege_Weapon, "catapult", 2.0f, 500, 350, 1.50f, 0, 0.0f, 2, Mechanization, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
             1.0f, false, 10.0f, 125.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
             new Damage(18.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 14, 30, "big_stones", null,
@@ -408,10 +410,11 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("anti infantry ranged", 0.10f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.35f),
-                AbilityPrototypes.Instance.Get("city attack bonus", 0.35f)
+                AbilityPrototypes.Instance.Get("city attack bonus", 0.35f),
+                AbilityPrototypes.Instance.Get("anti wooden", 0.10f)
             }, new List<Unit.Tag>() { Unit.Tag.Crewed_Single_Entity, Unit.Tag.Mechanical_Ranged, Unit.Tag.No_Move_Attack }));
 
-        faction.Units.Add(new Unit("Field Catapult", Unit.UnitType.Siege_Weapon, "field_catapult", 2.0f, 380, 310, 1.75f, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
+        faction.Units.Add(new Unit("Field Catapult", Unit.UnitType.Siege_Weapon, "field_catapult", 2.0f, 380, 310, 1.75f, 0, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
             2.0f, false, 10.0f, 150.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
             new Damage(10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f } }), 12, 30, "stones", null,
@@ -423,10 +426,11 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("shield piercing", 0.10f),
                 AbilityPrototypes.Instance.Get("anti infantry ranged", 0.25f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.10f),
-                AbilityPrototypes.Instance.Get("city attack bonus", 0.10f)
+                AbilityPrototypes.Instance.Get("city attack bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("anti wooden", 0.10f)
             }, new List<Unit.Tag>() { Unit.Tag.Crewed_Single_Entity, Unit.Tag.Mechanical_Ranged }));
 
-        faction.Units.Add(new Unit("Ballista", Unit.UnitType.Siege_Weapon, "dwarf_wanderer", 2.0f, 500, 410, 1.75f, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
+        faction.Units.Add(new Unit("Ballista", Unit.UnitType.Siege_Weapon, "dwarf_wanderer", 2.0f, 500, 410, 1.75f, 0, 0.0f, 2, Siege_Engineering, new List<Building>() { faction.Buildings.First(x => x.Name == "Siege Workshop") },
             1.0f, false, 10.0f, 125.0f, 150.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.9f }, { Damage.Type.Impact, 0.1f } }), 0.25f,
             new Damage(16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.85f }, { Damage.Type.Impact, 0.15f } }), 14, 20, null, null,
@@ -439,8 +443,17 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("shield piercing ranged", 0.25f),
                 AbilityPrototypes.Instance.Get("anti large ranged", 0.35f),
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.35f),
-                AbilityPrototypes.Instance.Get("city attack bonus", 0.25f)
+                AbilityPrototypes.Instance.Get("city attack bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("anti wooden", 0.10f)
             }, new List<Unit.Tag>() { Unit.Tag.Crewed_Single_Entity, Unit.Tag.Mechanical_Ranged, Unit.Tag.No_Move_Attack }));
+
+        faction.Transports.Add(new Unit("Transport", Unit.UnitType.Ship, "ship_2", 1.0f, 300, 100, 2.0f, 0, 0.0f, 2, null, new List<Building>(),
+            2.0f, false, 10.0f, 75.0f, -1.0f,
+            new Damage(4.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,
+            new Damage(3.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 6, -1, null, null,
+            12.0f, 14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 0.75f }, { Damage.Type.Fire, 0.50f } },
+            8.0f, 6.0f, Unit.ArmorType.Light, new List<Ability>() {
+            }, new List<Unit.Tag>() { Unit.Tag.Naval, Unit.Tag.Crewed_Single_Entity, Unit.Tag.Embark_Transport }));
 
         return faction;
     }

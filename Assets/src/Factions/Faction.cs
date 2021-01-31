@@ -32,6 +32,8 @@ public class Faction {
     public List<Technology> Technologies { get; private set; }
     public bool Allow_Campaing_Play { get; set; }
     public bool Allow_Custom_Battle_Play { get; set; }
+    public List<Building> Starting_Buildings { get; set; }
+    public float Starting_Mana { get; set; }
 
     public Faction(string name, int starting_cash, int capital_starting_population, Dictionary<City.CitySize, Yields> city_yields,
         float pop_food_consumption, int max_food_storage_per_city, float base_happiness, float happiness_from_pops,
@@ -66,6 +68,8 @@ public class Faction {
         Technologies = new List<Technology>() { root_technology };
         Allow_Campaing_Play = true;
         Allow_Custom_Battle_Play = true;
+        Starting_Buildings = new List<Building>();
+        Starting_Mana = 0.0f;
 
         Id = current_id;
         current_id++;

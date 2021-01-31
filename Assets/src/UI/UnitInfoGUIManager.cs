@@ -17,7 +17,12 @@ public class UnitInfoGUIManager : MonoBehaviour
     public Image Manpower_Image;
     public Text Manpower_Text;
     public Text Cost_Text;
-    public Text Production_Text;
+    public GameObject Production_Container_1;
+    public Text Production_Text_1;
+    public GameObject Production_Container_2;
+    public Text Production_Text_2;
+    public GameObject Mana_Container;
+    public Text Mana_Text;
     public Text Melee_Attack_Text;
     public Text Charge_Bonus_Text;
     public Text Melee_Damage_Types_Text;
@@ -119,7 +124,7 @@ public class UnitInfoGUIManager : MonoBehaviour
     public void Update_Info()
     {
         Panel.gameObject.transform.position = new Vector3(
-            panel_position_x + (train_gui ? 150.0f : 0.0f),
+            panel_position_x + (train_gui ? 200.0f : 0.0f),
             Panel.gameObject.transform.position.y,
             Panel.gameObject.transform.position.z
         );
@@ -134,6 +139,7 @@ public class UnitInfoGUIManager : MonoBehaviour
                 Active = false;
                 return;
             }
+            Train_Button.GetComponentInChildren<Text>().text = Unit.Is_Summon ? "Summon" : "Train";
             string message = null;
             Train_Button.interactable = CityGUIManager.Instance.Current_City.Can_Train(Unit, out message);
             if (!string.IsNullOrEmpty(message)) {
@@ -166,7 +172,18 @@ public class UnitInfoGUIManager : MonoBehaviour
         Manpower_Text.color = Unit.Manpower <= 0.5f ? Color.red : (Unit.Manpower == 1.0f ? default_text_color : Color.yellow);
         Relative_Strenght_Text.color = Is_Preview ? default_text_color : Manpower_Text.color;
         Cost_Text.text = string.Format("{0} ({1}/turn)", Unit.Cost, Helper.Float_To_String(Unit.Upkeep, 2));
-        Production_Text.text = Unit.Production_Required.ToString();
+        if(Unit.Mana_Cost == 0.0f && Unit.Mana_Upkeep == 0.0f) {
+            Mana_Container.SetActive(false);
+            Production_Container_1.SetActive(true);
+            Production_Container_2.SetActive(false);
+            Production_Text_1.text = Unit.Production_Required.ToString();
+        } else {
+            Mana_Container.SetActive(true);
+            Production_Container_1.SetActive(false);
+            Production_Container_2.SetActive(true);
+            Production_Text_2.text = Unit.Production_Required.ToString();
+            Mana_Text.text = string.Format("{0} ({1}/turn)", Unit.Mana_Cost, Helper.Float_To_String(Unit.Mana_Upkeep, 2));
+        }
 
         Melee_Attack_Text.text = Helper.Float_To_String(Unit.Melee_Attack.Total, 0);
         Charge_Bonus_Text.text = string.Format("{0}%", Helper.Float_To_String(Unit.Charge * 100.0f, 0, true));
@@ -188,7 +205,7 @@ public class UnitInfoGUIManager : MonoBehaviour
         Melee_Defence_Text.text = Helper.Float_To_String(Unit.Melee_Defence, 0);
         Ranged_Defence_Text.text = Helper.Float_To_String(Unit.Ranged_Defence, 0);
         resistances_scroll_view.Clear();
-        foreach(KeyValuePair<Damage.Type, float> pair in Unit.Resistances.OrderBy(x => (int)x.Key)) {
+        foreach(KeyValuePair<Damage.Type, float> pair in Unit.Resistances.Where(x => x.Value != 1.0f).OrderBy(x => (int)x.Key)) {
             resistances_scroll_view.Add(pair.Key, new List<UIElementData>() {
                 new UIElementData("TypeText", Helper.Snake_Case_To_UI(pair.Key.ToString(), true)),
                 new UIElementData("ValueText", string.Format("{0}%", Helper.Float_To_String(pair.Value * 100.0f, 0)), pair.Value < 1.0f ? Color.red : (pair.Value > 1.0f ? Color.blue : default_text_color))

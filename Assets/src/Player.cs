@@ -72,6 +72,7 @@ public class Player {
         active_blessings = new Dictionary<Blessing, int>();
         Status_Effects = new StatusEffectList<EmpireModifierStatusEffect>();
         temp_data = new Dictionary<string, object>();
+        Mana = Faction.Starting_Mana;
 
         if (faction.Uses_Special_AI) {
             switch (faction.Name) {
@@ -546,7 +547,7 @@ public class Player {
             Army army = new Army(hex, Faction.Army_Prototype, this, null);
             hex.Entity = army;
             foreach(UnitSaveData unit_data in army_data.Units) {
-                Unit unit = new Unit(Faction.Units.First(x => x.Name == unit_data.Name) as Unit);
+                Unit unit = new Unit(Faction.Transports.Exists(x => x.Name == unit_data.Name) ? Faction.Transports.First(x => x.Name == unit_data.Name) : Faction.Units.First(x => x.Name == unit_data.Name) as Unit);
                 unit.Load(unit_data);
                 army.Add_Unit(unit);
             }

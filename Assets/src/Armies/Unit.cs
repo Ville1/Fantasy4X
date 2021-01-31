@@ -48,7 +48,7 @@ public class Unit : Trainable
 
     private static int current_id = 0;
     
-    public enum UnitType { Undefined, Infantry, Cavalry, Ship, Siege_Weapon }
+    public enum UnitType { Undefined, Infantry, Cavalry, Ship, Siege_Weapon, Monster, Animal }
     public enum ArmorType { Unarmoured, Light, Medium, Heavy }
     public enum AttackArch { None, Low, High }
     public enum Tag
@@ -115,6 +115,7 @@ public class Unit : Trainable
     public List<Tag> Tags { get; private set; }
     public Player Owner { get { return Army != null ? Army.Owner : null; } }
     public List<StatusBar> Bars { get; private set; }
+    public int Mana_Cost { get; private set; }
     public float Mana_Upkeep { get; private set; }
     public ArmorType Armor { get; private set; }
     public bool Requires_Coast { get { return Tags.Contains(Tag.Naval); } }
@@ -146,6 +147,7 @@ public class Unit : Trainable
         Cost = prototype.Cost;
         Upkeep = prototype.Upkeep;
         Mana_Upkeep = prototype.Mana_Upkeep;
+        Mana_Cost = prototype.Mana_Cost;
         LoS = prototype.LoS;
         Technology_Required = prototype.Technology_Required;
         Buildinds_Required = prototype.Buildinds_Required;
@@ -184,7 +186,7 @@ public class Unit : Trainable
     /// <summary>
     /// Prototype constructor
     /// </summary>
-    public Unit(string name, UnitType type, string texture, float campaing_map_movement, int production_required, int cost, float upkeep, float mana_upkeep, int los, Technology technology_required,
+    public Unit(string name, UnitType type, string texture, float campaing_map_movement, int production_required, int cost, float upkeep, int mana_cost, float mana_upkeep, int los, Technology technology_required,
         List<Building> buildings_required, float movement, bool can_run, float run_stamina_cost, float morale, float stamina, Damage melee_attack,
         float charge, Damage ranged_attack, int range, int ammo, string ranged_attack_effect_name, List<string> ranged_attack_animation,
         float melee_defence, float ranged_defence, Dictionary<Damage.Type, float> resistances, float morale_value, float discipline, ArmorType armor, List<Ability> abilities, List<Tag> tags)
@@ -200,6 +202,7 @@ public class Unit : Trainable
         Cost = cost;
         Upkeep = upkeep;
         Mana_Upkeep = mana_upkeep;
+        Mana_Cost = mana_cost;
         LoS = los;
         Technology_Required = technology_required;
         Buildinds_Required = buildings_required;
@@ -243,6 +246,13 @@ public class Unit : Trainable
         }
         set {
             upkeep = value;
+        }
+    }
+
+    public bool Is_Summon
+    {
+        get {
+            return Mana_Cost > Cost + Production_Required;
         }
     }
 
@@ -792,20 +802,18 @@ public class Unit : Trainable
 
         //Base defence
         float resistance_multiplier = 0.0f;
-        float total = 0.0f;
-        foreach(KeyValuePair<Damage.Type, float> damage in melee_attack_types) {
-            float resistance_to_type = target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f;
-            resistance_multiplier += damage.Value * resistance_to_type;
-            total += damage.Value;
+        float resistance_delta = 0.0f;
+        foreach (KeyValuePair<Damage.Type, float> damage in melee_attack_types) {
+            float multiplier = -1.0f * damage.Value * (1.0f - (target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f));
+            resistance_delta += (target.Melee_Defence * multiplier);
         }
-        if(total != 1.0f) {
-            CustomLogger.Instance.Warning(string.Format("Unit {0} does not have proper melee damage types, they have sum of {1}", Name, total));
-        }
+        resistance_delta = Math.Max(-target.Melee_Defence, resistance_delta);
+        resistance_multiplier = (target.Melee_Defence + resistance_delta) / target.Melee_Defence;
         defence *= resistance_multiplier;
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
 
         //City defence
-        if(Hex.City && CombatManager.Instance.Army_2.Id == Army.Id) {
+        if (Hex.City && CombatManager.Instance.Army_2.Id == Army.Id) {
             attack *= (1.0f + CombatManager.Instance.Hex.City.Defence_Bonus);
             result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = CombatManager.Instance.Hex.City.Defence_Bonus, Description = "City Defence" });
         } else if(target.Hex.City && CombatManager.Instance.Army_2.Id == target.Army.Id) {
@@ -937,7 +945,6 @@ public class Unit : Trainable
         float defence = target.Ranged_Defence * morale_effect_defence * stamina_effect_defence * (1.0f + target.Hex.Cover);
         float ability_defence_delta = 0.0f;
         float ability_defence_multiplier = 1.0f;
-        float resistance_multiplier = 0.0f;
         
         result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = morale_effect_attack - 1.0f, Description = "Morale" });
         result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = stamina_effect_attack - 1.0f, Description = "Stamina" });
@@ -950,15 +957,14 @@ public class Unit : Trainable
         result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = ARCH_ATTACK_MULTIPLIERS[arch], Description = ARCH_DETAIL_DESCRIPTIONS[arch] });
 
         //Base defence
-        float total = 0.0f;
+        float resistance_multiplier = 0.0f;
+        float resistance_delta = 0.0f;
         foreach (KeyValuePair<Damage.Type, float> damage in Ranged_Attack.Type_Weights) {
-            float resistance_to_type = target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f;
-            resistance_multiplier += damage.Value * resistance_to_type;
-            total += damage.Value;
+            float multiplier = -1.0f * damage.Value * (1.0f - (target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f));
+            resistance_delta += (target.Melee_Defence * multiplier);
         }
-        if (total != 1.0f) {
-            CustomLogger.Instance.Warning(string.Format("Unit {0} does not have proper ranged damage types, they have sum of {1}", Name, total));
-        }
+        resistance_delta = Math.Max(-target.Melee_Defence, resistance_delta);
+        resistance_multiplier = (target.Melee_Defence + resistance_delta) / target.Melee_Defence;
         defence *= resistance_multiplier;
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
 
@@ -1295,8 +1301,8 @@ public class Unit : Trainable
         } else if (water_count != 0 && land_count == 0) {
             type = Map.MovementType.Water;
         }
-        if(embarking && (old_hex.Is_Water || (type == Map.MovementType.Land && old_hex.Has_Harbor && units[0].Army.Owner.Has_Transport) ||
-            (new_hex != null && type == Map.MovementType.Land && units[0].Army.Free_Embarkment != null && units[0].Army.Owner.Has_Transport && units[0].Army.Free_Embarkment.Id == new_hex.Georaphic_Feature.Id))) {
+        if(embarking && (type == Map.MovementType.Land || type == Map.MovementType.Immobile) && (old_hex.Is_Water || (old_hex.Has_Harbor && units[0].Army.Owner.Has_Transport) ||
+            (new_hex != null && units[0].Army.Free_Embarkment != null && units[0].Army.Owner.Has_Transport && units[0].Army.Free_Embarkment.Id == new_hex.Georaphic_Feature.Id))) {
             return Map.MovementType.Amphibious;
         }
         return type;

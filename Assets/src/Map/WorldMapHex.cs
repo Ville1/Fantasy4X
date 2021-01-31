@@ -13,7 +13,7 @@ public class WorldMapHex : Hex {
 
     public enum InfoText { None, Coordinates, Yields, Minerals }
     public enum LoS_Status { Visible, Explored, Unexplored }
-    public enum Tag { Open, Forest, Urban, Hill, Underground, Special, Timber, Arid, Game }
+    public enum Tag { Open, Forest, Urban, Hill, Underground, Special, Timber, Arid, Game, Structure, Cursed }
     public delegate bool Hex_Requirements(WorldMapHex hex);
 
     public string Terrain { get; set; }

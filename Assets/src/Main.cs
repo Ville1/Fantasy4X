@@ -396,7 +396,7 @@ public class Main : MonoBehaviour {
             Army army = new Army(hex, neutral_army.Value.Army_Prototype, owner, null);
             hex.Entity = army;
             foreach (UnitSaveData unit_data in neutral_army.Key.Units) {
-                Unit unit = new Unit(neutral_army.Value.Units.First(x => x.Name == unit_data.Name) as Unit);
+                Unit unit = new Unit(neutral_army.Value.Transports.Exists(x => x.Name == unit_data.Name) ? neutral_army.Value.Transports.First(x => x.Name == unit_data.Name) : neutral_army.Value.Units.First(x => x.Name == unit_data.Name) as Unit);
                 unit.Load(unit_data);
                 army.Add_Unit(unit);
             }

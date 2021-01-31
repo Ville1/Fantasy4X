@@ -30,6 +30,7 @@ public class CityGUIManager : MonoBehaviour {
     public Text Unit_Under_Production_Progress_Text;
     public Text Unit_Under_Production_Turns_Text;
     public Image Unit_Under_Production_Production_Image;
+    public Text Unit_Under_Production_Title_Text;
 
     public GameObject Select_Unit_Panel;
     public GameObject Select_Unit_Content;
@@ -221,6 +222,7 @@ public class CityGUIManager : MonoBehaviour {
             Unit_Under_Production_Progress_Text.text = string.Format("{0} / {1}", Math.Round(current_city.Unit_Production_Acquired, 1), current_city.Unit_Under_Production.Production_Required);
             Unit_Under_Production_Turns_Text.text = string.Format("{0} turns", current_city.Unit_Under_Production_Turns_Left > 0 ? current_city.Unit_Under_Production_Turns_Left.ToString() : "N/A");
             Unit_Under_Production_Production_Image.gameObject.SetActive(true);
+            Unit_Under_Production_Title_Text.text = current_city.Unit_Under_Production.Is_Summon ? "Summoning" : "Training";
             TooltipManager.Instance.Register_Tooltip(Unit_Under_Production_Image.gameObject, current_city.Unit_Under_Production.Tooltip, gameObject);
             TooltipManager.Instance.Register_Tooltip(Unit_Under_Production_Name_Text.gameObject, current_city.Unit_Under_Production.Tooltip, gameObject);
         } else {
@@ -582,6 +584,7 @@ public class CityGUIManager : MonoBehaviour {
                 new UIElementData("NameText", available_unit.Name, Current_City.Can_Train(available_unit) ? (Color?)null : Color.red),
                 new UIElementData("CashCostText", string.Format("{0}({1})", available_unit.Cost, Helper.Float_To_String(available_unit.Upkeep, 2))),
                 new UIElementData("ProductionCostText", available_unit.Production_Required.ToString()),
+                new UIElementData("ManaCostText", string.Format("{0}({1})", available_unit.Mana_Cost, Helper.Float_To_String(available_unit is Unit ? (available_unit as Unit).Mana_Upkeep : 0.0f, 2))),
                 new UIElementData("TurnsText", string.Format("{0} turn{1}", turns, Helper.Plural(turns))),
                 new UIElementData("SelectButton", null, delegate() {
                     if(available_unit is Unit) {

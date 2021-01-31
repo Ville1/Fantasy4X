@@ -113,6 +113,7 @@
     <Compile Include="Assets\src\Factions\Faction.cs" />
     <Compile Include="Assets\src\Factions\Factions.cs" />
     <Compile Include="Assets\src\Factions\Partial\Dwarves.cs" />
+    <Compile Include="Assets\src\Factions\Partial\WoodElves.cs" />
     <Compile Include="Assets\src\Helper.cs" />
     <Compile Include="Assets\src\IConfigListener.cs" />
     <Compile Include="Assets\src\ICooldown.cs" />

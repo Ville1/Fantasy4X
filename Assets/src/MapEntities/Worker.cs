@@ -20,6 +20,8 @@ public class Worker : WorldMapEntity, Trainable
     public float Work_Speed { get; private set; }
     public bool Requires_Coast { get { return Movement_Type == Map.MovementType.Water; } }
     public float Mineral_Reroll_Chance { get; private set; }
+    public int Mana_Cost { get { return 0; } }
+    public bool Is_Summon { get { return false; } }
 
     public Worker(WorldMapHex hex, Worker prototype, Player owner) : base(hex, prototype, owner, true)
     {

@@ -42,6 +42,38 @@ public class AbilityPrototypes {
             }
         });
 
+        prototypes.Add("anti monster", new Ability("Monster Slayer (Melee)", true, true) {
+            On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Type == Unit.UnitType.Monster ? ability.Potency : 0.0f
+                };
+            }
+        });
+
+        prototypes.Add("anti monster ranged", new Ability("Monster Slayer (Ranged)", true, true) {
+            On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Type == Unit.UnitType.Monster ? ability.Potency : 0.0f
+                };
+            }
+        });
+
+        prototypes.Add("anti animal", new Ability("Animal Slayer (Melee)", true, true) {
+            On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Type == Unit.UnitType.Animal ? ability.Potency : 0.0f
+                };
+            }
+        });
+
+        prototypes.Add("anti animal ranged", new Ability("Animal Slayer (Ranged)", true, true) {
+            On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Type == Unit.UnitType.Animal ? ability.Potency : 0.0f
+                };
+            }
+        });
+
         prototypes.Add("anti large", new Ability("Anti Large (Melee)", true, true) {
             On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
@@ -54,6 +86,22 @@ public class AbilityPrototypes {
             On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
                     Attack_Multiplier = target.Tags.Contains(Unit.Tag.Large) ? ability.Potency : 0.0f
+                };
+            }
+        });
+
+        prototypes.Add("anti wooden", new Ability("Anti Wooden (Melee)", true, true) {
+            On_Calculate_Melee_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Tags.Contains(Unit.Tag.Wooden) ? ability.Potency : 0.0f
+                };
+            }
+        });
+
+        prototypes.Add("anti wooden ranged", new Ability("Anti Wooden (Ranged)", true, true) {
+            On_Calculate_Ranged_Damage_As_Attacker = delegate (Ability ability, Unit attacker, Unit target, AttackResult result) {
+                return new Ability.DamageData() {
+                    Attack_Multiplier = target.Tags.Contains(Unit.Tag.Wooden) ? ability.Potency : 0.0f
                 };
             }
         });

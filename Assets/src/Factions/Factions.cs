@@ -177,7 +177,7 @@ public partial class Factions
          * 
          */
 
-        all.Add(new Faction("Kingdom", 150, 1, new Dictionary<City.CitySize, Yields>() {
+        all.Add(new Faction("Kingshold", 150, 1, new Dictionary<City.CitySize, Yields>() {
             { City.CitySize.Town,       new Yields(2.0f, 2.0f, 2.0f, 1.0f, 1.0f, 0.0f, 0.0f) },
             { City.CitySize.City,       new Yields(1.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(0.0f, 2.0f, 5.0f, 3.0f, 2.0f, 0.0f, 0.0f) }
@@ -614,15 +614,16 @@ public partial class Factions
         Kingdom.Units.Add(new Prospector("Prospector", 2.0f, 2, "prospector_2", new List<string>() { "prospecting_1", "prospecting_2", "prospecting_3", "prospecting_4" }, 6.0f, 100, 50, 0.75f, Education, 10, 0.0f));
 
         ///Vanguard deployment units?
-        Kingdom.Units.Add(new Unit("Scouts", Unit.UnitType.Infantry, "scout_2", 3.0f, 50, 50, 0.5f, 0.0f, 3, null, null, 2.0f, true, 9.0f, 75.0f, 100.0f,
+        Kingdom.Units.Add(new Unit("Scouts", Unit.UnitType.Infantry, "scout_2", 3.0f, 50, 50, 0.5f, 0, 0.0f, 3, null, null, 2.0f, true, 9.0f, 75.0f, 100.0f,
             new Damage(9.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.5f } }), 0.1f,
             null, 0, 0, null, null,
             10.0f, 7.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.50f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Impact, 1.0f } },
             7.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("forest combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("anti animal", 0.10f),
                 AbilityPrototypes.Instance.Get("skirmisher", 1.0f)
             }, new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Peasant Militia", Unit.UnitType.Infantry, "peasant_militia", 2.0f, 35, 20, 0.25f, 0.0f, 2, null, new List<Building>(),
+        Kingdom.Units.Add(new Unit("Peasant Militia", Unit.UnitType.Infantry, "peasant_militia", 2.0f, 35, 20, 0.25f, 0, 0.0f, 2, null, new List<Building>(),
             2.0f, true, 10.0f, 50.0f, 90.0f,
             new Damage(10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.95f }, { Damage.Type.Slash, 0.05f } }), 0.25f,
             null, 0, 0, null, null,
@@ -634,7 +635,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("village defence bonus", 0.25f),
                 AbilityPrototypes.Instance.Get("upkeep reduction on village", 1.00f)
             }, new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Levy Spearmen", Unit.UnitType.Infantry, "levy_spearman", 2.0f, 100, 75, 0.5f, 0.0f, 2, Conscription, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
+        Kingdom.Units.Add(new Unit("Levy Spearmen", Unit.UnitType.Infantry, "levy_spearman", 2.0f, 100, 75, 0.5f, 0, 0.0f, 2, Conscription, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 75.0f, 100.0f,
             new Damage(10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.95f }, { Damage.Type.Slash, 0.05f } }), 0.25f,
             null, 0, 0, null, null,
@@ -643,20 +644,20 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("anti cavalry", 0.25f),
                 AbilityPrototypes.Instance.Get("charge resistance", 0.25f)
             }, new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        Kingdom.Units.Add(new Unit("Levy Archers", Unit.UnitType.Infantry, "levy_archer", 2.0f, 100, 75, 0.5f, 0.0f, 2, Conscription, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
+        Kingdom.Units.Add(new Unit("Levy Archers", Unit.UnitType.Infantry, "levy_archer", 2.0f, 100, 75, 0.5f, 0, 0.0f, 2, Conscription, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 75.0f, 100.0f,
             new Damage(8.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.5f }, { Damage.Type.Thrust, 0.5f } }), 0.10f,
             new Damage(10.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 6, 20, null, null,
             8.0f, 5.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.50f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Impact, 1.0f } },
             7.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>(), new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Kettlehats", Unit.UnitType.Infantry, "kettle_hat_2", 2.0f, 200, 200, 1.0f, 0.0f, 2, Professional_Army, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
+        Kingdom.Units.Add(new Unit("Kettlehats", Unit.UnitType.Infantry, "kettle_hat_2", 2.0f, 200, 200, 1.0f, 0, 0.0f, 2, Professional_Army, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 100.0f, 110.0f,
             new Damage(15.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.25f,
             null, 0, 0, null, null,
             20.0f, 22.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.05f }, { Damage.Type.Thrust, 1.10f }, { Damage.Type.Impact, 0.90f } },
             10.0f, 10.0f, Unit.ArmorType.Medium, new List<Ability>(),
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        Kingdom.Units.Add(new Unit("Longbowmen", Unit.UnitType.Infantry, "longbow_man", 2.0f, 190, 225, 1.0f, 0.0f, 2, Professional_Army, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
+        Kingdom.Units.Add(new Unit("Longbowmen", Unit.UnitType.Infantry, "longbow_man", 2.0f, 190, 225, 1.0f, 0, 0.0f, 2, Professional_Army, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 100.0f, 100.0f,
             new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.25f,
             new Damage(12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.00f } }), 8, 20, null, null,
@@ -665,7 +666,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("armor piercing ranged", 0.10f)
             },
             new List<Unit.Tag>() { Unit.Tag.Small_Shields }));
-        Kingdom.Units.Add(new Unit("Outriders", Unit.UnitType.Cavalry, "outrider", 4.0f, 175, 250, 1.5f, 0.0f, 3, Professional_Army, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
+        Kingdom.Units.Add(new Unit("Outriders", Unit.UnitType.Cavalry, "outrider", 4.0f, 175, 250, 1.5f, 0, 0.0f, 3, Professional_Army, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
             Kingdom.Buildings.First(x => x.Name == "Stable")},
             3.0f, true, 5.0f, 110.0f, 100.0f,
             new Damage(13.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.50f,
@@ -677,7 +678,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("skirmisher", 0.50f)
             },
             new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Freeman Guard", Unit.UnitType.Cavalry, "freeman_guard", 4.0f, 190, 190, 1.25f, 0.0f, 3, Combined_Arms, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Stable") },
+        Kingdom.Units.Add(new Unit("Freeman Guard", Unit.UnitType.Cavalry, "freeman_guard", 4.0f, 190, 190, 1.25f, 0, 0.0f, 3, Combined_Arms, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Stable") },
             3.0f, true, 5.0f, 125.0f, 125.0f,
             new Damage(9.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.40f,
             new Damage(8.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 6, 20, null, null,
@@ -692,17 +693,18 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("village yield bonus", 0.25f)
             },
             new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Swordmasters", Unit.UnitType.Infantry, "swordmaster", 2.0f, 350, 450, 2.0f, 0.0f, 2, Military_Science, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
+        Kingdom.Units.Add(new Unit("Swordmasters", Unit.UnitType.Infantry, "swordmaster", 2.0f, 350, 450, 2.0f, 0, 0.0f, 2, Military_Science, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks") },
             2.0f, true, 10.0f, 200.0f, 175.0f,
             new Damage(26.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.15f }, { Damage.Type.Impact, 0.10f } }), 0.35f,
             null, 0, 0, null, null,
             19.0f, 15.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 1.1f }, { Damage.Type.Thrust, 0.75f }, { Damage.Type.Impact, 1.0f } },
             15.0f, 11.0f, Unit.ArmorType.Medium, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("armor piercing", 0.10f),
-                AbilityPrototypes.Instance.Get("duelist", 0.10f)
+                AbilityPrototypes.Instance.Get("duelist", 0.10f),
+                AbilityPrototypes.Instance.Get("anti monster", 0.05f)
             },
             new List<Unit.Tag>() { Unit.Tag.Limited_Recruitment }));
-        Kingdom.Units.Add(new Unit("Squires", Unit.UnitType.Cavalry, "squire", 3.0f, 250, 350, 2.0f, 0.0f, 3, Military_Science, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
+        Kingdom.Units.Add(new Unit("Squires", Unit.UnitType.Cavalry, "squire", 3.0f, 250, 350, 2.0f, 0, 0.0f, 3, Military_Science, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
             Kingdom.Buildings.First(x => x.Name == "Stable") },
             3.0f, true, 5.0f, 150.0f, 125.0f,
             new Damage(14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.40f,
@@ -713,7 +715,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("knight upkeep reduction", 0.25f)
             },
             new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Knights", Unit.UnitType.Cavalry, "knight", 3.0f, 500, 600, 4.0f, 0.0f, 2, Noble_Residency, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
+        Kingdom.Units.Add(new Unit("Knights", Unit.UnitType.Cavalry, "knight", 3.0f, 500, 600, 4.0f, 0, 0.0f, 2, Noble_Residency, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
             Kingdom.Buildings.First(x => x.Name == "Stable")},
             3.0f, true, 7.5f, 200.0f, 200.0f,
             new Damage(18.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f }, { Damage.Type.Light, 1.05f }, { Damage.Type.Dark, 0.95f } }), 0.50f,
@@ -725,7 +727,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        Kingdom.Units.Add(new Unit("Foot Knights", Unit.UnitType.Infantry, "foot_knight", 2.0f, 500, 500, 2.5f, 0.0f, 2, Noble_Residency, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle") },
+        Kingdom.Units.Add(new Unit("Foot Knights", Unit.UnitType.Infantry, "foot_knight", 2.0f, 500, 500, 2.5f, 0, 0.0f, 2, Noble_Residency, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle") },
             2.0f, true, 12.5f, 200.0f, 200.0f,
             new Damage(17.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.25f,
             null, 0, 0, null, null,
@@ -734,7 +736,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields }));
-        Kingdom.Units.Add(new Unit("Noble Knights", Unit.UnitType.Cavalry, "noble_knight", 3.0f, 650, 750, 5.0f, 0.0f, 2, Chivalry, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
+        Kingdom.Units.Add(new Unit("Noble Knights", Unit.UnitType.Cavalry, "noble_knight", 3.0f, 650, 750, 5.0f, 0, 0.0f, 2, Chivalry, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Castle"),
             Kingdom.Buildings.First(x => x.Name == "Stable")},
             3.0f, true, 7.5f, 200.0f, 200.0f,
             new Damage(20.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.50f,
@@ -743,12 +745,13 @@ public partial class Factions
             22.0f, 11.0f, Unit.ArmorType.Heavy, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("lance charge", 0.35f),
                 AbilityPrototypes.Instance.Get("rough terrain penalty", 0.35f),
+                AbilityPrototypes.Instance.Get("anti monster", 0.10f),
                 AbilityPrototypes.Instance.Get("inspiring presence", 1.0f),
                 AbilityPrototypes.Instance.Get("city culture", 1.0f),
                 AbilityPrototypes.Instance.Get("knight upkeep")
             },
             new List<Unit.Tag>() { Unit.Tag.Medium_Shields, Unit.Tag.Limited_Recruitment }));
-        Kingdom.Units.Add(new Unit("King's Guard", Unit.UnitType.Infantry, "kings_guard", 2.0f, 325, 480, 2.5f, 0.0f, 2, Military_History, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
+        Kingdom.Units.Add(new Unit("King's Guard", Unit.UnitType.Infantry, "kings_guard", 2.0f, 325, 480, 2.5f, 0, 0.0f, 2, Military_History, new List<Building>() { Kingdom.Buildings.First(x => x.Name == "Barracks"),
             Kingdom.Buildings.First(x => x.Name == "Military Academy")},
             2.0f, true, 12.5f, 175.0f, 175.0f,
             new Damage(22.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.15f }, { Damage.Type.Impact, 0.10f } }), 0.35f,
@@ -760,7 +763,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.10f)
             },
             new List<Unit.Tag>()));
-        Kingdom.Units.Add(new Unit("Sloop", Unit.UnitType.Ship, "sloop", 4.0f, 200, 100, 1.0f, 0.0f, 2, null, new List<Building>(),
+        Kingdom.Units.Add(new Unit("Sloop", Unit.UnitType.Ship, "sloop", 4.0f, 200, 100, 1.0f, 0, 0.0f, 2, null, new List<Building>(),
             4.0f, false, 10.0f, 100.0f, -1.0f,
             new Damage(12.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,
             new Damage(10.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 6, -1, null, null,
@@ -768,7 +771,7 @@ public partial class Factions
             10.0f, 7.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("skirmisher", 0.50f)
             }, new List<Unit.Tag>() { Unit.Tag.Naval, Unit.Tag.Crewed_Single_Entity }));
-        Kingdom.Transports.Add(new Unit("Transport", Unit.UnitType.Ship, "ship_2", 1.0f, 300, 100, 2.0f, 0.0f, 2, null, new List<Building>(),
+        Kingdom.Transports.Add(new Unit("Transport", Unit.UnitType.Ship, "ship_2", 1.0f, 300, 100, 2.0f, 0, 0.0f, 2, null, new List<Building>(),
             2.0f, false, 10.0f, 75.0f, -1.0f,
             new Damage(6.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 0.0f,
             new Damage(5.0f, new Dictionary<Damage.Type, float> { { Damage.Type.Thrust, 1.0f } }), 6, -1, null, null,
@@ -777,6 +780,7 @@ public partial class Factions
             }, new List<Unit.Tag>() { Unit.Tag.Naval, Unit.Tag.Crewed_Single_Entity, Unit.Tag.Embark_Transport }));
 
         all.Add(Dwarves());
+        all.Add(Wood_Elves());
 
         neutral_cities = new Faction("Neutral Cities", 1000, 1, new Dictionary<City.CitySize, Yields>() {
                 { City.CitySize.Town,       new Yields(2.0f, 1.0f, 2.0f, 1.0f, 1.0f, 0.0f, 0.0f) },
@@ -790,7 +794,7 @@ public partial class Factions
             });
         neutral_cities.Allow_Campaing_Play = false;
 
-        neutral_cities.Units.Add(new Unit("Town Guard", Unit.UnitType.Infantry, "neutral_guard", 2.0f, 200, 200, 0.25f, 0.0f, 2, null, null,
+        neutral_cities.Units.Add(new Unit("Town Guard", Unit.UnitType.Infantry, "neutral_guard", 2.0f, 200, 200, 0.25f, 0, 0.0f, 2, null, null,
             2.0f, true, 10.0f, 100.0f, 100.0f,
             new Damage(13.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 0.60f }, { Damage.Type.Slash, 0.35f }, { Damage.Type.Impact, 0.05f } }), 0.15f,
             null, 0, 0, null, null,
@@ -817,7 +821,7 @@ public partial class Factions
         bandits.Uses_Special_AI = true;
         bandits.Allow_Campaing_Play = false;
 
-        bandits.Units.Add(new Unit("Thugs", Unit.UnitType.Infantry, "default_unit", 2.0f, 20, 20, 0.25f, 0.0f, 2, null, null,
+        bandits.Units.Add(new Unit("Thugs", Unit.UnitType.Infantry, "default_unit", 2.0f, 20, 20, 0.25f, 0, 0.0f, 2, null, null,
             2.0f, true, 10.0f, 75.0f, 90.0f,
             new Damage(8.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.00f } }), 0.15f,
             null, 0, 0, null, null,
@@ -830,7 +834,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("thief", 0.25f)
             }, new List<Unit.Tag>()));
 
-        bandits.Units.Add(new Unit("Outlaws", Unit.UnitType.Infantry, "default_unit", 2.0f, 75, 75, 0.25f, 0.0f, 2, null, null,
+        bandits.Units.Add(new Unit("Outlaws", Unit.UnitType.Infantry, "default_unit", 2.0f, 75, 75, 0.25f, 0, 0.0f, 2, null, null,
             2.0f, true, 10.0f, 90.0f, 100.0f,
             new Damage(12.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.50f }, { Damage.Type.Thrust, 0.50f } }), 0.10f,
             new Damage(9.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 5, 20, null, null,
@@ -844,7 +848,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("thief", 0.30f)
             }, new List<Unit.Tag>()));
 
-        bandits.Units.Add(new Unit("Highwaymen", Unit.UnitType.Infantry, "default_unit", 3.0f, 100, 100, 0.25f, 0.0f, 3, null, null,
+        bandits.Units.Add(new Unit("Highwaymen", Unit.UnitType.Infantry, "default_unit", 3.0f, 100, 100, 0.25f, 0, 0.0f, 3, null, null,
             2.0f, true, 10.0f, 90.0f, 100.0f,
             new Damage(14.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.25f,
             new Damage(9.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.0f } }), 5, 20, null, null,
@@ -863,13 +867,13 @@ public partial class Factions
                 { City.CitySize.City,       new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) },
                 { City.CitySize.Metropolis, new Yields(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f) }
             }, 3.0f, 100, 1.0f, -0.10f, 1.0f, -0.10f, 1.0f, -0.10f, 0.5f, false, null,
-            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack", "ship_2", 100, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
+            new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Wild Animals", "wolf_pack_2", "ship_2", 100, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
                 Max_Mana = 500.0f
             });
         wild_life.Uses_Special_AI = true;
         wild_life.Allow_Campaing_Play = false;
 
-        wild_life.Units.Add(new Unit("Wolves", Unit.UnitType.Undefined, "wolf", 3.0f, 1, 1, 0.0f, 0.0f, 3, null, null,
+        wild_life.Units.Add(new Unit("Wolves", Unit.UnitType.Animal, "wolf_2", 3.0f, 1, 1, 0.0f, 0, 0.0f, 3, null, null,
             3.0f, true, 5.0f, 75.0f, 150.0f,
             new Damage(6.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.85f }, { Damage.Type.Thrust, 0.15f } }), 0.25f,
             null, 0, 0, null, null,
@@ -877,6 +881,7 @@ public partial class Factions
             1.0f, 2.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("forest combat bonus", 0.35f),
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("skirmisher", 1.0f),
                 AbilityPrototypes.Instance.Get("wild animal", 1.00f)
             }, new List<Unit.Tag>()));
         //TODO: combat map stealth-abilities

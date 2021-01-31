@@ -96,7 +96,7 @@ public class HexPrototypes {
                 { "flower field", 25 }
             }, null));
         world_map_hex_prototypes.Add(new WorldMapHex("haunted forest", "Haunted Forest", "haunted_forest_2", null, new Yields(0, 1, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 2.0f, 0, 1, false,
-            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Special }, new Dictionary<string, int>() {
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest, WorldMapHex.Tag.Special, WorldMapHex.Tag.Cursed }, new Dictionary<string, int>() {
                 { "grass", 65 },
                 { "scrubs", 75 },
                 { "trees", 200 }
@@ -106,7 +106,7 @@ public class HexPrototypes {
                 { "water", 100 }
             }, null) { Is_Water = true });
         world_map_hex_prototypes.Add(new WorldMapHex("city ruins", "City Ruins", "ruins_2", null, new Yields(1, 0, 0, 2, 1, 1, 1), 0.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
-            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Special }, new Dictionary<string, int>() {
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Special, WorldMapHex.Tag.Structure }, new Dictionary<string, int>() {
                 { "grass", 100 },
                 { "scrubs", 35 },
                 { "trees", 15 },
@@ -114,7 +114,7 @@ public class HexPrototypes {
                 { "street", 5 }
             }, null));
         world_map_hex_prototypes.Add(new WorldMapHex("grave yard", "Grave Yard", "placeholder", null, new Yields(0, 0, 0, 0, 0, 1, 0), -1.0f, 0.0f, 0.0f, 1.0f, 0, 0, false,
-            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open, WorldMapHex.Tag.Special }, new Dictionary<string, int>() {
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open, WorldMapHex.Tag.Special, WorldMapHex.Tag.Structure, WorldMapHex.Tag.Cursed }, new Dictionary<string, int>() {
                 { "grass", 100 },
                 { "scrubs", 50 },
                 { "trees", 15 },
@@ -122,7 +122,7 @@ public class HexPrototypes {
             }, null));
 
         world_map_hex_prototypes.Add(new WorldMapHex("small city", "Small City", "city_small", null, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
-            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special }, new Dictionary<string, int>() {
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Structure }, new Dictionary<string, int>() {
                 { "grass", 100 },
                 { "scrubs", 25 },
                 { "trees", 15 },
@@ -136,7 +136,7 @@ public class HexPrototypes {
                 { "houses", 225 }
             }));
         world_map_hex_prototypes.Add(new WorldMapHex("city", "City", "kingdom_city", null, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
-            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special }, new Dictionary<string, int>() {
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Structure }, new Dictionary<string, int>() {
                 { "grass", 100 },
                 { "scrubs", 25 },
                 { "trees", 15 },
@@ -150,7 +150,7 @@ public class HexPrototypes {
                 { "houses", 250 }
             }));
         world_map_hex_prototypes.Add(new WorldMapHex("village", "Village", "village", null, new Yields(1, 1, 1, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
-            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special }, new Dictionary<string, int>() {
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Structure }, new Dictionary<string, int>() {
                 { "grass", 100 },
                 { "scrubs", 25 },
                 { "trees", 25 },
@@ -163,8 +163,8 @@ public class HexPrototypes {
                 { "street", 75 },
                 { "houses", 100 }
             }));
-        world_map_hex_prototypes.Add(new WorldMapHex("dwarven city", "Dwarven City", "dwarf_city_2", null, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 1.0f, 0, 1, false,
-            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Underground }, new Dictionary<string, int>() {
+        world_map_hex_prototypes.Add(new WorldMapHex("dwarven city", "Dwarven City", "dwarf_city_2", null, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Underground, WorldMapHex.Tag.Structure }, new Dictionary<string, int>() {
                 { "cave", 100 },
                 { "cave rocks", 50 },
                 { "cave houses", 5 }
@@ -174,6 +174,22 @@ public class HexPrototypes {
                 { "cave rocks", 5 },
                 { "cave street", 200 },
                 { "cave houses", 250 }
+            }));
+        world_map_hex_prototypes.Add(new WorldMapHex("elven city", "Elven City", "elf_city", null, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.5f, 0, 1, false,
+            new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Urban, WorldMapHex.Tag.Special, WorldMapHex.Tag.Forest, WorldMapHex.Tag.Structure }, new Dictionary<string, int>() {
+                { "grass", 95 },
+                { "flower field", 5 },
+                { "scrubs", 25 },
+                { "trees", 25 },
+                { "houses", 10 }
+            },
+            new Dictionary<string, int>() {
+                { "grass", 60 },
+                { "flower field", 5 },
+                { "scrubs", 20 },
+                { "trees", 15 },
+                { "street", 75 },
+                { "houses", 100 }
             }));
 
         combat_map_hex_prototypes = new Dictionary<string, CombatMapHex>();
@@ -220,7 +236,7 @@ public class HexPrototypes {
         return Get_Names(include_tag.HasValue ? new List<WorldMapHex.Tag>() { include_tag.Value } : null,
             exclude_tag.HasValue ? new List<WorldMapHex.Tag>() { exclude_tag.Value } : null, spawns_minerals, ignore_special);
     }
-
+    
     public List<string> Get_Names(List<WorldMapHex.Tag> include_tags, List<WorldMapHex.Tag> exclude_tags = null, bool? spawns_minerals = null, bool ignore_special = true)
     {
         if((include_tags == null || include_tags.Count == 0) && (exclude_tags == null || exclude_tags.Count == 0) && !spawns_minerals.HasValue) {

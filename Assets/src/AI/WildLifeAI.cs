@@ -217,7 +217,7 @@ public class WildLifeAI : IConfigListener, I_AI
                         if (target == null && Main.Instance.Round > WOLF_CHASE_TRUCE) {
                             foreach (KeyValuePair<WorldMapHex, List<PathfindingNode>> reachable_hex in reachable_hexes) {
                                 if (reachable_hex.Key.Army != null && !reachable_hex.Key.Army.Is_Owned_By(Player) &&
-                                        army.Get_Relative_Strenght_When_On_Hex(target, true, true) * WOLF_AGGRESSION > reachable_hex.Key.Army.Get_Relative_Strenght_When_On_Hex(target, true, false)) {
+                                        army.Get_Relative_Strenght_When_On_Hex(reachable_hex.Key, true, true) * WOLF_AGGRESSION > reachable_hex.Key.Army.Get_Relative_Strenght_When_On_Hex(reachable_hex.Key, true, false)) {
                                     target = reachable_hex.Key;
                                     Log(string.Format("Targeting army #{0}", target.Army.Id), AI.LogType.Military);
                                     break;

@@ -26,6 +26,7 @@ public class Building {
     public float Unit_Training_Speed_Bonus { get; private set; }
     public float Building_Constuction_Speed_Bonus { get; private set; }
     public float Improvement_Constuction_Speed_Bonus { get; private set; }
+    public float Unit_Summoning_Speed_Bonus { get; set; }
     public float Base_Happiness_From_Pops_Delta { get; set; }
     public float Base_Health_From_Pops_Delta { get; set; }
     public float Base_Order_From_Pops_Delta { get; set; }
@@ -41,6 +42,7 @@ public class Building {
     public int Update_Priority { get; set; }
     public Dictionary<string, int> Recruitment_Limits { get; set; }
     public float City_Defence_Bonus { get; set; }
+    public int City_LoS_Bonus { get; set; }
 
     private float upkeep;
     private bool paused;
@@ -62,6 +64,7 @@ public class Building {
         Unit_Training_Speed_Bonus = prototype.Unit_Training_Speed_Bonus;
         Building_Constuction_Speed_Bonus = prototype.Building_Constuction_Speed_Bonus;
         Improvement_Constuction_Speed_Bonus = prototype.Improvement_Constuction_Speed_Bonus;
+        Unit_Summoning_Speed_Bonus = prototype.Unit_Summoning_Speed_Bonus;
         Can_Be_Paused = prototype.Can_Be_Paused;
         Technology_Required = prototype.Technology_Required;
         City = city;
@@ -85,6 +88,7 @@ public class Building {
         Update_Priority = prototype.Update_Priority;
         Recruitment_Limits = Helper.Copy_Dictionary(prototype.Recruitment_Limits);
         City_Defence_Bonus = prototype.City_Defence_Bonus;
+        City_LoS_Bonus = prototype.City_LoS_Bonus;
     }
 
     public Building(string name, string texture, int production_required, int cost, float upkeep, Yields yields, float happiness, float health, float order,
@@ -103,6 +107,7 @@ public class Building {
         Unit_Training_Speed_Bonus = unit_training_speed_bonus;
         Building_Constuction_Speed_Bonus = building_constuction_speed_bonus;
         Improvement_Constuction_Speed_Bonus = improvement_constuction_speed_bonus;
+        Unit_Summoning_Speed_Bonus = 0.0f;
         Can_Be_Paused = can_be_paused;
         Technology_Required = technology_required;
         On_Turn_End = on_turn_end;
@@ -122,6 +127,7 @@ public class Building {
         Update_Priority = 0;
         Recruitment_Limits = new Dictionary<string, int>();
         City_Defence_Bonus = 0.0f;
+        City_LoS_Bonus = 0;
     }
 
     public Yields Yields

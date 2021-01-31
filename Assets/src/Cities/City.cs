@@ -39,7 +39,6 @@ public class City : Ownable, Influencable, TradePartner
     public WorldMapHex Hex { get; private set; }
     public List<WorldMapHex> Worked_Hexes { get; private set; }
     public List<WorldMapHex> Hexes_In_Work_Range { get; private set; }
-    public int LoS { get; private set; }
     public int Work_Range { get; private set; }
     public Trainable Unit_Under_Production { get; private set; }
     public Building Building_Under_Production { get; private set; }
@@ -62,6 +61,7 @@ public class City : Ownable, Influencable, TradePartner
     public StatusEffectList<CityStatusEffect> Status_Effects { get; private set; }
     public float Defence_Bonus { get { return Buildings.Select(x => x.City_Defence_Bonus).Sum() + BASE_DEFENCE_BONUS; } }
 
+    private int los;
     private bool update_yields;
     private Yields saved_base_yields;//TODO: what was this supposed to do?
     private Yields saved_yields;
@@ -77,7 +77,7 @@ public class City : Ownable, Influencable, TradePartner
         Base_Max_Food_Storage = owner.Faction.Base_Max_Food_Strorage_Per_City;
         Worked_Hexes = new List<WorldMapHex>();
         Hexes_In_Work_Range = new List<WorldMapHex>();
-        Buildings = new List<Building>();
+        Buildings = owner.Faction.Starting_Buildings.Select(x => new Building(x, this)).ToList();
         Update_Hex_Yields();
         Statistics = new CityStatistics();
         update_yields = false;
@@ -130,6 +130,16 @@ public class City : Ownable, Influencable, TradePartner
         Name = NameManager.Instance.Get_Name(NameManager.NameType.City, owner.Faction, false);
     }
 
+    public int LoS
+    {
+        get {
+            return los + Buildings.Select(x => x.City_LoS_Bonus).Sum();
+        }
+        private set {
+            los = value;
+        }
+    }
+
     public void Start_Game()
     {
         update_yields = true;
@@ -146,7 +156,7 @@ public class City : Ownable, Influencable, TradePartner
         List<WorldMapHex> los = new List<WorldMapHex>();
         if (Full_LoS) {
             los.Add(Hex);
-            foreach (WorldMapHex hex in Hexes_In_Work_Range) {
+            foreach (WorldMapHex hex in Hex.Get_Hexes_Around(Math.Max(Work_Range, LoS))) {
                 los.Add(hex);
             }
         } else {
@@ -213,10 +223,12 @@ public class City : Ownable, Influencable, TradePartner
     {
         if (refound) {
             Owner.Cash += Unit_Refound();
+            Owner.Mana += Unit_Mana_Refound();
         }
         Unit_Under_Production = prototype;
         if(prototype != null) {
             Owner.Cash -= prototype.Cost;
+            Owner.Mana -= prototype.Mana_Cost;
         }
         Unit_Production_Acquired = 0.0f;
     }
@@ -227,7 +239,7 @@ public class City : Ownable, Influencable, TradePartner
             if (Yields.Production == 0) {
                 return -1;
             }
-            float multiplier = Unit_Under_Production is Unit ? 1.0f + Total_Unit_Training_Speed_Bonus : 1.0f;
+            float multiplier = Unit_Under_Production is Unit ? 1.0f + (Unit_Under_Production.Is_Summon ? Total_Unit_Summoning_Speed_Bonus : Total_Unit_Training_Speed_Bonus) : 1.0f;
             return Mathf.CeilToInt((Unit_Under_Production.Production_Required - Unit_Production_Acquired) / (Yields.Production * multiplier));
         }
     }
@@ -237,7 +249,7 @@ public class City : Ownable, Influencable, TradePartner
         if (Yields.Production == 0) {
             return -1;
         }
-        float multiplier = unit is Unit ? 1.0f + Total_Unit_Training_Speed_Bonus : 1.0f;
+        float multiplier = unit is Unit ? 1.0f + (unit.Is_Summon ? Total_Unit_Summoning_Speed_Bonus : Total_Unit_Training_Speed_Bonus) : 1.0f;
         return Mathf.CeilToInt(unit.Production_Required / (Yields.Production * multiplier));
     }
 
@@ -275,6 +287,7 @@ public class City : Ownable, Influencable, TradePartner
     {
         return
             Owner.Cash >= unit.Cost - Unit_Refound() &&
+            Owner.Mana >= unit.Mana_Cost - Unit_Mana_Refound() &&
             Owner.Has_Unlocked(unit) &&
             (!unit.Requires_Coast || Is_Coastal) &&
             !(unit is Unit && (unit as Unit).Tags.Contains(Unit.Tag.Limited_Recruitment) &&
@@ -288,6 +301,9 @@ public class City : Ownable, Influencable, TradePartner
         StringBuilder message_builder = new StringBuilder();
         if(Owner.Cash < unit.Cost - Unit_Refound()) {
             message_builder.Append("not enough cash, ");
+        }
+        if (Owner.Mana < unit.Mana_Cost - Unit_Mana_Refound()) {
+            message_builder.Append("not enough mana, ");
         }
         if (!Owner.Has_Unlocked(unit)) {
             message_builder.Append("missing ").Append(unit.Technology_Required.Name).Append(" - technology, ");
@@ -321,6 +337,14 @@ public class City : Ownable, Influencable, TradePartner
             return 0.0f;
         }
         return Unit_Under_Production.Cost * (1.0f - (Unit_Production_Acquired / (float)Unit_Under_Production.Production_Required));
+    }
+
+    public float Unit_Mana_Refound()
+    {
+        if (Unit_Under_Production == null) {
+            return 0.0f;
+        }
+        return Unit_Under_Production.Mana_Cost * (1.0f - (Unit_Production_Acquired / (float)Unit_Under_Production.Production_Required));
     }
 
     public float Building_Refound()
@@ -560,6 +584,17 @@ public class City : Ownable, Influencable, TradePartner
                 bonus += building.Unit_Training_Speed_Bonus;
             }
             bonus += Owner.EmpireModifiers.Unit_Training_Speed_Bonus;
+            return bonus;
+        }
+    }
+    
+    public float Total_Unit_Summoning_Speed_Bonus
+    {
+        get {
+            float bonus = 0.0f;
+            foreach (Building building in Buildings) {
+                bonus += building.Unit_Summoning_Speed_Bonus;
+            }
             return bonus;
         }
     }
@@ -806,7 +841,7 @@ public class City : Ownable, Influencable, TradePartner
 
         //Training
         if (Unit_Under_Production != null) {
-            Unit_Production_Acquired += Yields.Production * (1.0f + Total_Unit_Training_Speed_Bonus);
+            Unit_Production_Acquired += Yields.Production * (1.0f + (Unit_Under_Production.Is_Summon ? Total_Unit_Summoning_Speed_Bonus : Total_Unit_Training_Speed_Bonus));
             if(Unit_Production_Acquired >= Unit_Under_Production.Production_Required) {
                 //TODO: Overflow? Stacking workers
                 Owner.Queue_Notification(new Notification("Unit trained: " + Unit_Under_Production.Name, Unit_Under_Production.Texture, SpriteManager.SpriteType.Unit, null, delegate () {
@@ -1484,6 +1519,7 @@ public class City : Ownable, Influencable, TradePartner
         update_yields = data.Update_Yields;
         saved_yields = data.Saved_Yields != null ? new Yields(data.Saved_Yields) : null;
         saved_base_yields = data.Saved_Base_Yields != null ? new Yields(data.Saved_Base_Yields) : null;
+        Buildings.Clear();
         foreach(BuildingSaveData building_data in data.Buildings) {
             Building building = new Building(Owner.Faction.Buildings.First(x => x.Name == building_data.Name), this);
             building.Load(building_data);

@@ -321,13 +321,18 @@ public class Army : WorldMapEntity {
         if(new_hex.Is_Adjancent_To(Hex) && Units_Have_Movement_Left && new_hex.Entity != null && new_hex.Entity is Army && !new_hex.Entity.Is_Owned_By(Owner)) {
             return Attack(new_hex.Entity as Army);
         }
-        WorldMapHex old_hex = jump_over_hex == null ? Hex : new_hex;
-        
+        WorldMapHex old_hex = Hex;
         bool success = base.Move(new_hex, ignore_movement_restrictions, update_los, jump_over_hex);
+        if(jump_over_hex == Hex) {
+            old_hex = new_hex;
+        }
         if(success)  {
             if (!ignore_movement_restrictions) {
                 foreach (Unit unit in Units) {
                     unit.Current_Campaing_Map_Movement -= Hex.Get_Movement_Cost(Get_Movement_Type(Hex, new_hex));
+                    if(jump_over_hex == Hex) {
+                        unit.Current_Campaing_Map_Movement -= old_hex.Get_Movement_Cost(Get_Movement_Type(Hex, new_hex));
+                    }
                 }
             }
             if(Hex.Civilian != null && !Hex.Civilian.Is_Owned_By(Owner)) {

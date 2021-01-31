@@ -15,6 +15,8 @@ public class Prospector : WorldMapEntity, Trainable
     public Technology Technology_Required { get; private set; }
     public bool Requires_Coast { get { return false; } }
     public float Reroll_Chance { get; private set; }
+    public int Mana_Cost { get { return 0; } }
+    public bool Is_Summon { get { return false; } }
     private bool prospecting;
 
     public Prospector(WorldMapHex hex, Prospector prototype, Player owner) : base(hex, prototype, owner, true)

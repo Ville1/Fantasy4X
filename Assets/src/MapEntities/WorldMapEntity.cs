@@ -170,10 +170,13 @@ public class WorldMapEntity : Ownable {
     public virtual bool Move(WorldMapHex new_hex, bool ignore_movement_restrictions = false, bool update_los = true, WorldMapHex jump_over_hex = null)
     {
         if(((Hex == null && !new_hex.Passable_For(this)) || !Hex.Passable_For(this, new_hex)) || (!Is_Civilian && new_hex.Entity != null) || (Is_Civilian && new_hex.Civilian != null)) {
-            if(jump_over_hex != null && ((!Is_Civilian && jump_over_hex.Entity == null) || (Is_Civilian && jump_over_hex.Civilian == null)) &&
+            if(jump_over_hex != null && new_hex.Passable_For(this, jump_over_hex) && ((!Is_Civilian && jump_over_hex.Entity == null) || (Is_Civilian && jump_over_hex.Civilian == null)) &&
                 ((!Is_Civilian && new_hex.Entity != null && new_hex.Entity.Is_Owned_By(Owner)) || (Is_Civilian && new_hex.Civilian != null && new_hex.Civilian.Is_Owned_By(Owner))) &&
-                Current_Movement - new_hex.Get_Movement_Cost(this) > 0.0f) {
-                Current_Movement -= new_hex.Get_Movement_Cost(this);
+                (Current_Movement - new_hex.Get_Movement_Cost(this) > 0.0f || ignore_movement_restrictions)) {
+                if (!ignore_movement_restrictions) {
+                    //These -='s don't affect Armies, instead there movement costs are handled in Army.Move() TODO: Fix?
+                    Current_Movement -= new_hex.Get_Movement_Cost(this);
+                }
                 new_hex = jump_over_hex;
             } else {
                 return false;
