@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class CombatUIManager : MonoBehaviour {
     private static readonly bool SHOW_ATTACK_PREVIEW_DETAILS = true;
+    private static long current_item_id = 0;
     public static CombatUIManager Instance { get; private set; }
 
     public GameObject Panel;
@@ -54,8 +55,13 @@ public class CombatUIManager : MonoBehaviour {
     public Text Damage_Taken_Preview_Defence_Multiplier_Text;
     public GameObject Damage_Taken_Preview_Detail_Row;
 
+    public GameObject Unit_Actions_Content;
+    public GameObject Unit_Action_Prototype;
     public GameObject Unit_List_Content;
     public GameObject Unit_List_Prototype;
+
+    public GameObject Status_Effects_Container;
+    public GameObject Status_Effect_Prototype;
 
     private Unit current_unit;
     private Color default_text_color;
@@ -76,6 +82,9 @@ public class CombatUIManager : MonoBehaviour {
     private List<GameObject> damage_taken_details;
     private Dictionary<Unit, GameObject[]> unit_list_items;
     private long unit_list_index;
+    private Dictionary<UnitAction, GameObject> unit_action_gameobjects;
+    private UnitAction selected_action;
+    private List<GameObject> status_effect_gameobjects;
 
     /// <summary>
     /// Initializiation
@@ -93,6 +102,8 @@ public class CombatUIManager : MonoBehaviour {
         Damage_Output_Preview_Panel.SetActive(false);
         Damage_Taken_Preview_Panel.SetActive(false);
         Unit_List_Prototype.SetActive(false);
+        Unit_Action_Prototype.SetActive(false);
+        Status_Effect_Prototype.SetActive(false);
 
         default_text_color = Unit_Name_Text.color;
 
@@ -112,6 +123,9 @@ public class CombatUIManager : MonoBehaviour {
         damage_output_details = new List<GameObject>();
         damage_taken_details = new List<GameObject>();
         unit_list_items = new Dictionary<Unit, GameObject[]>();
+        unit_action_gameobjects = new Dictionary<UnitAction, GameObject>();
+        selected_action = null;
+        status_effect_gameobjects = new List<GameObject>();
     }
 
     /// <summary>
@@ -124,12 +138,18 @@ public class CombatUIManager : MonoBehaviour {
         }
         if(!CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn && !CombatManager.Instance.Retreat_Phase && Current_Unit != null && Current_Unit.Is_Owned_By_Current_Player) {
             CombatMapHex h = (CombatMapHex)MouseManager.Instance.Hex_Under_Cursor;
-            if(h == null || h.Unit == null || h.Unit.Is_Owned_By_Current_Player) {
+            if(h == null || h.Unit == null || h.Unit.Is_Owned_By_Current_Player || !h.Unit.Is_Visible) {
                 Close_Preview_Panels();
                 last_hex_under_cursor = null;
             } else if(h != last_hex_under_cursor) {
                 last_hex_under_cursor = h;
-                AttackResult[] preview = Current_Unit.Attack(h.Unit, true);
+                string dummy;
+                AttackResult[] preview = null;
+                if(Selected_Action == null) {
+                    preview = Current_Unit.Attack(h.Unit, true); ;
+                } else {
+                    Selected_Action.Activate(Current_Unit, h, true, out preview, out dummy);
+                }
                 if (preview != null) {
                     //Output
                     Damage_Output_Preview_Panel.SetActive(true);
@@ -240,10 +260,41 @@ public class CombatUIManager : MonoBehaviour {
             Panel.gameObject.SetActive(value);
             if (value) {
                 unit_list_index = 0;
+                Selected_Action = null;
             }
         }
     }
 
+    public UnitAction Selected_Action {
+        get {
+            return selected_action;
+        }
+        set {
+            selected_action = selected_action == value ? null : value;
+            foreach (KeyValuePair<UnitAction, GameObject> pair in unit_action_gameobjects) {
+                GameObject.Find(string.Format("{0}/SelectedImage", pair.Value.name)).GetComponentInChildren<Image>().color = selected_action != null && pair.Key.Internal_Name == selected_action.Internal_Name ?
+                    new Color(1.0f, 1.0f, 1.0f, 1.0f) :
+                    new Color(1.0f, 1.0f, 1.0f, 0.0f);
+            }
+            Update_Attack_Range();
+            if(selected_action != null) {
+                MouseManager.Instance.Set_Select_Hex_Mode(true, delegate (Hex hex_p) {
+                    CombatMapHex hex = hex_p as CombatMapHex;
+                    string message = null;
+                    AttackResult[] dummy;
+                    if(!Selected_Action.Activate(Current_Unit, hex, false, out dummy, out message)) {
+                        MessageManager.Instance.Show_Message(message);
+                        Selected_Action = null;
+                    } else {
+                        Update_Current_Unit();
+                    }
+                });
+            } else {
+                MouseManager.Instance.Set_Select_Hex_Mode(false);
+            }
+        }
+    }
+    
     public void End_Turn_On_Click()
     {
         CombatManager.Instance.Next_Turn();
@@ -278,11 +329,13 @@ public class CombatUIManager : MonoBehaviour {
             if(value == null && CombatManager.Instance.Deployment_Mode) {
                 return;
             }
-            if (current_unit != null && current_unit.Hex != null) {
-                current_unit.Hex.Borders = current_unit.Is_Owned_By_Current_Player ? CombatMapHex.Owned_Unit_Color : CombatMapHex.Enemy_Unit_Color;
-            }
+            Unit last_unit = current_unit;
+            Selected_Action = null;
             current_unit = value;
             Update_Current_Unit();
+            if (last_unit != null && last_unit.Hex != null) {
+                last_unit.Update_Borders();
+            }
         }
     }
 
@@ -319,17 +372,21 @@ public class CombatUIManager : MonoBehaviour {
                 can_move_image.gameObject.SetActive(unit.Current_Movement > 0.0f);
                 GameObject routing_image = GameObject.Find(string.Format("{0}/{1}", item.name, "RoutingImage"));
                 routing_image.gameObject.SetActive(unit.Is_Routed);
+                GameObject undeployed_image = GameObject.Find(string.Format("{0}/{1}", item.name, "UndeployedImage"));
+                undeployed_image.gameObject.SetActive(unit.Hex == null);
                 GameObject selection_image = GameObject.Find(string.Format("{0}/{1}", item.name, "SelectionImage"));
                 selection_image.gameObject.SetActive(Current_Unit != null && unit.Id == Current_Unit.Id);
+                Helper.Set_Image(item.name, "VisibilityImage", unit.Is_Stealthy ? (unit.Is_Visible ? "visible" : "invisible") : "empty", SpriteManager.SpriteType.UI);
                 Helper.Set_Button_On_Click(item.name, "SelectButton", delegate () {
                     Current_Unit = unit;
                 });
-                unit_list_items.Add(unit, new GameObject[5] {
+                unit_list_items.Add(unit, new GameObject[6] {
                     item,
                     can_attack_image,
                     can_move_image,
                     routing_image,
-                    selection_image
+                    selection_image,
+                    GameObject.Find(string.Format("{0}/VisibilityImage", item.name))
                 });
             }
             Unit_List_Content.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (column + 1) * 45.0f);
@@ -346,6 +403,7 @@ public class CombatUIManager : MonoBehaviour {
             Deploy_Button.gameObject.SetActive(false);
             Clear_Movement_And_Attack_Range();
             TooltipManager.Instance.Unregister_Tooltip(Unit_Image.gameObject);
+            Helper.Delete_All(unit_action_gameobjects);
             return;
         }
 
@@ -356,25 +414,25 @@ public class CombatUIManager : MonoBehaviour {
         Unit_Image.overrideSprite = SpriteManager.Instance.Get(Current_Unit.Texture, SpriteManager.SpriteType.Unit);
         Unit_Name_Text.text = Current_Unit.Name;
         Unit_Name_Text.color = Current_Unit.Is_Owned_By_Current_Player ? default_text_color : enemy_name_text_color;
-        Unit_Movement_Text.text = string.Format("{0} / {1}", Math.Round(Current_Unit.Current_Movement, 1), Current_Unit.Max_Movement);
+        Unit_Movement_Text.text = Current_Unit_Is_Visible ? string.Format("{0} / {1}", Math.Round(Current_Unit.Current_Movement, 1), Current_Unit.Max_Movement) : "? / ?";
         Can_Attack_Image.gameObject.SetActive(Current_Unit.Can_Attack);
         Ammo_Icon_Image.gameObject.SetActive(Current_Unit.Max_Ammo > 0);
-        Ammo_Text.text = Current_Unit.Max_Ammo > 0 ? string.Format("{0} / {1}", Current_Unit.Current_Ammo, Current_Unit.Max_Ammo) : string.Empty;
+        Ammo_Text.text = Current_Unit.Max_Ammo > 0 ? (Current_Unit_Is_Visible ? string.Format("{0} / {1}", Current_Unit.Current_Ammo, Current_Unit.Max_Ammo) : "? / ?") : string.Empty;
 
-        Manpower_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * Current_Unit.Manpower, bar_height);
-        Manpower_Text.text = Mathf.RoundToInt(Current_Unit.Manpower * 100.0f).ToString() + "%";
+        Manpower_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * (Current_Unit_Is_Visible ? Current_Unit.Manpower : 1.0f), bar_height);
+        Manpower_Text.text = Current_Unit_Is_Visible ? (Mathf.RoundToInt(Current_Unit.Manpower * 100.0f).ToString() + "%") : "?%";
 
         if (Current_Unit.Uses_Morale) {
-            Morale_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * Current_Unit.Relative_Morale, bar_height);
-            Morale_Text.text = Mathf.RoundToInt(Current_Unit.Relative_Morale * 100.0f).ToString() + "%";
+            Morale_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * (Current_Unit_Is_Visible ? Current_Unit.Relative_Morale : 1.0f), bar_height);
+            Morale_Text.text = Current_Unit_Is_Visible ? (Mathf.RoundToInt(Current_Unit.Relative_Morale * 100.0f).ToString() + "%") : "?%";
         } else {
             Morale_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght, bar_height);
             Morale_Text.text = "N/A";
         }
 
         if (Current_Unit.Uses_Stamina) {
-            Stamina_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * Current_Unit.Relative_Stamina, bar_height);
-            Stamina_Text.text = Mathf.RoundToInt(Current_Unit.Relative_Stamina * 100.0f).ToString() + "%";
+            Stamina_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * (Current_Unit_Is_Visible ? Current_Unit.Relative_Stamina : 1.0f), bar_height);
+            Stamina_Text.text = Current_Unit_Is_Visible ? (Mathf.RoundToInt(Current_Unit.Relative_Stamina * 100.0f).ToString() + "%") : "?%";
         } else {
             Stamina_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght, bar_height);
             Stamina_Text.text = "N/A";
@@ -389,7 +447,67 @@ public class CombatUIManager : MonoBehaviour {
             Run_Toggle.isOn = false;
         }
 
+        Helper.Delete_All(unit_action_gameobjects);
+        foreach(UnitAction action in Current_Unit.Actions) {
+            GameObject gameobject = GameObject.Instantiate(
+                Unit_Action_Prototype,
+                new Vector3(
+                    Unit_Action_Prototype.transform.position.x + (unit_action_gameobjects.Count * 75.0f),
+                    Unit_Action_Prototype.transform.position.y,
+                    Unit_Action_Prototype.transform.position.z
+                ),
+                Quaternion.identity,
+                Unit_Actions_Content.transform
+            );
+            gameobject.name = string.Format("action{0}", current_item_id);
+            current_item_id = current_item_id == long.MaxValue ? 0 : current_item_id + 1;
+            gameobject.SetActive(true);
+
+            Helper.Set_Image(gameobject.name, "IconImage", action.Sprite_Name, action.Sprite_Type);
+            Helper.Set_Text(gameobject.name, "NameText", action.Name);
+            if(action.Current_Cooldown != 0) {
+                Helper.Set_Text(string.Format("{0}/CooldownPanel", gameobject.name), "CooldownText", action.Current_Cooldown.ToString());
+            } else {
+                GameObject.Find(string.Format("{0}/CooldownPanel", gameobject.name)).SetActive(false);
+            }
+            GameObject.Find(string.Format("{0}/SelectedImage", gameobject.name)).GetComponentInChildren<Image>().color = selected_action != null && action.Internal_Name == selected_action.Internal_Name ?
+                new Color(1.0f, 1.0f, 1.0f, 1.0f) :
+                new Color(1.0f, 1.0f, 1.0f, 0.0f);
+            UnitAction helper = action;
+            Helper.Set_Button_On_Click(gameobject.name, null, delegate () {
+                Selected_Action = helper;
+            });
+
+            unit_action_gameobjects.Add(action, gameobject);
+        }
+        Unit_Actions_Content.GetComponentInChildren<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, unit_action_gameobjects.Count * 75.0f);
+
         TooltipManager.Instance.Register_Tooltip(Unit_Image.gameObject, Current_Unit.Tooltip, gameObject);
+
+        //Status effects
+        Helper.Delete_All(status_effect_gameobjects);
+        TooltipManager.Instance.Unregister_Tooltips_By_Owner(Status_Effects_Container);
+        foreach (UnitStatusEffect effect in Current_Unit.Status_Effects) {
+            GameObject effect_gameobject = GameObject.Instantiate(
+                Status_Effect_Prototype,
+                new Vector3(
+                    Status_Effect_Prototype.transform.position.x + (25.0f * status_effect_gameobjects.Count),
+                    Status_Effect_Prototype.transform.position.y,
+                    Status_Effect_Prototype.transform.position.z
+                ),
+                Quaternion.identity,
+                Status_Effects_Container.transform
+            );
+            effect_gameobject.name = string.Format("effect{0}", current_item_id);
+            current_item_id = current_item_id == long.MaxValue ? 0 : current_item_id + 1;
+            effect_gameobject.SetActive(true);
+
+            Helper.Set_Image(string.Format("{0}/Panel", effect_gameobject.name), "IconImage", effect.Sprite_Name, effect.Sprite_Type);
+            Helper.Set_Text(string.Format("{0}/Panel/TurnsPanel", effect_gameobject.name), "Text", effect.Turns_Left.ToString());
+            TooltipManager.Instance.Register_Tooltip(GameObject.Find(string.Format("{0}/Panel", effect_gameobject.name)), effect.Name, Status_Effects_Container);
+
+            status_effect_gameobjects.Add(effect_gameobject);
+        }
 
         //Update highlights
         Update_Movement_And_Attack_Range();
@@ -401,6 +519,7 @@ public class CombatUIManager : MonoBehaviour {
                 pair.Value[1].gameObject.SetActive(Current_Unit.Can_Attack);
                 pair.Value[2].gameObject.SetActive(Current_Unit.Current_Movement > 0.0f);
                 pair.Value[3].gameObject.SetActive(Current_Unit.Is_Routed);
+                pair.Value[5].gameObject.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get(Current_Unit.Is_Stealthy ? (Current_Unit.Is_Visible ? "visible" : "invisible") : "empty", SpriteManager.SpriteType.UI);
             }
         }
     }
@@ -413,6 +532,7 @@ public class CombatUIManager : MonoBehaviour {
         if(Current_Unit.Hex != null) {
             Current_Unit.Undeploy();
             Update_Current_Unit();
+            Update_GUI();
             return;
         }
         MessageManager.Instance.Show_Message("Select hex to deploy this unit");
@@ -432,6 +552,7 @@ public class CombatUIManager : MonoBehaviour {
                 }
             }
             Update_Current_Unit();
+            Update_GUI();
         });
     }
 
@@ -478,6 +599,11 @@ public class CombatUIManager : MonoBehaviour {
             old_movement_range_hex.Clear_Highlight();
         }
         highlighted_movement_range_hexes.Clear();
+        Clear_Attack_Range();
+    }
+
+    private void Clear_Attack_Range()
+    {
         foreach (CombatMapHex old_attack_range_hex in marked_attack_range_hexes) {
             old_attack_range_hex.In_Attack_Range_Mark = false;
         }
@@ -490,13 +616,42 @@ public class CombatUIManager : MonoBehaviour {
             return;
         }
         Clear_Movement_And_Attack_Range();
-        current_unit.Hex.Borders = current_unit.Is_Owned_By_Current_Player ? CombatMapHex.Current_Owned_Unit_Color : CombatMapHex.Current_Enemy_Unit_Color;
-        if (!CombatManager.Instance.Deployment_Mode) {
+        current_unit.Update_Borders();
+        if (!CombatManager.Instance.Deployment_Mode && Current_Unit_Is_Visible) {
             foreach (CombatMapHex new_movement_range_hex in current_unit.Get_Hexes_In_Movement_Range(Run)) {
                 new_movement_range_hex.Highlight = movement_range_highlight;
                 highlighted_movement_range_hexes.Add(new_movement_range_hex);
             }
+            //TODO: Duplicated code
             foreach (CombatMapHex new_attack_range_hex in current_unit.Get_Hexes_In_Attack_Range()) {
+                new_attack_range_hex.In_Attack_Range_Mark = true;
+                marked_attack_range_hexes.Add(new_attack_range_hex);
+            }
+        }
+    }
+
+    private bool Current_Unit_Is_Visible
+    {
+        get {
+            //Invisible enemy units can't be selected by player, but they are selected by ai, while it it moving them
+            if(current_unit == null || current_unit.Owner.Id == CombatManager.Instance.Other_Player.Id) {
+                return true;
+            }
+            return !(CombatManager.Instance.Current_Player.Is_AI && !CombatManager.Instance.Other_Player.Is_AI) || current_unit.Is_Visible;
+        }
+    }
+
+    private void Update_Attack_Range()
+    {
+        if (current_unit == null || current_unit.Hex == null) {
+            return;
+        }
+        Clear_Attack_Range();
+        current_unit.Update_Borders();
+        
+        List<CombatMapHex> hexes = Selected_Action == null ? current_unit.Get_Hexes_In_Attack_Range() : UnitAction.Get_Hexes_In_Range(Selected_Action, current_unit);
+        if (!CombatManager.Instance.Deployment_Mode) {
+            foreach (CombatMapHex new_attack_range_hex in hexes) {
                 new_attack_range_hex.In_Attack_Range_Mark = true;
                 marked_attack_range_hexes.Add(new_attack_range_hex);
             }

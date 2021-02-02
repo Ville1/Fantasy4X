@@ -56,7 +56,7 @@ public class UnitInfoGUIManager : MonoBehaviour
     private Color default_text_color;
     private float bottom_position_y;
     private RowScrollView<Damage.Type> resistances_scroll_view;
-    private RowScrollView<Ability> abilities_scroll_view;
+    private RowScrollView<object> abilities_scroll_view;
     private float panel_position_x;
     private bool train_gui;
 
@@ -74,7 +74,7 @@ public class UnitInfoGUIManager : MonoBehaviour
         default_text_color = Relative_Strenght_Text.color;
         bottom_position_y = Bottom_Container.gameObject.transform.position.y;
         resistances_scroll_view = new RowScrollView<Damage.Type>("resistances_scroll_view", Resistances_Content, Resistances_Row_Prototype, 15.0f);
-        abilities_scroll_view = new RowScrollView<Ability>("abilities_scroll_view", Abilities_Content, Abilities_Row_Prototype, 15.0f);
+        abilities_scroll_view = new RowScrollView<object>("abilities_scroll_view", Abilities_Content, Abilities_Row_Prototype, 15.0f);
         panel_position_x = Panel.gameObject.transform.position.x;
     }
 
@@ -219,10 +219,18 @@ public class UnitInfoGUIManager : MonoBehaviour
         Discipline_Text.text = Helper.Float_To_String(Unit.Discipline, 0);
 
         abilities_scroll_view.Clear();
+        foreach(UnitAction action in Unit.Actions) {
+            abilities_scroll_view.Add(action, new List<UIElementData>() {
+                new UIElementData("NameText", action.Name.PadLeft(5)),
+                new UIElementData("ValueText", string.Empty),
+                new UIElementData("IconImage", action.Sprite_Name, action.Sprite_Type)
+            });
+        }
         foreach(Ability ability in Unit.Abilities) {
             abilities_scroll_view.Add(ability, new List<UIElementData>() {
                 new UIElementData("NameText", ability.Name),
-                new UIElementData("ValueText", ability.Uses_Potency ? (ability.Potency_As_Percent ? string.Format("{0}%", Helper.Float_To_String(ability.Potency * 100.0f, 0)) : Helper.Float_To_String(ability.Potency, 2)) : string.Empty)
+                new UIElementData("ValueText", ability.Uses_Potency ? (ability.Potency_As_Percent ? string.Format("{0}%", Helper.Float_To_String(ability.Potency * 100.0f, 0)) : Helper.Float_To_String(ability.Potency, 2)) : string.Empty),
+                new UIElementData("IconImage", "empty", SpriteManager.SpriteType.UI)
             });
         }
     }

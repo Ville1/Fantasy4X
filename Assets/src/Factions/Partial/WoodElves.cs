@@ -9,7 +9,7 @@ public partial class Factions
             { City.CitySize.Town,       new Yields(2.0f, 1.0f, 2.0f, 1.0f, 2.0f, 1.0f, 0.0f) },
             { City.CitySize.City,       new Yields(2.0f, 1.0f, 3.0f, 2.0f, 3.0f, 1.0f, 0.0f) },
             { City.CitySize.Metropolis, new Yields(2.0f, 2.0f, 4.0f, 3.0f, 4.0f, 1.0f, 0.0f) }
-        }, 3.0f, 100, 2.0f, -0.50f, 1.0f, -0.10f, 1.0f, -0.15f, 1.5f, false, "elven city",
+        }, 3.0f, 100, 2.0f, -0.50f, 1.0f, -0.10f, 1.0f, -0.15f, 1.5f, 0.50f, false, "elven city",
         new Technology(null, "Root", 5, new List<AI.Tag>()), new Army("Army", "elf_flag_bearer", "ship_2", 10, new List<string>() { "kingdom_tent_1", "kingdom_tent_2", "kingdom_tent_3" }, 5.0f), new EmpireModifiers() {
             Passive_Income = 3.0f,
             Max_Mana = 150.0f
@@ -60,7 +60,7 @@ public partial class Factions
             Trade_Value = 1.0f
         });
         faction.Buildings.Add(new Building("Treetop Watch", "placeholder", 75, 35, 0.5f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
-            Recruitment_Limits = new Dictionary<string, int>() { { "Pathfinder", 1 } },
+            Recruitment_Limits = new Dictionary<string, int>() { { "Woodland Sentries", 1 } },
             City_LoS_Bonus = 1
         });
         faction.Buildings.Add(new Building("Communal Garden", "placeholder", 150, 75, 1.0f, new Yields(2, 0, 0, 0, 1, 0, 0), 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
@@ -147,6 +147,10 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.05f),
                 AbilityPrototypes.Instance.Get("village defence bonus", 0.05f),
+                AbilityPrototypes.Instance.Get("forest stealth", 2.0f),
+                AbilityPrototypes.Instance.Get("vegetation stealth", 1.0f),
+                AbilityPrototypes.Instance.Get("detection", 1.0f),
+                AbilityPrototypes.Instance.Get("vegetation detection", 3.0f),
                 AbilityPrototypes.Instance.Get("skirmisher", 1.0f)
             },
             new List<Unit.Tag>() { Unit.Tag.Limited_Recruitment }));
@@ -155,11 +159,14 @@ public partial class Factions
             3.0f, true, 5.0f, 75.0f, 150.0f,
             new Damage(7.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.85f }, { Damage.Type.Thrust, 0.15f } }), 0.25f,
             null, 0, 0, null, null,
-            6.0f, 3.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.50f }, { Damage.Type.Thrust, 0.50f }, { Damage.Type.Impact, 1.0f } },
+            6.0f, 3.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.50f }, { Damage.Type.Thrust, 0.50f }, { Damage.Type.Fire, 0.9f }, { Damage.Type.Cold, 1.1f } },
             4.0f, 6.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("forest combat bonus", 0.35f),
                 AbilityPrototypes.Instance.Get("hill combat bonus", 0.10f),
-                AbilityPrototypes.Instance.Get("skirmisher", 1.0f)
+                AbilityPrototypes.Instance.Get("skirmisher", 1.0f),
+                AbilityPrototypes.Instance.Get("forest stealth", 2.0f),
+                AbilityPrototypes.Instance.Get("vegetation stealth", 2.0f),
+                AbilityPrototypes.Instance.Get("detection", 3.0f)
             }, new List<Unit.Tag>()));
 
         faction.Units.Add(new Unit("Treant Guards", Unit.UnitType.Monster, "treant", 1.0f, 25, 0, 0.0f, 50, 0.25f, 2, null, new List<Building>() { },
@@ -177,8 +184,25 @@ public partial class Factions
             }, 11, 9.0f, Unit.ArmorType.Light, new List<Ability>() {
                 AbilityPrototypes.Instance.Get("forest combat bonus", 0.35f),
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.10f),
-                AbilityPrototypes.Instance.Get("village defence bonus", 0.10f)
-            }, new List<Unit.Tag>() { Unit.Tag.Large, Unit.Tag.Wooden }));
+                AbilityPrototypes.Instance.Get("village defence bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("forest stealth", 2.0f),
+                AbilityPrototypes.Instance.Get("forest detection", 2.0f)
+            }, new List<Unit.Tag>() { Unit.Tag.Large, Unit.Tag.Wooden }) {
+            Actions = new List<UnitAction>() {
+                new UnitAction("Entangling Roots", "entangling roots", 5, 10, 0, 3, false, UnitAction.TargetingType.Enemy, 0.0f, 0.01f, "debuff", SpriteManager.SpriteType.Skill,
+                "bind", null, delegate(Unit unit, UnitAction action, CombatMapHex hex, bool is_preview, out AttackResult[] result, out string message) {
+                    result = action.Melee_Attack(unit, hex.Unit, new Damage(5.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f }, { Damage.Type.Earth, 0.35f } }), is_preview);
+                    UnitStatusEffect effect = new UnitStatusEffect(action.Internal_Name, action.Name, 1, UnitStatusEffect.EffectType.Debuff, false, "debuff", SpriteManager.SpriteType.Skill);
+                    effect.Effects.Disables_Stealth = true;
+                    effect.Effects.Movement_Delta = -1.0f;
+                    effect.Effects.Melee_Attack_Delta_Flat = -1.0f;
+                    effect.Effects.Melee_Defence_Delta_Flat = -1.0f;
+                    action.Apply_Debuff(unit, hex.Unit, effect, is_preview);
+                    message = null;
+                    return true;
+                })
+            }
+        });
 
 
 

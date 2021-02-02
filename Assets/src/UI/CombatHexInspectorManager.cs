@@ -65,7 +65,7 @@ public class CombatHexInspectorManager : MonoBehaviour
             Cover_Text.text = string.Format("{0}%", Helper.Float_To_String(hex.Cover * 100.0f, 0));
             Elevation_Text.text = Helper.Float_To_String(hex.Elevation, 1);
             Height_Text.text = Helper.Float_To_String(hex.Height, 1);
-            if(hex.Unit != null) {
+            if(hex.Unit != null && hex.Unit.Is_Visible) {
                 Unit_Panel.SetActive(true);
                 Unit_Image.sprite = SpriteManager.Instance.Get(hex.Unit.Texture, SpriteManager.SpriteType.Unit);
                 Unit_Name_Text.text = hex.Unit.Name;

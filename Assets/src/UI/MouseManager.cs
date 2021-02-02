@@ -89,7 +89,7 @@ public class MouseManager : MonoBehaviour
                 } else if (Hex_Under_Cursor != null && Hex_Under_Cursor is CombatMapHex) {
                     CombatMapHex hex = Hex_Under_Cursor as CombatMapHex;
                     if (!Select_Hex_Mode) {
-                        if(hex.Unit == null) {
+                        if(hex.Unit == null || (!hex.Unit.Is_Owned_By_Current_Player && !hex.Unit.Is_Visible)) {
                             CombatUIManager.Instance.Current_Unit = null;
                         } else {
                             CombatUIManager.Instance.Current_Unit = hex.Unit;
@@ -147,10 +147,19 @@ public class MouseManager : MonoBehaviour
                     Set_Select_Hex_Mode(false);
                 } else if(Hex_Under_Cursor is CombatMapHex && CombatUIManager.Instance.Current_Unit != null && CombatUIManager.Instance.Current_Unit.Is_Owned_By_Current_Player &&
                         CombatUIManager.Instance.Current_Unit.Controllable && !CombatManager.Instance.Retreat_Phase) {
-                    if((Hex_Under_Cursor as CombatMapHex).Unit != null) {
-                        CombatUIManager.Instance.Current_Unit.Attack((Hex_Under_Cursor as CombatMapHex).Unit, false);
+                    if (CombatUIManager.Instance.Selected_Action == null) {
+                        if ((Hex_Under_Cursor as CombatMapHex).Unit != null && (Hex_Under_Cursor as CombatMapHex).Unit.Is_Visible) {
+                            CombatUIManager.Instance.Current_Unit.Attack((Hex_Under_Cursor as CombatMapHex).Unit, false);
+                        } else {
+                            CombatUIManager.Instance.Current_Unit.Pathfind(Hex_Under_Cursor as CombatMapHex, CombatUIManager.Instance.Run);
+                        }
                     } else {
-                        CombatUIManager.Instance.Current_Unit.Pathfind(Hex_Under_Cursor as CombatMapHex, CombatUIManager.Instance.Run);
+                        string message = null;
+                        AttackResult[] dummy;
+                        if(!CombatUIManager.Instance.Selected_Action.Activate(CombatUIManager.Instance.Current_Unit, Hex_Under_Cursor as CombatMapHex, false, out dummy, out message)) {
+                            MessageManager.Instance.Show_Message(message);
+                        }
+                        CombatUIManager.Instance.Selected_Action = null;
                     }
                     CombatUIManager.Instance.Update_Current_Unit();
                 }

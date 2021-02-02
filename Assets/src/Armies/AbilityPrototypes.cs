@@ -647,7 +647,88 @@ public class AbilityPrototypes {
                 return ability.Potency * 0.5f;
             }
         });
-        
+
+        prototypes.Add("forest stealth", new Ability("Forest Stealth", false, true) {
+            Get_Stealth = delegate(Ability ability, Unit unit) {
+                return unit.Hex != null && unit.Hex.Tags.Contains(CombatMapHex.Tag.Forest) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Forest) ? 0.01f * ability.Potency : 0.0f;
+            }
+        });
+
+        prototypes.Add("vegetation stealth", new Ability("Vegetation Stealth", false, true) {
+            Get_Stealth = delegate (Ability ability, Unit unit) {
+                return unit.Hex != null && unit.Hex.Tags.Contains(CombatMapHex.Tag.Vegetation) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Forest) ? 0.01f * ability.Potency : 0.0f;
+            }
+        });
+
+        prototypes.Add("urban stealth", new Ability("Urban Stealth", false, true) {
+            Get_Stealth = delegate (Ability ability, Unit unit) {
+                return unit.Hex != null && unit.Hex.Tags.Contains(CombatMapHex.Tag.Urban) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Urban) ? 0.01f * ability.Potency : (hex.Tags.Contains(WorldMapHex.Tag.Structure) ? 0.005f * ability.Potency : 0.0f);
+            }
+        });
+
+        prototypes.Add("underground stealth", new Ability("Underground Stealth", false, true) {
+            Get_Stealth = delegate (Ability ability, Unit unit) {
+                return unit.Hex != null && unit.Hex.Tags.Contains(CombatMapHex.Tag.Underground) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Underground) ? 0.01f * ability.Potency : 0.0f;
+            }
+        });
+
+        prototypes.Add("detection", new Ability("Detection", false, true) {
+            Get_Detection = delegate (Ability ability, Unit unit, CombatMapHex hex) {
+                return ability.Potency;
+            },
+            Get_Relative_Strength_Multiplier_Bonus = delegate(Ability ability) {
+                return 0.005f * ability.Potency;
+            }
+        });
+
+        prototypes.Add("forest detection", new Ability("Forest Detection", false, true) {
+            Get_Detection = delegate (Ability ability, Unit unit, CombatMapHex hex) {
+                return hex.Tags.Contains(CombatMapHex.Tag.Forest) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Forest) ? 0.005f * ability.Potency : 0.0f;
+            }
+        });
+
+        prototypes.Add("vegetation detection", new Ability("Vegetation Detection", false, true) {
+            Get_Detection = delegate (Ability ability, Unit unit, CombatMapHex hex) {
+                return hex.Tags.Contains(CombatMapHex.Tag.Vegetation) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Forest) ? 0.005f * ability.Potency : 0.0f;
+            }
+        });
+
+        prototypes.Add("urban detection", new Ability("Urban Detection", false, true) {
+            Get_Detection = delegate (Ability ability, Unit unit, CombatMapHex hex) {
+                return hex.Tags.Contains(CombatMapHex.Tag.Urban) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Urban) ? 0.005f * ability.Potency : (hex.Tags.Contains(WorldMapHex.Tag.Structure) ? 0.0025f * ability.Potency : 0.0f);
+            }
+        });
+
+        prototypes.Add("underground detection", new Ability("Underground Detection", false, true) {
+            Get_Detection = delegate (Ability ability, Unit unit, CombatMapHex hex) {
+                return hex.Tags.Contains(CombatMapHex.Tag.Underground) ? ability.Potency : 0.0f;
+            },
+            Get_Fluctuating_Relative_Strength_Multiplier_Bonus = delegate (Ability ability, WorldMapHex hex, bool attacker) {
+                return hex.Tags.Contains(WorldMapHex.Tag.Underground) ? 0.005f * ability.Potency : 0.0f;
+            }
+        });
+
         //TODO: rough terrain penalty & ranged attacks
         //TODO: lance charge in urban? impassable houses?
         //TODO: stealth? Does not get destroyed when losing city defence?

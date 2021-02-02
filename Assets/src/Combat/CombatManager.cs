@@ -149,6 +149,12 @@ public class CombatManager : MonoBehaviour {
             if(Current_Army == Army_2) {
                 Deployment_Mode = false;
                 Map.Set_Deployment_Mode(null);
+                foreach(Unit unit in Army_1.Units) {
+                    unit.End_Deployment();
+                }
+                foreach (Unit unit in Army_2.Units) {
+                    unit.End_Deployment();
+                }
             } else {
                 CameraManager.Instance.Set_Camera_Location(Map.Center_Of_Deployment_2);
             }
@@ -196,7 +202,7 @@ public class CombatManager : MonoBehaviour {
                 if(u.Hex == null) {
                     continue;
                 }
-                u.Hex.Borders = CombatMapHex.Owned_Unit_Color;
+                u.Update_Borders();
             }
             Current_Army.Start_Combat_Turn();
             CombatUIManager.Instance.Current_Unit = Current_Army.Units.Where(x => Hex.Passable_For(x)).OrderByDescending(x => x.Controllable ? 1 : 0).FirstOrDefault(x => x.Hex != null);
@@ -208,7 +214,7 @@ public class CombatManager : MonoBehaviour {
             if (Deployment_Mode) {
                 u.Hex.Borders = null;
             } else if(u.Hex != null) {
-                u.Hex.Borders = CombatMapHex.Enemy_Unit_Color;
+                u.Update_Borders();
             }
         }
         if(Current_Player.AI != null) {

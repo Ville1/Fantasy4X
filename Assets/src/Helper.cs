@@ -238,9 +238,9 @@ public class Helper {
         }
     }
     
-    public static void Set_Image(string parent_game_object_name, string text_game_object_name, string sprite_name, SpriteManager.SpriteType sprite_type)
+    public static void Set_Image(string parent_game_object_name, string image_game_object_name, string sprite_name, SpriteManager.SpriteType sprite_type)
     {
-        GameObject image_game_object = GameObject.Find(string.Format("{0}/{1}", parent_game_object_name, text_game_object_name));
+        GameObject image_game_object = GameObject.Find(string.Format("{0}/{1}", parent_game_object_name, image_game_object_name));
         image_game_object.GetComponentInChildren<Image>().sprite = SpriteManager.Instance.Get(sprite_name, sprite_type);
     }
     

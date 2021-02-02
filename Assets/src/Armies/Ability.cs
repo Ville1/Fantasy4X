@@ -14,6 +14,8 @@ public class Ability {
     public delegate void On_Turn_End_Delegate(Ability ability, Unit unit);
     public delegate void On_Turn_Start_Delegate(Ability ability, Unit unit);
     public delegate float Get_Disengagement_Movement_Cost_Multiplier_End_Delegate(Ability ability, Unit unit);
+    public delegate float Get_Stealth_Delegate(Ability ability, Unit unit);
+    public delegate float Get_Detection_Delegate(Ability ability, Unit unit, CombatMapHex hex);
 
     public string Name { get; private set; }
     public float Potency { get; set; }
@@ -46,6 +48,8 @@ public class Ability {
     public On_Turn_End_Delegate On_Combat_Turn_End { get; set; }
     public On_Turn_Start_Delegate On_Combat_Turn_Start { get; set; }
     public Get_Disengagement_Movement_Cost_Multiplier_End_Delegate Get_Disengagement_Movement_Cost { get; set; }
+    public Get_Stealth_Delegate Get_Stealth { get; set; }
+    public Get_Detection_Delegate Get_Detection { get; set; }
 
     public Ability(string name, float potency, bool potency_as_percent, bool uses_potency)
     {
@@ -86,6 +90,8 @@ public class Ability {
         clone.On_Combat_Turn_End = On_Combat_Turn_End;
         clone.On_Combat_Turn_Start = On_Combat_Turn_Start;
         clone.Get_Disengagement_Movement_Cost = Get_Disengagement_Movement_Cost;
+        clone.Get_Stealth = Get_Stealth;
+        clone.Get_Detection = Get_Detection;
         return clone;
     }
 

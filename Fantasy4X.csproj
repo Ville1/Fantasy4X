@@ -82,12 +82,16 @@
     <Compile Include="Assets\src\AI\BanditAI.cs" />
     <Compile Include="Assets\src\AI\I_AI.cs" />
     <Compile Include="Assets\src\AI\WildLifeAI.cs" />
+    <Compile Include="Assets\src\AnimationData.cs" />
     <Compile Include="Assets\src\Armies\Ability.cs" />
     <Compile Include="Assets\src\Armies\AbilityPrototypes.cs" />
     <Compile Include="Assets\src\Armies\Army.cs" />
     <Compile Include="Assets\src\Armies\AttackResult.cs" />
     <Compile Include="Assets\src\Armies\Damage.cs" />
     <Compile Include="Assets\src\Armies\Unit.cs" />
+    <Compile Include="Assets\src\Armies\UnitAction.cs" />
+    <Compile Include="Assets\src\Armies\UnitActionPrototypes.cs" />
+    <Compile Include="Assets\src\Armies\UnitStatusEffect.cs" />
     <Compile Include="Assets\src\AudioManager.cs" />
     <Compile Include="Assets\src\Blessing.cs" />
     <Compile Include="Assets\src\CSVHelper.cs" />

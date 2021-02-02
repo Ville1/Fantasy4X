@@ -13,6 +13,7 @@ public class Player {
     public string Name { get; private set; }
     public int? Team { get; private set; }
     public I_AI AI { get; private set; }
+    public bool Is_AI { get { return AI != null; } }
     public List<City> Cities { get; private set; }
     public List<Village> Villages { get; private set; }
     public List<WorldMapEntity> World_Map_Entities { get; private set; }

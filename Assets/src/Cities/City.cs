@@ -730,7 +730,7 @@ public class City : Ownable, Influencable, TradePartner
     public float Pop_Growth
     {
         get {
-            float growth = 1.0f;
+            float growth = Owner.Faction.Base_Pop_Growth;
 
             Statistics.Growth.Clear();
             Statistics.Growth_Percent.Clear();
@@ -844,7 +844,7 @@ public class City : Ownable, Influencable, TradePartner
             Unit_Production_Acquired += Yields.Production * (1.0f + (Unit_Under_Production.Is_Summon ? Total_Unit_Summoning_Speed_Bonus : Total_Unit_Training_Speed_Bonus));
             if(Unit_Production_Acquired >= Unit_Under_Production.Production_Required) {
                 //TODO: Overflow? Stacking workers
-                Owner.Queue_Notification(new Notification("Unit trained: " + Unit_Under_Production.Name, Unit_Under_Production.Texture, SpriteManager.SpriteType.Unit, null, delegate () {
+                Owner.Queue_Notification(new Notification(string.Format("Unit {0}: {1}", Unit_Under_Production.Is_Summon ? "summoned" : "trained", Unit_Under_Production.Name), Unit_Under_Production.Texture, SpriteManager.SpriteType.Unit, null, delegate () {
                     CityGUIManager.Instance.Current_City = this;
                 }));
                 if ((Unit_Under_Production is Worker || Unit_Under_Production is Prospector) && Hex.Civilian == null) {

@@ -34,11 +34,12 @@ public class Faction {
     public bool Allow_Custom_Battle_Play { get; set; }
     public List<Building> Starting_Buildings { get; set; }
     public float Starting_Mana { get; set; }
+    public float Base_Pop_Growth { get; private set; }
 
     public Faction(string name, int starting_cash, int capital_starting_population, Dictionary<City.CitySize, Yields> city_yields,
         float pop_food_consumption, int max_food_storage_per_city, float base_happiness, float happiness_from_pops,
         float base_health, float health_from_pops, float base_order, float order_from_pops, float enemy_cultural_influence_unhappiness_multiplier,
-        bool reveal_trade_routes, string city_hex, Technology root_technology, Army army_prototype, EmpireModifiers modifiers)
+        float base_pop_growth, bool reveal_trade_routes, string city_hex, Technology root_technology, Army army_prototype, EmpireModifiers modifiers)
     {
         Name = name;
         Starting_Cash = starting_cash;
@@ -56,6 +57,7 @@ public class Faction {
         Base_Order = base_order;
         Order_From_Pops = order_from_pops;
         Enemy_Cultural_Influence_Unhappiness_Multiplier = enemy_cultural_influence_unhappiness_multiplier;
+        Base_Pop_Growth = base_pop_growth;
         Improvements = new List<Improvement>();
         Reveal_Trade_Routes = reveal_trade_routes;
         Root_Technology = root_technology;

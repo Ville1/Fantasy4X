@@ -27,6 +27,9 @@ public class Unit : Trainable
     private static readonly float[] MORALE_LOSS_ON_RANGED_ATTACK_NO_STAMINA = new float[2] { 1.0f, 0.1f };
     private static readonly float ROUTED_ATTACK_PENALTY = 0.90f;
     private static readonly float STARTING_MORALE_WHEN_MISSING_MANPOWER = 0.5f;
+    private static readonly float BASE_DETECTION_DISTANCE = 5.0f;
+    private static readonly string[] RANGED_ATTACK_STEALTH_DISABLE_EFFECT_NAME = new string[2] { "stealth disabled by making a ranged attack", "Stealth Disabled" };
+    private static readonly int RANGED_ATTACK_STEALTH_DISABLE_TURNS = 3;
 
     private static readonly Dictionary<AttackArch, float> ARCH_ATTACK_MULTIPLIERS = new Dictionary<AttackArch, float>() {
         { AttackArch.None, 0.1f },
@@ -54,9 +57,9 @@ public class Unit : Trainable
     public enum Tag
     {
         Small_Shields,
-        Medium_Shields,//Axe units tend to gain bonuses against shielded units
+        Medium_Shields,
         Large_Shields,
-        Wooden,//Axe again
+        Wooden,
         Undead,
         Large,
         Blocks_Hex_Working,
@@ -74,7 +77,6 @@ public class Unit : Trainable
     public UnitType Type { get; private set; }
     public string Texture { get; private set; }
     public Army Army { get; set; }
-    public float Max_Movement { get; private set; }
     public float Current_Movement { get; private set; }
     public bool Can_Attack { get; private set; }
     public int Id { get; private set; }
@@ -92,7 +94,8 @@ public class Unit : Trainable
     public List<Building> Buildinds_Required { get; private set; }
     public List<Ability> Abilities { get; private set; }
     public CombatMapHex Hex { get; private set; }
-
+    public List<UnitAction> Actions { get; set; }
+    public List<UnitStatusEffect> Status_Effects { get; private set; }
     public float Manpower { get; private set; }
     public float Current_Morale { get; private set; }
     public float Max_Morale { get; private set; }
@@ -131,6 +134,8 @@ public class Unit : Trainable
     private float relative_strenght;
     private float upkeep;
     private bool repeat_animation;
+    private float base_stealth;
+    private float max_movement;
 
     public Unit(Unit prototype)
     {
@@ -157,7 +162,7 @@ public class Unit : Trainable
         }
         Tags = Helper.Copy_List(prototype.Tags);
         Bars = new List<StatusBar>();
-
+        Status_Effects = new List<UnitStatusEffect>();
         Manpower = 1.0f;
         Max_Morale = prototype.Max_Morale;
         Current_Morale = Max_Morale;
@@ -176,6 +181,7 @@ public class Unit : Trainable
         Morale_Value = prototype.Morale_Value;
         Discipline = prototype.Discipline;
         Armor = prototype.Armor;
+        Actions = prototype.Actions.Select(x => x.Clone).ToList();
 
         Id = current_id;
         current_id++;
@@ -206,7 +212,7 @@ public class Unit : Trainable
         LoS = los;
         Technology_Required = technology_required;
         Buildinds_Required = buildings_required;
-
+        Status_Effects = new List<UnitStatusEffect>();
         Max_Morale = morale;
         Max_Stamina = stamina;
         Melee_Attack = melee_attack;
@@ -225,8 +231,22 @@ public class Unit : Trainable
         Armor = armor;
         Tags = tags;
         Bars = new List<StatusBar>();
+        Actions = new List<UnitAction>();
 
         Update_Relative_Strengh();
+    }
+    
+    public float Max_Movement
+    {
+        get {
+            if(Status_Effects == null || Status_Effects.Count == 0 || max_movement == 0.0f) {
+                return max_movement;
+            }
+            return Math.Max(1.0f, max_movement + Status_Effect_Delta.Movement_Delta);
+        }
+        set {
+            max_movement = value;
+        }
     }
 
     public float Upkeep
@@ -291,11 +311,7 @@ public class Unit : Trainable
         new_hex.Unit = this;
         Hex = new_hex;
 
-        if(CombatUIManager.Instance.Current_Unit == this) {
-            Hex.Borders = Is_Owned_By_Current_Player ? CombatMapHex.Current_Owned_Unit_Color : CombatMapHex.Current_Enemy_Unit_Color;
-        } else {
-            Hex.Borders = Is_Owned_By_Current_Player ? CombatMapHex.Owned_Unit_Color : CombatMapHex.Enemy_Unit_Color;
-        }
+        Update_Borders();
 
         if(GameObject == null) {
             GameObject = new GameObject();
@@ -343,12 +359,53 @@ public class Unit : Trainable
             Can_Attack = false;
         }
 
+        foreach(Unit unit in CombatManager.Instance.Army_1.Units) {
+            unit.Update_GameObject_Visibility();
+        }
+        foreach (Unit unit in CombatManager.Instance.Army_2.Units) {
+            unit.Update_GameObject_Visibility();
+        }
+
         StatusBar.Update_Bars(this);
         Has_Moved_This_Turn = true;
         Last_Move_This_Turn_Was_Running = run;
         Stop_Animation();//TODO: Move / run animations?
 
         return true;
+    }
+
+    private void Update_GameObject_Visibility()
+    {
+        if(Hex == null) {
+            return;
+        }
+        if(GameObject.activeSelf == Is_Visible) {
+            return;
+        }
+        GameObject.SetActive(Is_Visible);
+        Update_Borders();
+    }
+
+    public void End_Deployment()
+    {
+        if(Hex == null) {
+            return;
+        }
+        GameObject.SetActive(Is_Visible);
+    }
+
+    public void Update_Borders()
+    {
+        bool owned = Is_Owned_By_Current_Player && (CombatManager.Instance.Current_Player.AI == null || (CombatManager.Instance.Current_Player.AI != null && CombatManager.Instance.Other_Player.AI != null));
+        if (owned || Is_Visible) {
+            if (CombatUIManager.Instance.Current_Unit == this) {
+                Hex.Borders = owned ? CombatMapHex.Current_Owned_Unit_Color : CombatMapHex.Current_Enemy_Unit_Color;
+            } else {
+                Hex.Borders = owned ? CombatMapHex.Owned_Unit_Color : CombatMapHex.Enemy_Unit_Color;
+            }
+        } else {
+            Hex.Borders = null;
+        }
     }
 
     private MovementInfo Get_Movement_Info(CombatMapHex old_hex, CombatMapHex new_hex, bool run, bool disable_can_attack_on_disengagement)
@@ -409,23 +466,24 @@ public class Unit : Trainable
         }
     }
     
-    public List<CombatMapHex> Get_Hexes_In_Attack_Range()
+    public List<CombatMapHex> Get_Hexes_In_Attack_Range(int range_p = -1)
     {
-        if(Range <= 0.0f) {
+        int range = range_p > 0 ? range_p : Range;
+        if (range <= 0.0f) {
             return new List<CombatMapHex>();
         }
         List<CombatMapHex> hexes = new List<CombatMapHex>();
-        foreach(CombatMapHex hex in Hex.Get_Hexes_Around(Mathf.RoundToInt(Range * (1.0f + (MAX_ELEVATION_DIFFERENCE * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER))))) {
-            if (In_Attack_Range(hex)) {
+        foreach(CombatMapHex hex in Hex.Get_Hexes_Around(Mathf.RoundToInt(range * (1.0f + (MAX_ELEVATION_DIFFERENCE * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER))))) {
+            if (In_Attack_Range(hex, range_p)) {
                 hexes.Add(hex);
             }
         }
         return hexes;
     }
     
-    public bool In_Attack_Range(CombatMapHex hex)
+    public bool In_Attack_Range(CombatMapHex hex, int range_p = -1)
     {
-        float effective_range = Range;
+        float effective_range = range_p > 0 ? range_p : Range;
         effective_range *= 1.0f + ((Hex.Elevation - hex.Elevation) * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER);
         if(effective_range < 1.0f) {
             effective_range = 1.0f;
@@ -612,6 +670,10 @@ public class Unit : Trainable
         Has_Moved_This_Turn = false;
         Has_Attacked_This_Turn = false;
         Last_Move_This_Turn_Was_Running = false;
+        foreach(UnitAction action in Actions) {
+            action.Current_Cooldown = 0;
+        }
+        Status_Effects.Clear();
     }
 
     public void Start_Combat_Turn()
@@ -619,11 +681,16 @@ public class Unit : Trainable
         if (Hex == null) {
             return;
         }
+        Refresh();
         foreach (Ability ability in Abilities) {
             if (ability.On_Combat_Turn_Start != null) {
                 ability.On_Combat_Turn_Start(ability, this);
             }
         }
+        foreach(UnitStatusEffect effect in Status_Effects) {
+            effect.Start_Turn(this);
+        }
+        Update_GameObject_Visibility();
     }
 
     public void End_Combat_Turn()
@@ -632,8 +699,7 @@ public class Unit : Trainable
             return;
         }
 
-        Current_Movement = Max_Movement;
-        Can_Attack = true;
+        Refresh();
 
         if (Uses_Stamina && !Has_Moved_This_Turn && !Has_Attacked_This_Turn && !Hex.Is_Adjancent_To_Enemy(Owner)) {
             Current_Stamina += (default_stamina_regeneration * Max_Stamina);
@@ -646,7 +712,28 @@ public class Unit : Trainable
                 ability.On_Combat_Turn_End(ability, this);
             }
         }
+        foreach(UnitAction action in Actions) {
+            if(action.Current_Cooldown > 0) {
+                action.Current_Cooldown--;
+            }
+        }
+        List<UnitStatusEffect> expired_effects = new List<UnitStatusEffect>();
+        foreach(UnitStatusEffect effect in Status_Effects) {
+            effect.Turns_Left--;
+            effect.End_Turn(this);
+            if(effect.Turns_Left <= 0) {
+                expired_effects.Add(effect);
+                effect.Expire(this);
+            }
+        }
+        Status_Effects = Status_Effects.Where(x => !expired_effects.Contains(x)).ToList();
+        Update_GameObject_Visibility();
+    }
 
+    private void Refresh()
+    {
+        Current_Movement = Max_Movement;
+        Can_Attack = true;
         Has_Moved_This_Turn = false;
         Has_Attacked_This_Turn = false;
         Last_Move_This_Turn_Was_Running = false;
@@ -673,18 +760,18 @@ public class Unit : Trainable
         }
     }
 
-    public AttackResult[] Attack(Unit target, bool preview)
+    public AttackResult[] Attack(Unit target, bool preview, UnitAction.AttackData action_data = null)
     {
         if (target.Army.Is_Owned_By(Army.Owner) || (!Can_Attack && !preview)) {
             return null;
         }
-        if (!target.Hex.Is_Adjancent_To(Hex)) {
-            return Perform_Ranged_Attack(target, preview);
+        if (!target.Hex.Is_Adjancent_To(Hex) && (action_data == null || !action_data.Is_Melee)) {
+            return Perform_Ranged_Attack(target, preview, action_data);
         }
-        return Perform_Melee_Attack(target, preview);
+        return Perform_Melee_Attack(target, preview, action_data);
     }
 
-    private AttackResult[] Perform_Melee_Attack(Unit target, bool preview)
+    private AttackResult[] Perform_Melee_Attack(Unit target, bool preview, UnitAction.AttackData action_data = null)
     {
         AttackResult attacker_result = new AttackResult();
         AttackResult defender_result = new AttackResult();
@@ -692,12 +779,12 @@ public class Unit : Trainable
         //Attacker's attack
         defender_result.Can_Attack = null;
         defender_result.Movement = null;
-        defender_result.Stamina_Delta = -default_attack_stamina_cost;
+        defender_result.Stamina_Delta = -1.0f * (action_data == null || !action_data.Stamina_Cost.HasValue ? default_attack_stamina_cost : action_data.Stamina_Cost.Value);
         
-        float damage = Calculate_Melee_Damage(target, defender_result);
+        float damage = Calculate_Melee_Damage(target, defender_result, action_data);
         defender_result.Manpower_Delta = -damage;
         float morale_damage_multiplier = 1.0f;
-        if (Last_Move_This_Turn_Was_Running) {
+        if (Last_Move_This_Turn_Was_Running && action_data == null) {
             morale_damage_multiplier += (morale_damage_bonus_on_charge * target.Discipline_Morale_Damage_Multiplier);
         }
         defender_result.Morale_Delta = (-damage * default_morale_damage * 100.0f * morale_damage_multiplier) - target.Calculate_Morale_Loss_On_Attack(true);
@@ -705,27 +792,32 @@ public class Unit : Trainable
         
 
         //Defender's attack
-        attacker_result.Can_Attack = false;
-        attacker_result.Movement = 0.0f;
-        attacker_result.Stamina_Delta = -default_attack_stamina_cost;
+        if(action_data == null || action_data.Retaliation_Enabled) {
+            attacker_result.Can_Attack = false;
+            attacker_result.Movement = 0.0f;
+            attacker_result.Stamina_Delta = -default_attack_stamina_cost;
 
-        damage = target.Calculate_Melee_Damage(this, attacker_result);
-        attacker_result.Manpower_Delta = -damage;
-        attacker_result.Morale_Delta = (-damage * default_morale_damage * 100.0f) - Calculate_Morale_Loss_On_Attack(true);
-        attacker_result.Damage_Effectiveness = damage / target.Calculate_Standard_Melee_Damage(this);
-
-
+            damage = target.Calculate_Melee_Damage(this, attacker_result);
+            attacker_result.Manpower_Delta = -damage;
+            attacker_result.Morale_Delta = (-damage * default_morale_damage * 100.0f) - Calculate_Morale_Loss_On_Attack(true);
+            attacker_result.Damage_Effectiveness = damage / target.Calculate_Standard_Melee_Damage(this);
+        }
+        
         if (!preview) {
-            EffectManager.Instance.Play_Effect(Hex, "melee");
-            EffectManager.Instance.Play_Effect(target.Hex, "melee");
+            if(action_data == null || (action_data.Retaliation_Enabled && !action_data.Action.Has_Animation)) {
+                EffectManager.Instance.Play_Effect(Hex, "melee");
+            } else if(action_data != null && action_data.Action.Has_Animation) {
+                Start_Animation(action_data.Action.Animation);
+            }
+            EffectManager.Instance.Play_Effect(target.Hex, action_data == null || !action_data.Action.Has_Effect_Name ? "melee" : action_data.Action.Effect_Name);
             Apply(attacker_result);
             target.Apply(defender_result);
             Has_Attacked_This_Turn = true;
             StatusBar.Update_Bars(this);
             StatusBar.Update_Bars(target);
-            CombatLogManager.Instance.Print_Log(string.Format("{0} {1}{2} {3} ({4}/{5} dmg dealt, {6}/{7} dmg taken)", Name, Last_Move_This_Turn_Was_Running ? "charge" : "melee attack",
-                Is_Single_Entity ? "s" : string.Empty, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f),
-                Mathf.RoundToInt(attacker_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(attacker_result.Morale_Delta * -1.0f)));
+            string action_description = action_data == null ? string.Format("{0}{1}", Last_Move_This_Turn_Was_Running ? "charge" : "melee attack", Is_Single_Entity ? "s" : string.Empty) : action_data.Log_Action;
+            CombatLogManager.Instance.Print_Log(string.Format("{0} {1} {2} ({3}/{4} dmg dealt, {5}/{6} dmg taken)", Name, action_description, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f),
+                Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f), Mathf.RoundToInt(attacker_result.Manpower_Delta * -100.0f), Mathf.RoundToInt(attacker_result.Morale_Delta * -1.0f)));
             CombatTopPanelManager.Instance.Update_GUI();
         }
 
@@ -756,9 +848,9 @@ public class Unit : Trainable
         return (((attack + damage_balancer) / (defence + damage_balancer)) * manpower_damage) * Manpower;
     }
 
-    private float Calculate_Melee_Damage(Unit target, AttackResult result)
+    private float Calculate_Melee_Damage(Unit target, AttackResult result, UnitAction.AttackData action_data = null)
     {
-        float attack = Melee_Attack.Total * Morale_Effect * Stamina_Effect;
+        float attack = (action_data == null ? Melee_Attack.Total : action_data.Damage.Total) * Morale_Effect * Stamina_Effect;
         float ability_attack_delta = 0.0f;
         float ability_attack_multiplier = 1.0f;
         float defence = target.Melee_Defence * target.Morale_Effect * target.Stamina_Effect;
@@ -777,7 +869,7 @@ public class Unit : Trainable
 
         //Charge TODO: double loops
         float ability_charge_multiplier = 1.0f;
-        Dictionary<Damage.Type, float> melee_attack_types = Melee_Attack.Type_Weights;
+        Dictionary<Damage.Type, float> melee_attack_types = action_data == null ? Melee_Attack.Type_Weights : action_data.Damage.Type_Weights;
         foreach (Ability ability in Abilities) {
             if (ability.On_Calculate_Melee_Damage_As_Attacker == null) {
                 continue;
@@ -794,7 +886,7 @@ public class Unit : Trainable
             }
             ability_charge_multiplier += ability.On_Calculate_Melee_Damage_As_Defender(ability, this, target, result).Charge_Multiplier;
         }
-        if (Last_Move_This_Turn_Was_Running) {
+        if (Last_Move_This_Turn_Was_Running && action_data == null) {
             float charge_bonus = Charge * Mathf.Max(ability_charge_multiplier, 0.05f);
             attack *= (1.0f + charge_bonus);
             result.Add_Detail(new AttackResult.Detail { Attack_Multiplier = charge_bonus, Description = "Charge" });
@@ -851,17 +943,37 @@ public class Unit : Trainable
         defence = Mathf.Max(defence + ability_defence_delta, 1.0f);
         defence *= Mathf.Max(ability_defence_multiplier, 0.05f);
 
+        //Status effects
+        float status_effect_attack_delta = 0.0f;
+        float status_effect_attack_multiplier = 1.0f;
+        float status_effect_defence_delta = 0.0f;
+        float status_effect_defence_multiplier = 1.0f;
+        foreach(UnitStatusEffect effect in Status_Effects) {
+            status_effect_attack_delta += effect.Effects.Melee_Attack_Delta_Flat;
+            status_effect_attack_multiplier += effect.Effects.Melee_Attack_Delta_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Attack_Delta = effect.Effects.Melee_Attack_Delta_Flat, Attack_Multiplier = effect.Effects.Melee_Attack_Delta_Multiplier, Description = effect.Name });
+        }
+        foreach (UnitStatusEffect effect in target.Status_Effects) {
+            status_effect_defence_delta += effect.Effects.Melee_Defence_Delta_Flat;
+            status_effect_defence_multiplier += effect.Effects.Melee_Defence_Delta_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Defence_Delta = effect.Effects.Melee_Defence_Delta_Flat, Defence_Multiplier = effect.Effects.Melee_Defence_Delta_Multiplier, Description = effect.Name });
+        }
+        attack = Mathf.Max(attack + status_effect_attack_delta, 1.0f);
+        attack *= Mathf.Max(status_effect_attack_multiplier, 0.05f);
+        defence = Mathf.Max(defence + status_effect_defence_delta, 1.0f);
+        defence *= Mathf.Max(status_effect_defence_multiplier, 0.05f);
+
         result.Final_Attack = attack;
-        result.Base_Attack = Melee_Attack.Total;
+        result.Base_Attack = action_data == null ? Melee_Attack.Total : action_data.Damage.Total;
         result.Final_Defence = defence;
         result.Base_Defence = target.Melee_Defence;
 
         return (((attack + damage_balancer) / (defence + damage_balancer)) * manpower_damage) * Manpower;
     }
 
-    private AttackResult[] Perform_Ranged_Attack(Unit target, bool preview)
+    private AttackResult[] Perform_Ranged_Attack(Unit target, bool preview, UnitAction.AttackData action_data = null)
     {
-        if(!preview && (!In_Attack_Range(target.Hex) || !Can_Ranged_Attack)) {
+        if(!preview && action_data == null && (!In_Attack_Range(target.Hex) || !Can_Ranged_Attack || !target.Is_Visible)) {
             return null;
         }
         
@@ -877,7 +989,7 @@ public class Unit : Trainable
         defender_result.Movement = null;
         defender_result.Stamina_Delta = 0.0f;
         
-        float damage = Calculate_Ranged_Damage(target, defender_result);
+        float damage = Calculate_Ranged_Damage(target, defender_result, action_data);
         defender_result.Manpower_Delta = -damage;
         defender_result.Morale_Delta = -damage * default_morale_damage * 100.0f;
         defender_result.Damage_Effectiveness = damage / Calculate_Standard_Ranged_Damage(target);
@@ -885,27 +997,39 @@ public class Unit : Trainable
         //Effects on attacker
         attacker_result.Can_Attack = false;
         attacker_result.Movement = 0.0f;
-        attacker_result.Stamina_Delta = -default_ranged_stamina_cost;
+        attacker_result.Stamina_Delta = -1.0f * (action_data == null || !action_data.Stamina_Cost.HasValue ? default_ranged_stamina_cost : action_data.Stamina_Cost.Value);
         
         attacker_result.Manpower_Delta = 0.0f;
         attacker_result.Morale_Delta = -Calculate_Morale_Loss_On_Attack(false);
 
         if (!preview) {
-            if(Ranged_Attack_Animation != null && Ranged_Attack_Animation.Count != 0) {
-                Start_Animation(Ranged_Attack_Animation, 5.0f, false);
-            } else {
-                EffectManager.Instance.Play_Effect(Hex, "ranged_attack");
+            if(action_data == null || !action_data.Action.Has_Animation) {
+                if (Ranged_Attack_Animation != null && Ranged_Attack_Animation.Count != 0) {
+                    Start_Animation(Ranged_Attack_Animation, 5.0f, false);
+                } else {
+                    EffectManager.Instance.Play_Effect(Hex, "ranged_attack");
+                }
+            } else if(action_data != null && action_data.Action.Has_Animation) {
+                Start_Animation(action_data.Action.Animation);
             }
-            EffectManager.Instance.Play_Effect(target.Hex, string.IsNullOrEmpty(Ranged_Attack_Effect_Name) ? "ranged_target" : Ranged_Attack_Effect_Name);
+            EffectManager.Instance.Play_Effect(target.Hex, action_data == null || !action_data.Action.Has_Effect_Name ? (string.IsNullOrEmpty(Ranged_Attack_Effect_Name) ? "ranged_target" : Ranged_Attack_Effect_Name) : action_data.Action.Effect_Name);
             Apply(attacker_result);
             target.Apply(defender_result);
             Has_Attacked_This_Turn = true;
             StatusBar.Update_Bars(this);
             StatusBar.Update_Bars(target);
             if (Max_Ammo > 0) {
-                Current_Ammo--;
+                Current_Ammo = Current_Ammo - (action_data != null ? action_data.Action.Ammo_Cost : 1); 
             }
-            CombatLogManager.Instance.Print_Log(string.Format("{0} ranged attack{1} {2} ({3}/{4} dmg dealt)", Name, Is_Single_Entity ? "s" : string.Empty, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f),
+            if (Is_Stealthy) {
+                UnitStatusEffect stealth_disabled = new UnitStatusEffect(RANGED_ATTACK_STEALTH_DISABLE_EFFECT_NAME[0], RANGED_ATTACK_STEALTH_DISABLE_EFFECT_NAME[1], RANGED_ATTACK_STEALTH_DISABLE_TURNS, UnitStatusEffect.EffectType.Debuff,
+                    false, "visible", SpriteManager.SpriteType.UI);
+                stealth_disabled.Effects.Disables_Stealth = true;
+                Apply_Status_Effect(stealth_disabled);
+                Update_GameObject_Visibility();
+            }
+            string action_description = action_data == null ? string.Format("ranged attack{0}", Is_Single_Entity ? "s" : string.Empty) : action_data.Log_Action;
+            CombatLogManager.Instance.Print_Log(string.Format("{0} {1} {2} ({3}/{4} dmg dealt)", Name, action_description, target.Name, Mathf.RoundToInt(defender_result.Manpower_Delta * -100.0f),
                 Mathf.RoundToInt(defender_result.Morale_Delta * -1.0f)));
         }
 
@@ -933,11 +1057,41 @@ public class Unit : Trainable
         }
     }
 
-    private float Calculate_Ranged_Damage(Unit target, AttackResult result)
+    public void Apply_Status_Effect(UnitStatusEffect effect)
+    {
+        if (!effect.Stacks) {
+            foreach(UnitStatusEffect existing_effect in Status_Effects.Where(x => x.Internal_Name == effect.Internal_Name)) {
+                existing_effect.Expire(this);
+            }
+            Status_Effects = Status_Effects.Where(x => x.Internal_Name != effect.Internal_Name).ToList();
+        }
+        Status_Effects.Add(effect);
+    }
+
+    private UnitStatusEffect.EffectContainer Status_Effect_Delta
+    {
+        get {
+            UnitStatusEffect.EffectContainer effect_delta = new UnitStatusEffect.EffectContainer();
+            effect_delta.Melee_Attack_Delta_Multiplier = 1.0f;
+            effect_delta.Melee_Defence_Delta_Multiplier = 1.0f;
+            effect_delta.Ranged_Attack_Delta_Multiplier = 1.0f;
+            effect_delta.Ranged_Defence_Delta_Multiplier = 1.0f;
+            foreach(UnitStatusEffect effect in Status_Effects) {
+                effect_delta.Add(effect.Effects);
+            }
+            effect_delta.Melee_Attack_Delta_Multiplier = Math.Max(0.05f, effect_delta.Melee_Attack_Delta_Multiplier);
+            effect_delta.Melee_Defence_Delta_Multiplier = Math.Max(0.05f, effect_delta.Melee_Defence_Delta_Multiplier);
+            effect_delta.Ranged_Attack_Delta_Multiplier = Math.Max(0.05f, effect_delta.Ranged_Attack_Delta_Multiplier);
+            effect_delta.Ranged_Defence_Delta_Multiplier = Math.Max(0.05f, effect_delta.Ranged_Defence_Delta_Multiplier);
+            return effect_delta;
+        }
+    }
+
+    private float Calculate_Ranged_Damage(Unit target, AttackResult result, UnitAction.AttackData action_data = null)
     {
         float morale_effect_attack = Morale_Affects_Ranged_Attack ? (Morale_Effect + 1.0f) / 2.0f : 1.0f;
         float stamina_effect_attack = Stamina_Affects_Ranged_Attack ? Stamina_Effect : 1.0f;
-        float attack = Ranged_Attack.Total * morale_effect_attack * stamina_effect_attack;
+        float attack = (action_data == null ? Ranged_Attack.Total : action_data.Damage.Total) * morale_effect_attack * stamina_effect_attack;
         float ability_attack_delta = 0.0f;
         float ability_attack_multiplier = 1.0f;
         float morale_effect_defence = (target.Morale_Effect + 1.0f) / 2.0f;
@@ -959,7 +1113,7 @@ public class Unit : Trainable
         //Base defence
         float resistance_multiplier = 0.0f;
         float resistance_delta = 0.0f;
-        foreach (KeyValuePair<Damage.Type, float> damage in Ranged_Attack.Type_Weights) {
+        foreach (KeyValuePair<Damage.Type, float> damage in action_data == null ? Ranged_Attack.Type_Weights : action_data.Damage.Type_Weights) {
             float multiplier = -1.0f * damage.Value * (1.0f - (target.Resistances.ContainsKey(damage.Key) ? target.Resistances[damage.Key] : 1.0f));
             resistance_delta += (target.Melee_Defence * multiplier);
         }
@@ -1007,8 +1161,28 @@ public class Unit : Trainable
         defence = Mathf.Max(defence + ability_defence_delta, 1.0f);
         defence *= Mathf.Max(ability_defence_multiplier, 0.05f);
 
+        //Status effects
+        float status_effect_attack_delta = 0.0f;
+        float status_effect_attack_multiplier = 1.0f;
+        float status_effect_defence_delta = 0.0f;
+        float status_effect_defence_multiplier = 1.0f;
+        foreach (UnitStatusEffect effect in Status_Effects) {
+            status_effect_attack_delta += effect.Effects.Ranged_Attack_Delta_Flat;
+            status_effect_attack_multiplier += effect.Effects.Ranged_Attack_Delta_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Attack_Delta = effect.Effects.Ranged_Attack_Delta_Flat, Attack_Multiplier = effect.Effects.Ranged_Attack_Delta_Multiplier, Description = effect.Name });
+        }
+        foreach (UnitStatusEffect effect in target.Status_Effects) {
+            status_effect_defence_delta += effect.Effects.Ranged_Defence_Delta_Flat;
+            status_effect_defence_multiplier += effect.Effects.Ranged_Defence_Delta_Multiplier;
+            result.Add_Detail(new AttackResult.Detail() { Defence_Delta = effect.Effects.Ranged_Defence_Delta_Flat, Defence_Multiplier = effect.Effects.Ranged_Defence_Delta_Multiplier, Description = effect.Name });
+        }
+        attack = Mathf.Max(attack + status_effect_attack_delta, 1.0f);
+        attack *= Mathf.Max(status_effect_attack_multiplier, 0.05f);
+        defence = Mathf.Max(defence + status_effect_defence_delta, 1.0f);
+        defence *= Mathf.Max(status_effect_defence_multiplier, 0.05f);
+
         result.Final_Attack = attack;
-        result.Base_Attack = Ranged_Attack.Total;
+        result.Base_Attack = action_data == null ? Ranged_Attack.Total : action_data.Damage.Total;
         result.Final_Defence = defence;
         result.Base_Defence = target.Ranged_Defence;
 
@@ -1160,6 +1334,78 @@ public class Unit : Trainable
         return Current_Movement > 0.0f;
     }
 
+    public float Stealth
+    {
+        private set {
+            base_stealth = value;
+        }
+        get {
+            if(Hex == null) {
+                return 0.0f;
+            }
+            float max_ability_bonus = 0.0f;
+            foreach(Ability ability in Abilities) {
+                float bonus = ability.Get_Stealth == null ? 0.0f : ability.Get_Stealth(ability, this);
+                if(bonus > max_ability_bonus) {
+                    max_ability_bonus = bonus;
+                }
+            }
+            return base_stealth + max_ability_bonus;
+        }
+    }
+
+    public bool Is_Stealthy
+    {
+        get {
+            foreach (Ability ability in Abilities) {
+                if(ability.Get_Stealth != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public float Get_Detection(CombatMapHex hex)
+    {
+        float max_ability_bonus = 0.0f;
+        foreach (Ability ability in Abilities) {
+            float bonus = ability.Get_Detection == null ? 0.0f : ability.Get_Detection(ability, this, hex);
+            if (bonus > max_ability_bonus) {
+                max_ability_bonus = bonus;
+            }
+        }
+        return max_ability_bonus;
+    }
+
+    public bool Can_Detect(Unit unit)
+    {
+        if(Hex == null) {
+            return false;
+        }
+        if(unit.Hex == null || unit.Stealth <= 0.0f || unit.Army.Is_Owned_By(Army.Owner) || unit.Hex.Is_Adjancent_To(Hex)) {
+            return true;
+        }
+        float detection_distance = BASE_DETECTION_DISTANCE + Get_Detection(unit.Hex) - unit.Stealth;
+        return Hex.Distance(unit.Hex) <= detection_distance;
+    }
+
+    public bool Is_Visible
+    {
+        get {
+            if(Hex == null || !Is_Stealthy || Stealth <= 0.0f || Status_Effect_Delta.Disables_Stealth || !CombatManager.Instance.Active_Combat) {
+                return true;
+            }
+            Army enemy_army = CombatManager.Instance.Army_1 == Army ? CombatManager.Instance.Army_2 : CombatManager.Instance.Army_1;
+            foreach (Unit unit in enemy_army.Units) {
+                if (unit.Can_Detect(this)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     private void Update_Relative_Strengh()
     {
         float morale = Uses_Morale ? Math.Max(Max_Morale, 50.0f) : 200.0f;
@@ -1171,6 +1417,10 @@ public class Unit : Trainable
             if(ability.Get_Relative_Strength_Multiplier_Bonus != null) {
                 multiplier += ability.Get_Relative_Strength_Multiplier_Bonus(ability);
             }
+        }
+        foreach(UnitAction action in Actions) {
+            multiplier += action.Relative_Strenght_Bonus_Multiplier;
+            relative_strenght += action.Relative_Strenght_Bonus_Flat;
         }
         if(multiplier <= 0.05f) {
             multiplier = 0.05f;
@@ -1202,6 +1452,9 @@ public class Unit : Trainable
         float height = 0.0f;
         float unit_height = 0.5f;
         foreach (CombatMapHex hex in Hex.Map.Straight_Line(Hex, target_hex)) {
+            if(hex == Hex || hex == target_hex) {
+                continue;
+            }
             float hex_height = hex.Height;
             if(hex.Unit != null && hex.Elevation + unit_height > hex_height) {
                 hex_height = hex.Elevation + unit_height;
@@ -1219,6 +1472,15 @@ public class Unit : Trainable
             return AttackArch.Low;
         }
         return AttackArch.High;
+    }
+
+    public void Start_Animation(AnimationData data)
+    {
+        if (data.Is_Effect) {
+            EffectManager.Instance.Play_Effect(Hex, data.Effect_Name);
+        } else {
+            Start_Animation(data.Sprites, data.FPS, data.Repeat);
+        }
     }
 
     /// <summary>
