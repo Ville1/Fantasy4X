@@ -191,13 +191,13 @@ public partial class Factions
             Actions = new List<UnitAction>() {
                 new UnitAction("Entangling Roots", "entangling roots", 5, 10, 0, 3, false, UnitAction.TargetingType.Enemy, 0.0f, 0.01f, "debuff", SpriteManager.SpriteType.Skill,
                 "bind", null, delegate(Unit unit, UnitAction action, CombatMapHex hex, bool is_preview, out AttackResult[] result, out string message) {
-                    result = action.Melee_Attack(unit, hex.Unit, new Damage(5.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f }, { Damage.Type.Earth, 0.35f } }), is_preview);
+                    result = action.Melee_Attack(unit, hex.Unit, new Damage(hex.Tags.Contains(CombatMapHex.Tag.Forest) ? 10.0f : 5.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f }, { Damage.Type.Earth, 0.35f } }), is_preview);
                     UnitStatusEffect effect = new UnitStatusEffect(action.Internal_Name, action.Name, 1, UnitStatusEffect.EffectType.Debuff, false, "debuff", SpriteManager.SpriteType.Skill);
                     effect.Effects.Disables_Stealth = true;
                     effect.Effects.Movement_Delta = -1.0f;
                     effect.Effects.Melee_Attack_Delta_Flat = -1.0f;
                     effect.Effects.Melee_Defence_Delta_Flat = -1.0f;
-                    action.Apply_Debuff(unit, hex.Unit, effect, is_preview);
+                    action.Apply_Debuff(unit, hex.Unit, effect, true, is_preview);
                     message = null;
                     return true;
                 })

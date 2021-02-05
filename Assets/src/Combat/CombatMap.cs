@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CombatMap {
@@ -243,6 +244,17 @@ public class CombatMap {
         return nodes;
     }
 
+    public List<CombatMapHex> Path(Unit unit, CombatMapHex target)
+    {
+        List<PathfindingNode> path = Pathfinding.Path(Get_Specific_PathfindingNodes(unit, target), unit.Hex.Get_Specific_PathfindingNode(unit, target), target.Get_Specific_PathfindingNode(unit, target));
+        if(path == null || path.Count < 3) {
+            return new List<CombatMapHex>();
+        }
+        path.RemoveAt(0);
+        path.RemoveAt(path.Count - 1);
+        return path.Select(x => Get_Hex_At(x.Coordinates)).ToList();
+    }
+
     public void Delete()
     {
         foreach (CombatMapHex hex in All_Hexes) {
@@ -288,6 +300,20 @@ public class CombatMap {
     {
         get {
             return Get_Hex_At(Mathf.RoundToInt((Width / 2.0f) * 0.67f), Mathf.RoundToInt(Height - (Height * space_per_player * 0.5f)));
+        }
+    }
+
+    public List<CombatMapHex> Deployment_Zone_1
+    {
+        get {
+            return All_Hexes.Where(x => x.R < Space_Height_2).ToList();
+        }
+    }
+
+    public List<CombatMapHex> Deployment_Zone_2
+    {
+        get {
+            return All_Hexes.Where(x => x.R > Space_Height_1).ToList();
         }
     }
 

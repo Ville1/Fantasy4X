@@ -33,7 +33,6 @@ public class AI : IConfigListener, I_AI
     public enum Level { Inactive, Easy, Medium, Hard }
     public enum Tag { Food, Production, Cash, Science, Culture, Mana, Faith, Happiness, Health, Order, Military }
     public enum LogType { General, Economy, Military, Diagnostic, Spells }
-    public enum DeploymentRole { Slow_Melee, Slow_Ranged, Fast_Melee, Fast_Ranged }
 
     public bool Log_Actions { get; set; }
     public List<LogType> Logged_Action_Types { get; set; }
@@ -76,7 +75,7 @@ public class AI : IConfigListener, I_AI
     private List<WorldMapHex> hexes_needing_prospecting;
     private List<CitySpellPreference> city_spell_targets;
     private Dictionary<WorldMapHex, WorldMapEntity> saved_los;
-    private List<Unit> unit_order;
+    private CombatAI combat_ai;
 
     public AI(Level level, Player player)
     {
@@ -107,6 +106,7 @@ public class AI : IConfigListener, I_AI
         hexes_needing_prospecting = new List<WorldMapHex>();
         city_spell_targets = new List<CitySpellPreference>();
         saved_los = new Dictionary<WorldMapHex, WorldMapEntity>();
+        combat_ai = new CombatAI(this);
     }
 
     public void On_Delete()
@@ -1752,25 +1752,14 @@ public class AI : IConfigListener, I_AI
         }
     }
 
+    public void Start_Combat()
+    {
+        combat_ai.Start_Combat();
+    }
+
     public void Start_Combat_Turn()
     {
-        Dictionary<Unit, float> distances = new Dictionary<Unit, float>();
-        foreach(Unit unit in (CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_1 : CombatManager.Instance.Army_2).Units) {
-            if (!unit.Controllable) {
-                continue;
-            }
-            float min_distance = float.MaxValue;
-            foreach (Unit enemy_unit in (CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_2 : CombatManager.Instance.Army_1).Units) {
-                if(enemy_unit.Hex != null) {
-                    float distance = unit.Hex.Coordinates.Distance(enemy_unit.Hex.Coordinates);
-                    if (distance < min_distance) {
-                        min_distance = distance;
-                    }
-                }
-            }
-            distances.Add(unit, min_distance);
-        }
-        unit_order = distances.OrderBy(x => x.Value).Select(x => x.Key).ToList();
+        combat_ai.Start_Combat_Turn();
     }
 
     public void Combat_Act(float delta_s)
@@ -1784,381 +1773,7 @@ public class AI : IConfigListener, I_AI
             return;
         }
         act_cooldown += Time_Between_Actions;
-
-        Unit unit = null;
-        Army army = CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_1 : CombatManager.Instance.Army_2;
-        Army enemy_army = CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_2 : CombatManager.Instance.Army_1;
-
-        if (CombatManager.Instance.Deployment_Mode) {
-            Deploy(AI_Level, army);
-            CombatManager.Instance.Next_Turn();
-            return;
-        }
-
-        unit = unit_order.Where(x => x.Controllable && !x.Wait_Turn).FirstOrDefault();
-        if (unit == null) {
-            CombatManager.Instance.Next_Turn();
-            return;
-        }
-
-        if (CombatUIManager.Instance.Active) {
-            CombatUIManager.Instance.Current_Unit = unit;
-        }
-
-        //Zombie AI
-        //Attacking
-        List<CombatMapHex> hexes_in_range = unit.Hex.Get_Adjancent_Hexes();
-        if(unit.Can_Ranged_Attack) {
-            hexes_in_range = unit.Get_Hexes_In_Attack_Range();
-        }
-        foreach(CombatMapHex hex in hexes_in_range) {
-            if(hex.Unit != null && !hex.Unit.Army.Is_Owned_By(Player)) {
-                if(unit.Attack(hex.Unit, false) != null) {
-                    if (CombatUIManager.Instance.Active) {
-                        CombatUIManager.Instance.Update_Current_Unit();
-                    }
-                    break;
-                }
-            }
-        }
-        if(!unit.Can_Attack && unit.Current_Movement <= 0.0f) {
-            unit.Wait_Turn = true;
-            return;
-        }
-
-        //Moving
-        Unit closest_enemy = null;
-        int closest_distance = -1;
-        foreach(Unit enemy in enemy_army.Units.Where(x => x.Hex != null).ToList()) {
-            if (closest_distance == -1 || (enemy.Hex.Distance(unit.Hex) < closest_distance)) {
-                closest_enemy = enemy;
-                closest_distance = enemy.Hex.Distance(unit.Hex);
-            }
-        }
-        if (closest_enemy == null || closest_enemy.Hex.Is_Adjancent_To(unit.Hex)) {
-            unit.Wait_Turn = true;
-            return;
-        }
-        if(!unit.Pathfind(closest_enemy.Hex, unit.Relative_Stamina >= 0.75f)) {
-            //Path blocked
-            unit.Wait_Turn = true;
-        }
-        if (CombatUIManager.Instance.Active) {
-            CombatUIManager.Instance.Update_Current_Unit();
-        }
-    }
-
-    public static void Deploy(Level level, Army army)
-    {
-        List<List<CombatMapHex>> rows = new List<List<CombatMapHex>>();
-        Dictionary<int, List<CombatMapHex>> row_help = new Dictionary<int, List<CombatMapHex>>();
-
-        //Deployment rows
-        for (int x = 0; x < CombatManager.Instance.Map.Width; x++) {
-            for (int y = 0; y < CombatManager.Instance.Map.Height; y++) {
-                CombatMapHex hex = CombatManager.Instance.Map.Get_Hex_At(x, y);
-                if (hex == null || hex.Hidden) {
-                    continue;
-                }
-                if (army.Id == CombatManager.Instance.Army_2.Id) {
-                    if (!row_help.ContainsKey(y)) {
-                        row_help.Add(y, new List<CombatMapHex>() { hex });
-                    } else {
-                        row_help[y].Add(hex);
-                    }
-                } else {
-                    if (!row_help.ContainsKey(CombatManager.Instance.Map.Height - y)) {
-                        row_help.Add(CombatManager.Instance.Map.Height - y, new List<CombatMapHex>() { hex });
-                    } else {
-                        row_help[CombatManager.Instance.Map.Height - y].Add(hex);
-                    }
-                }
-            }
-        }
-        foreach(int i in row_help.Select(x => x.Key).OrderBy(x => x).ToList()) {
-            rows.Add(row_help[i]);
-        }
-
-        Dictionary<Unit, DeploymentRole> roles = Assign_Deployment_Roles(army);
-        if((int)level <= (int)Level.Easy) {
-            Deploy_Default(rows, army, roles);
-            return;
-        }
-        Dictionary<DeploymentRole, float> role_distribution_help = Helper.Instantiate_Dictionary<DeploymentRole>(1.0f);
-        foreach(KeyValuePair<Unit, DeploymentRole> pair in roles) {
-            role_distribution_help[pair.Value] += 1.0f;
-        }
-        Dictionary<DeploymentRole, float> role_distribution = new Dictionary<DeploymentRole, float>();
-        foreach(KeyValuePair<DeploymentRole, float> pair in role_distribution_help) {
-            role_distribution.Add(pair.Key, pair.Value / army.Units.Count);
-        }
-
-        if(role_distribution[DeploymentRole.Fast_Melee] >= 0.5f) {
-            Deploy_Alpha_Strike(rows, army, roles);
-        } else if(role_distribution[DeploymentRole.Slow_Ranged] + role_distribution[DeploymentRole.Fast_Ranged] >= 0.5f) {
-            Deploy_Ranged_Offensive(rows, army, roles);
-        } else {
-            Deploy_Default(rows, army, roles);
-        }
-    }
-
-    public static void Deploy_Default(List<List<CombatMapHex>> rows, Army army, Dictionary<Unit, DeploymentRole> roles)
-    {
-        int index = 0;
-        int row_index = 0;
-        bool left = false;
-        foreach(Unit unit in roles.Where(x => x.Value == DeploymentRole.Slow_Melee).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Slow melee
-            int row_column = (rows[row_index].Count / 2) + (left ? -index : index);
-            if(row_column < 0 || row_column >= rows[row_index].Count) {
-                index = 0;
-                left = false;
-                row_index++;
-            }
-            if (!unit.Deploy(rows[row_index][(rows[row_index].Count / 2) + (left ? -index : index)])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            index = !left ? index + 1 : index;
-            left = !left;
-        }
-
-        if(row_index == 0 && roles.Where(x => x.Value == DeploymentRole.Slow_Ranged).Select(x => x.Key).ToList().Count != 0) {
-            row_index++;
-            index = 0;
-            left = false;
-        }
-        foreach (Unit unit in roles.Where(x => x.Value == DeploymentRole.Slow_Ranged).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Slow ranged
-            int row_column = (rows[row_index].Count / 2) + (left ? -index : index);
-            if (row_column < 0 || row_column >= rows[row_index].Count) {
-                index = 0;
-                left = false;
-                row_index++;
-            }
-            if (!unit.Deploy(rows[row_index][(rows[row_index].Count / 2) + (left ? -index : index)])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            index = !left ? index + 1 : index;
-            left = !left;
-        }
-
-        row_index++;
-        index = 0;
-        left = true;
-        int formation_width = 0;
-        foreach(List<CombatMapHex> row in rows) {
-            int unit_count = row.Where(x => x.Unit != null).ToList().Count;
-            if(unit_count > formation_width) {
-                formation_width = unit_count;
-            }
-        }
-        if(rows[row_index].Count < formation_width) {
-            formation_width = rows[row_index].Count;
-        }
-        foreach(Unit unit in roles.Where(x => x.Value == DeploymentRole.Fast_Melee || x.Value == DeploymentRole.Fast_Ranged).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Fast units
-            int left_position = ((rows[row_index].Count - formation_width) / 2) + index;
-            int right_position = formation_width + ((rows[row_index].Count - formation_width) / 2) - index;
-            int position = left ? left_position : right_position;
-            if(position < 0 || position >= rows[row_index].Count || rows[row_index][position].Unit != null) {
-                row_index++;
-                index = 0;
-                left = true;
-                if (rows[row_index].Count < formation_width) {
-                    formation_width = rows[row_index].Count;
-                }
-            }
-            if(row_index >= rows.Count) {
-                break;
-            }
-            if (!unit.Deploy(rows[row_index][position])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            left = !left;
-            index = left ? index + 1 : index;
-        }
-
-        foreach (Unit unit in army.Units.Where(x => x.Hex == null).ToList()) {
-            while (!unit.Deploy(CombatManager.Instance.Map.Random_Hex)) { }
-        }
-    }
-
-    public static void Deploy_Alpha_Strike(List<List<CombatMapHex>> rows, Army army, Dictionary<Unit, DeploymentRole> roles)
-    {
-        int index = 0;
-        int row_index = 0;
-        bool left = false;
-        foreach (Unit unit in roles.Where(x => x.Value == DeploymentRole.Fast_Melee).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Fast melee
-            int row_column = (rows[row_index].Count / 2) + (left ? -index : index);
-            if (row_column < 0 || row_column >= rows[row_index].Count) {
-                index = 0;
-                left = false;
-                row_index++;
-            }
-            if (!unit.Deploy(rows[row_index][(rows[row_index].Count / 2) + (left ? -index : index)])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            index = !left ? index + 1 : index;
-            left = !left;
-        }
-
-        if (row_index == 0 && roles.Where(x => x.Value == DeploymentRole.Slow_Ranged || x.Value == DeploymentRole.Fast_Ranged).Select(x => x.Key).ToList().Count != 0) {
-            row_index++;
-            index = 0;
-            left = false;
-        }
-        foreach (Unit unit in roles.Where(x => x.Value == DeploymentRole.Slow_Ranged || x.Value == DeploymentRole.Fast_Ranged).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Ranged
-            int row_column = (rows[row_index].Count / 2) + (left ? -index : index);
-            if (row_column < 0 || row_column >= rows[row_index].Count) {
-                index = 0;
-                left = false;
-                row_index++;
-            }
-            if (!unit.Deploy(rows[row_index][(rows[row_index].Count / 2) + (left ? -index : index)])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            index = !left ? index + 1 : index;
-            left = !left;
-        }
-
-        row_index++;
-        index = 0;
-        left = false;
-        foreach (Unit unit in roles.Where(x => x.Value == DeploymentRole.Slow_Melee).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Slow melee
-            int row_column = (rows[row_index].Count / 2) + (left ? -index : index);
-            if (row_column < 0 || row_column >= rows[row_index].Count) {
-                index = 0;
-                left = false;
-                row_index++;
-            }
-            if (!unit.Deploy(rows[row_index][(rows[row_index].Count / 2) + (left ? -index : index)])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            index = !left ? index + 1 : index;
-            left = !left;
-        }
-        
-        foreach (Unit unit in army.Units.Where(x => x.Hex == null).ToList()) {
-            while (!unit.Deploy(CombatManager.Instance.Map.Random_Hex)) { }
-        }
-    }
-
-    public static void Deploy_Ranged_Offensive(List<List<CombatMapHex>> rows, Army army, Dictionary<Unit, DeploymentRole> roles)
-    {
-        int index = 0;
-        int row_index = 0;
-        bool left = false;
-        foreach (Unit unit in roles.Where(x => x.Value == DeploymentRole.Slow_Ranged || x.Value == DeploymentRole.Fast_Ranged).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Ranged
-            int row_column = (rows[row_index].Count / 2) + (left ? -index : index);
-            if (row_column < 0 || row_column >= rows[row_index].Count) {
-                index = 0;
-                left = false;
-                row_index++;
-            }
-            if (!unit.Deploy(rows[row_index][(rows[row_index].Count / 2) + (left ? -index : index)])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            index = !left ? index + 1 : index;
-            left = !left;
-        }
-
-        if (row_index == 0 && roles.Where(x => x.Value == DeploymentRole.Slow_Melee).Select(x => x.Key).ToList().Count != 0) {
-            row_index++;
-            index = 0;
-            left = false;
-        }
-        foreach (Unit unit in roles.Where(x => x.Value == DeploymentRole.Slow_Melee).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Slow melee
-            int row_column = (rows[row_index].Count / 2) + (left ? -index : index);
-            if (row_column < 0 || row_column >= rows[row_index].Count) {
-                index = 0;
-                left = false;
-                row_index++;
-            }
-            if (!unit.Deploy(rows[row_index][(rows[row_index].Count / 2) + (left ? -index : index)])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            index = !left ? index + 1 : index;
-            left = !left;
-        }
-
-        row_index++;
-        index = 0;
-        left = true;
-        int formation_width = 0;
-        foreach (List<CombatMapHex> row in rows) {
-            int unit_count = row.Where(x => x.Unit != null).ToList().Count;
-            if (unit_count > formation_width) {
-                formation_width = unit_count;
-            }
-        }
-        if (rows[row_index].Count < formation_width) {
-            formation_width = rows[row_index].Count;
-        }
-        foreach (Unit unit in roles.Where(x => x.Value == DeploymentRole.Fast_Melee).Select(x => x.Key).OrderByDescending(x => x.Relative_Strenght).ToList()) {
-            //Fast melee
-            int left_position = ((rows[row_index].Count - formation_width) / 2) + index;
-            int right_position = formation_width + ((rows[row_index].Count - formation_width) / 2) - index;
-            int position = left ? left_position : right_position;
-            if (position < 0 || position >= rows[row_index].Count || rows[row_index][position].Unit != null) {
-                row_index++;
-                index = 0;
-                left = true;
-                if (rows[row_index].Count < formation_width) {
-                    formation_width = rows[row_index].Count;
-                }
-            }
-            if (row_index >= rows.Count) {
-                break;
-            }
-            if (!unit.Deploy(rows[row_index][position])) {
-                CustomLogger.Instance.Error("Failed to deploy unit {0} #{1}", unit.Name, unit.Id.ToString());
-            }
-
-            left = !left;
-            index = left ? index + 1 : index;
-        }
-
-        foreach (Unit unit in army.Units.Where(x => x.Hex == null).ToList()) {
-            while (!unit.Deploy(CombatManager.Instance.Map.Random_Hex)) { }
-        }
-    }
-
-    private static Dictionary<Unit, DeploymentRole> Assign_Deployment_Roles(Army army)
-    {
-        Dictionary<Unit, DeploymentRole> roles = new Dictionary<Unit, DeploymentRole>();
-        Dictionary<float, int> speed_tiers = new Dictionary<float, int>();
-        foreach(Unit unit in army.Owner.Faction.Units.Where(x => x is Unit).Select(x => x as Unit).ToList()) {
-            if (!speed_tiers.ContainsKey(unit.Max_Movement)) {
-                speed_tiers.Add(unit.Can_Ranged_Attack && unit.Max_Movement < 2.0f ? 2.0f : unit.Max_Movement, 0);
-            }
-        }
-        foreach(Unit unit in army.Units) {
-            if (!speed_tiers.ContainsKey(unit.Max_Movement)) {
-                speed_tiers.Add(unit.Can_Ranged_Attack && unit.Max_Movement < 2.0f ? 2.0f : unit.Max_Movement, 1);
-            } else {
-                speed_tiers[unit.Can_Ranged_Attack && unit.Max_Movement < 2.0f ? 2.0f : unit.Max_Movement]++;
-            }
-        }
-        float base_speed = speed_tiers.OrderBy(x => x.Key).Select(x => x.Key).ToArray()[0];
-        foreach(Unit unit in army.Units) {
-            roles.Add(unit, unit.Can_Ranged_Attack ?
-                (unit.Max_Movement <= base_speed ? DeploymentRole.Slow_Ranged : DeploymentRole.Fast_Ranged) :
-                (unit.Max_Movement <= base_speed ? DeploymentRole.Slow_Melee : DeploymentRole.Fast_Melee));
-        }
-        return roles;
+        combat_ai.Combat_Act(delta_s);
     }
 
     public AISaveData Save_Data

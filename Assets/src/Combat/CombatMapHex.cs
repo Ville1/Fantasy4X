@@ -10,6 +10,8 @@ public class CombatMapHex : Hex {
     public static Color Current_Owned_Unit_Color = new Color(0.0f, 1.0f, 0.0f);
     public static Color Current_Enemy_Unit_Color = new Color(1.0f, 0.0f, 0.5f);
 
+    private static readonly float ZOC_PATHFINDING_COST = 10.0f;
+
     public string Terrain { get; set; }
     public float Movement_Cost { get; private set; }
     public float Run_Stamina_Penalty { get; private set; }
@@ -117,13 +119,15 @@ public class CombatMapHex : Hex {
             return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, Unit == null ? Movement_Cost : -1.0f);
         }
     }
-
-    /// <summary>
-    /// TODO: ZoC
-    /// </summary>
+    
     public PathfindingNode Get_Specific_PathfindingNode(Unit unit, CombatMapHex ignore_unit_hex = null)
     {
-        return new PathfindingNode(Coordinates, GameObject.transform.position.x, GameObject.transform.position.y, Unit == null || Unit == unit || ignore_unit_hex == this ? Movement_Cost : -1.0f);
+        return new PathfindingNode(
+            Coordinates,
+            GameObject.transform.position.x,
+            GameObject.transform.position.y,
+            Unit == null || Unit == unit || ignore_unit_hex == this ? (Is_Adjancent_To_Enemy(unit.Owner) ? Movement_Cost + ZOC_PATHFINDING_COST : Movement_Cost) : -1.0f
+        );
     }
 
     public bool In_Attack_Range_Mark

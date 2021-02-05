@@ -97,6 +97,7 @@ public class CombatManager : MonoBehaviour {
         Army_1.Start_Combat();
         Army_2.Start_Combat();
         Map = new CombatMap(map_width, map_height, hex);
+        UnitCache.Instance.Clear();
         CameraManager.Instance.Set_Camera_Location(Map.Center_Of_Deployment_1);
         Deployment_Mode = true;
         CombatUIManager.Instance.Current_Unit = Current_Army.Units.Where(x => Hex.Passable_For(x)).First();

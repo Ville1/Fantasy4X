@@ -436,6 +436,10 @@ public class Unit : Trainable
 
     public List<CombatMapHex> Get_Hexes_In_Movement_Range(bool run)
     {
+        if (UnitCache.Instance.Has_Movement(this, Hex, Current_Movement, run)) {
+            return UnitCache.Instance.Get_Movement(this, Hex, Current_Movement, run);
+        }
+
         List<CombatMapHex> hexes = new List<CombatMapHex>();
         float current_movement = Current_Movement;
         if(current_movement <= 0.0f) {
@@ -444,6 +448,7 @@ public class Unit : Trainable
         foreach(CombatMapHex adjancent_hex in Hex.Get_Adjancent_Hexes()) {
             Get_Hexes_In_Movement_Range_Recursive(Hex, adjancent_hex, current_movement, run, hexes);
         }
+        UnitCache.Instance.Save_Movement(this, Hex, Current_Movement, run, hexes);
         return hexes;
     }
 
@@ -466,30 +471,35 @@ public class Unit : Trainable
         }
     }
     
-    public List<CombatMapHex> Get_Hexes_In_Attack_Range(int range_p = -1)
+    public List<CombatMapHex> Get_Hexes_In_Attack_Range(int range_p = -1, CombatMapHex hex_p = null)
     {
         int range = range_p > 0 ? range_p : Range;
+        if (UnitCache.Instance.Has_Attack_Range(this, (hex_p == null ? Hex : hex_p), range)) {
+            return UnitCache.Instance.Get_Attack_Range(this, (hex_p == null ? Hex : hex_p), range);
+        }
         if (range <= 0.0f) {
             return new List<CombatMapHex>();
         }
         List<CombatMapHex> hexes = new List<CombatMapHex>();
-        foreach(CombatMapHex hex in Hex.Get_Hexes_Around(Mathf.RoundToInt(range * (1.0f + (MAX_ELEVATION_DIFFERENCE * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER))))) {
-            if (In_Attack_Range(hex, range_p)) {
+        foreach(CombatMapHex hex in (hex_p == null ? Hex : hex_p).Get_Hexes_Around(Mathf.RoundToInt(range * (1.0f + (MAX_ELEVATION_DIFFERENCE * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER))))) {
+            if (In_Attack_Range(hex, range_p, hex_p)) {
                 hexes.Add(hex);
             }
         }
+        UnitCache.Instance.Save_Attack_Range(this, (hex_p == null ? Hex : hex_p), range, hexes);
         return hexes;
     }
     
-    public bool In_Attack_Range(CombatMapHex hex, int range_p = -1)
+    public bool In_Attack_Range(CombatMapHex hex, int range_p = -1, CombatMapHex hex_p = null)
     {
+        CombatMapHex unit_hex = hex_p == null ? Hex : hex_p;
         float effective_range = range_p > 0 ? range_p : Range;
-        effective_range *= 1.0f + ((Hex.Elevation - hex.Elevation) * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER);
+        effective_range *= 1.0f + ((unit_hex.Elevation - hex.Elevation) * ELEVATION_DIFFERENCE_RANGE_MULTIPLIER);
         if(effective_range < 1.0f) {
             effective_range = 1.0f;
         }
         effective_range *= 1.0f + ARCH_RANGE_MULTIPLIERS[Get_Attack_Arch(hex)];
-        if(Hex.Distance(hex) > effective_range) {
+        if(unit_hex.Distance(hex) > effective_range) {
             return false;
         }
         foreach (Ability ability in Abilities) {
@@ -760,12 +770,12 @@ public class Unit : Trainable
         }
     }
 
-    public AttackResult[] Attack(Unit target, bool preview, UnitAction.AttackData action_data = null)
+    public AttackResult[] Attack(Unit target, bool preview, UnitAction.AttackData action_data = null, bool force_melee = false)
     {
         if (target.Army.Is_Owned_By(Army.Owner) || (!Can_Attack && !preview)) {
             return null;
         }
-        if (!target.Hex.Is_Adjancent_To(Hex) && (action_data == null || !action_data.Is_Melee)) {
+        if (!force_melee && (!target.Hex.Is_Adjancent_To(Hex) && (action_data == null || !action_data.Is_Melee))) {
             return Perform_Ranged_Attack(target, preview, action_data);
         }
         return Perform_Melee_Attack(target, preview, action_data);
@@ -1291,9 +1301,9 @@ public class Unit : Trainable
 
         List<CombatMapHex> edge_hexes_ordered_by_distanse = egde_hexes_and_distance.OrderBy(x => x.Value).Select(x => x.Key).ToList();
 
-        List<PathfindingNode> retreat_path = null;
+        List<CombatMapHex> retreat_path = null;
         for(int i = 0; i < edge_hexes_ordered_by_distanse.Count; i++) {
-            List<PathfindingNode> path = Pathfinding.Path(Hex.Map.PathfindingNodes, Hex.PathfindingNode, edge_hexes_ordered_by_distanse[i].PathfindingNode);
+            List<CombatMapHex> path = Hex.Map.Path(this, edge_hexes_ordered_by_distanse[i]);
             if (path.Count != 0 && (retreat_path == null || retreat_path.Count > path.Count)) {
                 retreat_path = path;
                 break;
@@ -1305,7 +1315,7 @@ public class Unit : Trainable
             return false;
         }
 
-        if (!Move(Hex.Map.Get_Hex_At(retreat_path[1].Coordinates), Current_Stamina > 0.0f)) {
+        if (!Move(retreat_path[0], Current_Stamina > 0.0f)) {
             //Can't follow path (this should not be possible result)
             return false;
         }

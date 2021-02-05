@@ -495,6 +495,9 @@ public class Army : WorldMapEntity {
         foreach(Unit u in Units) {
             u.Start_Combat();
         }
+        if (Owner.Is_AI) {
+            Owner.AI.Start_Combat();
+        }
     }
 
     public void End_Combat()

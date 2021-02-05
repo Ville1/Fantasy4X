@@ -98,5 +98,18 @@
             Ranged_Defence_Delta_Multiplier += effects.Ranged_Defence_Delta_Multiplier;
             return this;
         }
+
+        public void Multiply(float amount)
+        {
+            Movement_Delta *= amount;
+            Melee_Attack_Delta_Flat *= amount;
+            Melee_Attack_Delta_Multiplier *= amount;
+            Ranged_Attack_Delta_Flat *= amount;
+            Ranged_Attack_Delta_Multiplier *= amount;
+            Melee_Defence_Delta_Flat *= amount;
+            Melee_Defence_Delta_Multiplier *= amount;
+            Ranged_Defence_Delta_Flat *= amount;
+            Ranged_Defence_Delta_Multiplier *= amount;
+        }
     }
 }

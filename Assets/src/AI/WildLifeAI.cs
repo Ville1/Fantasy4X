@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
@@ -23,6 +24,7 @@ public class WildLifeAI : IConfigListener, I_AI
     private Dictionary<Army, ArmyWaitData> waiting_armies;
     private int performance_heavy_actions_taken;
     private List<Unit> unit_order;
+    private CombatAI combat_ai;
 
     public WildLifeAI(Player player)
     {
@@ -33,6 +35,7 @@ public class WildLifeAI : IConfigListener, I_AI
         ConfigManager.Instance.Register_Listener(this);
         act_cooldown = 0.0f;
         waiting_armies = new Dictionary<Army, ArmyWaitData>();
+        combat_ai = new CombatAI(this);
     }
 
     public void Update_Settings()
@@ -271,25 +274,14 @@ public class WildLifeAI : IConfigListener, I_AI
         return hex.City == null && hex.Village == null && (Main.Instance.Round > WOLF_WORKABLE_HEX_TRUCE || !hex.In_Work_Range_Of.Any(x => !x.Owner.Is_Neutral));
     }
 
+    public void Start_Combat()
+    {
+        combat_ai.Start_Combat();
+    }
+
     public void Start_Combat_Turn()
     {
-        Dictionary<Unit, float> distances = new Dictionary<Unit, float>();
-        foreach (Unit unit in (CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_1 : CombatManager.Instance.Army_2).Units) {
-            if (!unit.Controllable) {
-                continue;
-            }
-            float min_distance = float.MaxValue;
-            foreach (Unit enemy_unit in (CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_2 : CombatManager.Instance.Army_1).Units) {
-                if (enemy_unit.Hex != null) {
-                    float distance = unit.Hex.Coordinates.Distance(enemy_unit.Hex.Coordinates);
-                    if (distance < min_distance) {
-                        min_distance = distance;
-                    }
-                }
-            }
-            distances.Add(unit, min_distance);
-        }
-        unit_order = distances.OrderBy(x => x.Value).Select(x => x.Key).ToList();
+        combat_ai.Start_Combat_Turn();
     }
 
     public void Combat_Act(float delta_s)
@@ -304,72 +296,7 @@ public class WildLifeAI : IConfigListener, I_AI
         }
         act_cooldown += Time_Between_Actions;
 
-        Unit unit = null;
-        Army army = CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_1 : CombatManager.Instance.Army_2;
-        Army enemy_army = CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_2 : CombatManager.Instance.Army_1;
-
-        if (CombatManager.Instance.Deployment_Mode) {
-            foreach (Unit u in army.Units) {
-                CombatMapHex hex = CombatManager.Instance.Map.Random_Hex;
-                while (!u.Deploy(hex)) {
-                    hex = CombatManager.Instance.Map.Random_Hex;
-                }
-            }
-            CombatManager.Instance.Next_Turn();
-            return;
-        }
-
-        unit = unit_order.Where(x => x.Controllable && !x.Wait_Turn).FirstOrDefault();
-        if (unit == null) {
-            CombatManager.Instance.Next_Turn();
-            return;
-        }
-
-        if (CombatUIManager.Instance.Active) {
-            CombatUIManager.Instance.Current_Unit = unit;
-        }
-
-        //Zombie AI
-        //Attacking
-        List<CombatMapHex> hexes_in_range = unit.Hex.Get_Adjancent_Hexes();
-        if (unit.Can_Ranged_Attack) {
-            hexes_in_range = unit.Get_Hexes_In_Attack_Range();
-        }
-        foreach (CombatMapHex hex in hexes_in_range) {
-            if (hex.Unit != null && !hex.Unit.Army.Is_Owned_By(Player)) {
-                if (unit.Attack(hex.Unit, false) != null) {
-                    if (CombatUIManager.Instance.Active) {
-                        CombatUIManager.Instance.Update_Current_Unit();
-                    }
-                    break;
-                }
-            }
-        }
-        if (!unit.Can_Attack && unit.Current_Movement <= 0.0f) {
-            unit.Wait_Turn = true;
-            return;
-        }
-
-        //Moving
-        Unit closest_enemy = null;
-        int closest_distance = -1;
-        foreach (Unit enemy in enemy_army.Units) {
-            if (closest_distance == -1 || (enemy.Hex.Distance(unit.Hex) < closest_distance)) {
-                closest_enemy = enemy;
-                closest_distance = enemy.Hex.Distance(unit.Hex);
-            }
-        }
-        if (closest_enemy.Hex.Is_Adjancent_To(unit.Hex)) {
-            unit.Wait_Turn = true;
-            return;
-        }
-        if (!unit.Pathfind(closest_enemy.Hex, unit.Relative_Stamina >= 0.75f)) {
-            //Path blocked
-            unit.Wait_Turn = true;
-        }
-        if (CombatUIManager.Instance.Active) {
-            CombatUIManager.Instance.Update_Current_Unit();
-        }
+        combat_ai.Combat_Act(delta_s);
     }
 
     public void On_Delete()

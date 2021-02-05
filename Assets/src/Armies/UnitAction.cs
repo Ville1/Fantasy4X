@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public class UnitAction {
     public delegate bool ActionEffectDelegate(Unit unit, UnitAction action, CombatMapHex hex, bool is_preview, out AttackResult[] result, out string message);
@@ -59,6 +60,10 @@ public class UnitAction {
             message = string.Format("Out of ammo, {0} needed", Ammo_Cost.ToString());
             return false;
         }
+        if (!unit.Can_Attack) {
+            message = "Unit has already attacked/activated ability this turn";
+            return false;
+        }
         if(Current_Cooldown > 0) {
             message = "On cooldown";
             return false;
@@ -98,7 +103,7 @@ public class UnitAction {
         return attacker.Attack(defender, is_preview, new AttackData(damage, string.Format("use{0} {1} on", attacker.Is_Single_Entity ? "s" : string.Empty, Name.ToLower()), false, this));
     }
     
-    public void Apply_Debuff(Unit attacker, Unit defender, UnitStatusEffect debuff, bool is_preview)
+    public void Apply_Debuff(Unit attacker, Unit defender, UnitStatusEffect debuff, bool scale_with_manpower, bool is_preview)
     {
         if(debuff.Effect_Type == UnitStatusEffect.EffectType.Buff) {
             CustomLogger.Instance.Error("Status effect is a buff");
@@ -106,6 +111,9 @@ public class UnitAction {
         }
         if (is_preview) {
             return;
+        }
+        if (scale_with_manpower) {
+            debuff.Effects.Multiply(Math.Min(1.0f, (attacker.Is_Single_Entity ? 1.0f : attacker.Manpower) / (defender.Is_Single_Entity ? 1.0f : defender.Manpower)));
         }
         defender.Apply_Status_Effect(debuff);
     }
