@@ -366,6 +366,9 @@ public class Unit : Trainable
             unit.Update_GameObject_Visibility();
         }
 
+        UnitCache.Instance.Clear(old_hex);
+        UnitCache.Instance.Clear(Hex);
+
         StatusBar.Update_Bars(this);
         Has_Moved_This_Turn = true;
         Last_Move_This_Turn_Was_Running = run;
@@ -448,7 +451,7 @@ public class Unit : Trainable
         foreach(CombatMapHex adjancent_hex in Hex.Get_Adjancent_Hexes()) {
             Get_Hexes_In_Movement_Range_Recursive(Hex, adjancent_hex, current_movement, run, hexes);
         }
-        UnitCache.Instance.Save_Movement(this, Hex, Current_Movement, run, hexes);
+        UnitCache.Instance.Save_Movement(this, Hex, Current_Movement, run, hexes, Hex.Get_Hexes_Around(Mathf.RoundToInt(current_movement / (run ? default_run_movement_cost : 1.0f)) + 1));
         return hexes;
     }
 
