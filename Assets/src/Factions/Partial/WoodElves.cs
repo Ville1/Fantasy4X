@@ -51,7 +51,10 @@ public partial class Factions
         faction.Improvements.Add(new Improvement(faction, "Garden", "garden", "garden_inactive", new Yields(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.1f, 0.0f, 15, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Cursed, WorldMapHex.Tag.Arid, WorldMapHex.Tag.Structure }), null, null));
 
         faction.Buildings.Add(new Building("Great tree", "placeholder", 200, 25, 0.0f, new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, null, null) {
-            Recruitment_Limits = new Dictionary<string, int>() { { "Woodland Sentries", 2 } }
+            Recruitment_Limits = new Dictionary<string, int>() {
+                { "Woodland Sentries", 2 },
+                { "Leaf Glaives", 2 }
+            }
         });
         faction.Starting_Buildings.Add(faction.Buildings.First(x => x.Name == "Great tree"));
 
@@ -186,7 +189,9 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("village defence bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("forest stealth", 2.0f),
-                AbilityPrototypes.Instance.Get("forest detection", 2.0f)
+                AbilityPrototypes.Instance.Get("forest detection", 2.0f),
+                AbilityPrototypes.Instance.Get("magic resistance", 0.1f),
+                AbilityPrototypes.Instance.Get("psionic resistance", 0.5f)
             }, new List<Unit.Tag>() { Unit.Tag.Large, Unit.Tag.Wooden }) {
             Actions = new List<UnitAction>() {
                 new UnitAction("Entangling Roots", "entangling roots", 5, 10, 0, 3, false, UnitAction.TargetingType.Enemy, 0.0f, 0.01f, "debuff", SpriteManager.SpriteType.Skill,
@@ -204,6 +209,32 @@ public partial class Factions
             }
         });
 
+        faction.Units.Add(new Unit("Leaf Glaives", Unit.UnitType.Infantry, "leaf_glaive", 2.0f, 235, 250, 1.0f, 0, 0.0f, 3, Arcane_Smithing, new List<Building>() { },
+            2.0f, true, 7.5f, 150.0f, 150.0f,
+            new Damage(19.0f, new Dictionary<Damage.Nature, decimal>() { { Damage.Nature.Physical, 0.90m }, { Damage.Nature.Magical, 0.10m } },
+            new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.60f }, { Damage.Type.Thrust, 0.30f }, { Damage.Type.Earth, 0.10f } }), 0.20f,
+            null, 0, 0, null, null,
+            20.0f, 12.0f, new Dictionary<Damage.Type, float>() {
+                { Damage.Type.Slash, 0.90f },
+                { Damage.Type.Thrust, 0.75f },
+                { Damage.Type.Impact, 1.0f },
+                { Damage.Type.Acid, 0.90f },
+                { Damage.Type.Cold, 0.90f },
+                { Damage.Type.Fire, 0.90f },
+                { Damage.Type.Earth, 1.10f },
+                { Damage.Type.Light, 1.10f },
+                { Damage.Type.Dark, 0.90f }
+            },
+            14.0f, 11.0f, Unit.ArmorType.Medium, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("anti cavalry", 0.15f),
+                AbilityPrototypes.Instance.Get("armor piercing", 0.10f),
+                AbilityPrototypes.Instance.Get("charge resistance", 0.20f),
+                AbilityPrototypes.Instance.Get("forest combat bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("vegetation stealth", 1.0f),
+                AbilityPrototypes.Instance.Get("detection", 1.0f),
+                AbilityPrototypes.Instance.Get("vegetation detection", 2.0f)
+            },
+            new List<Unit.Tag>() { Unit.Tag.Limited_Recruitment }));
 
 
         faction.Transports.Add(new Unit("Transport", Unit.UnitType.Ship, "ship_2", 1.0f, 300, 100, 2.0f, 0, 0.0f, 2, null, new List<Building>(),

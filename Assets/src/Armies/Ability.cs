@@ -16,6 +16,8 @@ public class Ability {
     public delegate float Get_Disengagement_Movement_Cost_Multiplier_End_Delegate(Ability ability, Unit unit);
     public delegate float Get_Stealth_Delegate(Ability ability, Unit unit);
     public delegate float Get_Detection_Delegate(Ability ability, Unit unit, CombatMapHex hex);
+    public delegate float Get_Magic_Resistance_Delegate(Ability ability, Unit unit);
+    public delegate float Get_Psionic_Resistance_Delegate(Ability ability, Unit unit);
 
     public string Name { get; private set; }
     public float Potency { get; set; }
@@ -50,13 +52,17 @@ public class Ability {
     public Get_Disengagement_Movement_Cost_Multiplier_End_Delegate Get_Disengagement_Movement_Cost { get; set; }
     public Get_Stealth_Delegate Get_Stealth { get; set; }
     public Get_Detection_Delegate Get_Detection { get; set; }
+    public Get_Magic_Resistance_Delegate Get_Magic_Resistance { get; set; }
+    public Get_Psionic_Resistance_Delegate Get_Psionic_Resistance { get; set; }
+    public bool Is_Hidden { get; private set; }
 
-    public Ability(string name, float potency, bool potency_as_percent, bool uses_potency)
+    public Ability(string name, float potency, bool potency_as_percent, bool uses_potency, bool hidden)
     {
         Name = name;
         Potency = potency;
         Potency_As_Percent = potency_as_percent;
         Uses_Potency = uses_potency;
+        Is_Hidden = hidden;
     }
 
     /// <summary>
@@ -70,11 +76,26 @@ public class Ability {
         Potency = 0.0f;
         Potency_As_Percent = potency_as_percent;
         Uses_Potency = uses_potency;
+        Is_Hidden = false;
+    }
+
+    /// <summary>
+    /// Prototype constructor
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="potency_as_percent"></param>
+    public Ability(string name, bool potency_as_percent, bool uses_potency, bool hidden)
+    {
+        Name = name;
+        Potency = 0.0f;
+        Potency_As_Percent = potency_as_percent;
+        Uses_Potency = uses_potency;
+        Is_Hidden = hidden;
     }
 
     public Ability Clone()
     {
-        Ability clone = new Ability(Name, Potency, Potency_As_Percent, Uses_Potency);
+        Ability clone = new Ability(Name, Potency, Potency_As_Percent, Uses_Potency, Is_Hidden);
         clone.On_Calculate_Melee_Damage_As_Attacker = On_Calculate_Melee_Damage_As_Attacker;
         clone.On_Calculate_Melee_Damage_As_Defender = On_Calculate_Melee_Damage_As_Defender;
         clone.On_Calculate_Ranged_Damage_As_Attacker = On_Calculate_Ranged_Damage_As_Attacker;
@@ -92,6 +113,8 @@ public class Ability {
         clone.Get_Disengagement_Movement_Cost = Get_Disengagement_Movement_Cost;
         clone.Get_Stealth = Get_Stealth;
         clone.Get_Detection = Get_Detection;
+        clone.Get_Magic_Resistance = Get_Magic_Resistance;
+        clone.Get_Psionic_Resistance = Get_Psionic_Resistance;
         return clone;
     }
 

@@ -23,14 +23,23 @@ public class UnitInfoGUIManager : MonoBehaviour
     public Text Production_Text_2;
     public GameObject Mana_Container;
     public Text Mana_Text;
+
     public Text Melee_Attack_Text;
     public Text Charge_Bonus_Text;
     public Text Melee_Damage_Types_Text;
+    public GameObject Melee_Magic_Attack_Container;
+    public Text Melee_Magic_Attack_Text;
+    public GameObject Melee_Psionic_Attack_Container;
+    public Text Melee_Psionic_Attack_Text;
 
     public GameObject Ranged_Attack_Container;
     public Text Ranged_Attack_Text;
     public Text Range_Text;
     public Text Ammo_Text;
+    public GameObject Ranged_Magic_Attack_Container;
+    public Text Ranged_Magic_Attack_Text;
+    public GameObject Ranged_Psionic_Attack_Container;
+    public Text Ranged_Psionic_Attack_Text;
     public Text Ranged_Damage_Types_Text;
 
     public GameObject Bottom_Container;
@@ -55,10 +64,12 @@ public class UnitInfoGUIManager : MonoBehaviour
 
     private Color default_text_color;
     private float bottom_position_y;
-    private RowScrollView<Damage.Type> resistances_scroll_view;
+    private RowScrollView<string> resistances_scroll_view;
     private RowScrollView<object> abilities_scroll_view;
     private float panel_position_x;
     private bool train_gui;
+    private Vector3 melee_psionic_default_position;
+    private Vector3 ranged_psionic_default_position;
 
     /// <summary>
     /// Initializiation
@@ -73,9 +84,11 @@ public class UnitInfoGUIManager : MonoBehaviour
         Panel.SetActive(false);
         default_text_color = Relative_Strenght_Text.color;
         bottom_position_y = Bottom_Container.gameObject.transform.position.y;
-        resistances_scroll_view = new RowScrollView<Damage.Type>("resistances_scroll_view", Resistances_Content, Resistances_Row_Prototype, 15.0f);
+        resistances_scroll_view = new RowScrollView<string>("resistances_scroll_view", Resistances_Content, Resistances_Row_Prototype, 15.0f);
         abilities_scroll_view = new RowScrollView<object>("abilities_scroll_view", Abilities_Content, Abilities_Row_Prototype, 15.0f);
         panel_position_x = Panel.gameObject.transform.position.x;
+        melee_psionic_default_position = Melee_Psionic_Attack_Container.transform.position;
+        ranged_psionic_default_position = Ranged_Psionic_Attack_Container.transform.position;
     }
 
     /// <summary>
@@ -187,6 +200,21 @@ public class UnitInfoGUIManager : MonoBehaviour
 
         Melee_Attack_Text.text = Helper.Float_To_String(Unit.Melee_Attack.Total, 0);
         Charge_Bonus_Text.text = string.Format("{0}%", Helper.Float_To_String(Unit.Charge * 100.0f, 0, true));
+
+        decimal magic_attack = Unit.Melee_Attack.Nature_Proportions.ContainsKey(Damage.Nature.Magical) ? Unit.Melee_Attack.Nature_Proportions[Damage.Nature.Magical] : 0.0m;
+        Melee_Magic_Attack_Container.SetActive(magic_attack != 0.0m);
+        if (Melee_Magic_Attack_Container.activeSelf) {
+            Melee_Magic_Attack_Text.text = string.Format("{0}%", Helper.Float_To_String((float)magic_attack * 100.0f, 0));
+            Melee_Psionic_Attack_Container.transform.position = melee_psionic_default_position;
+        } else {
+            Melee_Psionic_Attack_Container.transform.position = Melee_Magic_Attack_Container.transform.position;
+        }
+        decimal psionic_attack = Unit.Melee_Attack.Nature_Proportions.ContainsKey(Damage.Nature.Psionic) ? Unit.Melee_Attack.Nature_Proportions[Damage.Nature.Psionic] : 0.0m;
+        Melee_Psionic_Attack_Container.SetActive(psionic_attack != 0.0m);
+        if (Melee_Psionic_Attack_Container.activeSelf) {
+            Melee_Psionic_Attack_Text.text = string.Format("{0}%", Helper.Float_To_String((float)psionic_attack * 100.0f, 0));
+        }
+
         Melee_Damage_Types_Text.text = string.Join(", ", Unit.Melee_Attack.Type_Weights.OrderByDescending(x => x.Value).Select(x => string.Format("{0} {1}%", Helper.Snake_Case_To_UI(x.Key.ToString()), Helper.Float_To_String(x.Value * 100.0f, 0))).ToArray());
 
         Ranged_Attack_Container.SetActive(Unit.Can_Ranged_Attack);
@@ -194,6 +222,21 @@ public class UnitInfoGUIManager : MonoBehaviour
             Ranged_Attack_Text.text = Helper.Float_To_String(Unit.Ranged_Attack.Total, 0);
             Range_Text.text = Unit.Range.ToString();
             Ammo_Text.text = Unit.Max_Ammo > 0 ? Unit.Max_Ammo.ToString() : "N/A";
+
+            magic_attack = Unit.Ranged_Attack.Nature_Proportions.ContainsKey(Damage.Nature.Magical) ? Unit.Ranged_Attack.Nature_Proportions[Damage.Nature.Magical] : 0.0m;
+            Ranged_Magic_Attack_Container.SetActive(magic_attack != 0.0m);
+            if (Ranged_Magic_Attack_Container.activeSelf) {
+                Ranged_Magic_Attack_Text.text = string.Format("{0}%", Helper.Float_To_String((float)magic_attack * 100.0f, 0));
+                Ranged_Psionic_Attack_Container.transform.position = ranged_psionic_default_position;
+            } else {
+                Ranged_Psionic_Attack_Container.transform.position = Ranged_Magic_Attack_Container.transform.position;
+            }
+            psionic_attack = Unit.Ranged_Attack.Nature_Proportions.ContainsKey(Damage.Nature.Psionic) ? Unit.Ranged_Attack.Nature_Proportions[Damage.Nature.Psionic] : 0.0m;
+            Ranged_Psionic_Attack_Container.SetActive(psionic_attack != 0.0m);
+            if (Ranged_Psionic_Attack_Container.activeSelf) {
+                Ranged_Psionic_Attack_Text.text = string.Format("{0}%", Helper.Float_To_String((float)psionic_attack * 100.0f, 0));
+            }
+
             Ranged_Damage_Types_Text.text = string.Join(", ", Unit.Ranged_Attack.Type_Weights.OrderByDescending(x => x.Value).Select(x => string.Format("{0} {1}%", Helper.Snake_Case_To_UI(x.Key.ToString()), Helper.Float_To_String(x.Value * 100.0f, 0))).ToArray());
         }
         Bottom_Container.gameObject.transform.position = new Vector3(
@@ -205,8 +248,21 @@ public class UnitInfoGUIManager : MonoBehaviour
         Melee_Defence_Text.text = Helper.Float_To_String(Unit.Melee_Defence, 0);
         Ranged_Defence_Text.text = Helper.Float_To_String(Unit.Ranged_Defence, 0);
         resistances_scroll_view.Clear();
-        foreach(KeyValuePair<Damage.Type, float> pair in Unit.Resistances.Where(x => x.Value != 1.0f).OrderBy(x => (int)x.Key)) {
-            resistances_scroll_view.Add(pair.Key, new List<UIElementData>() {
+        if(Unit.Magic_Resistance != 1.0f) {
+            resistances_scroll_view.Add("Damage.Nature.Magical", new List<UIElementData>() {
+                new UIElementData("TypeText", "<i>Magic</i>"),
+                new UIElementData("ValueText", string.Format("<i>{0}%</i>", Helper.Float_To_String(Unit.Magic_Resistance * 100.0f, 0)), Unit.Magic_Resistance < 1.0f ? Color.red : (Unit.Magic_Resistance > 1.0f ? Color.blue : default_text_color))
+            });
+        }
+        if (Unit.Psionic_Resistance != 1.0f) {
+            resistances_scroll_view.Add("Damage.Nature.Psionic", new List<UIElementData>() {
+                new UIElementData("TypeText", "<i>Psionic</i>"),
+                new UIElementData("ValueText", string.Format("<i>{0}%</i>", Helper.Float_To_String(Unit.Psionic_Resistance * 100.0f, 0)), Unit.Psionic_Resistance < 1.0f ? Color.red : (Unit.Psionic_Resistance > 1.0f ? Color.blue : default_text_color))
+            });
+        }
+
+        foreach (KeyValuePair<Damage.Type, float> pair in Unit.Resistances.Where(x => x.Value != 1.0f).OrderBy(x => (int)x.Key)) {
+            resistances_scroll_view.Add(string.Format("Damage.Type.{0}", pair.Key.ToString()), new List<UIElementData>() {
                 new UIElementData("TypeText", Helper.Snake_Case_To_UI(pair.Key.ToString(), true)),
                 new UIElementData("ValueText", string.Format("{0}%", Helper.Float_To_String(pair.Value * 100.0f, 0)), pair.Value < 1.0f ? Color.red : (pair.Value > 1.0f ? Color.blue : default_text_color))
             });
@@ -221,12 +277,12 @@ public class UnitInfoGUIManager : MonoBehaviour
         abilities_scroll_view.Clear();
         foreach(UnitAction action in Unit.Actions) {
             abilities_scroll_view.Add(action, new List<UIElementData>() {
-                new UIElementData("NameText", action.Name.PadLeft(5)),
+                new UIElementData("NameText", string.Format("     {0}", action.Name)),
                 new UIElementData("ValueText", string.Empty),
                 new UIElementData("IconImage", action.Sprite_Name, action.Sprite_Type)
             });
         }
-        foreach(Ability ability in Unit.Abilities) {
+        foreach(Ability ability in Unit.Abilities.Where(x => !x.Is_Hidden).ToList()) {
             abilities_scroll_view.Add(ability, new List<UIElementData>() {
                 new UIElementData("NameText", ability.Name),
                 new UIElementData("ValueText", ability.Uses_Potency ? (ability.Potency_As_Percent ? string.Format("{0}%", Helper.Float_To_String(ability.Potency * 100.0f, 0)) : Helper.Float_To_String(ability.Potency, 2)) : string.Empty),

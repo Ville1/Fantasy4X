@@ -275,7 +275,20 @@ public class Unit : Trainable
             return Mana_Cost > Cost + Production_Required;
         }
     }
+    
+    public float Magic_Resistance {
+        get {
+            return Mathf.Clamp(1.0f + Abilities.Where(x => x.Get_Magic_Resistance != null).Select(x => x.Get_Magic_Resistance(x, this)).Sum(), 0.05f, float.MaxValue);
+        }
+    }
 
+    public float Psionic_Resistance
+    {
+        get {
+            return Mathf.Clamp(1.0f + Abilities.Where(x => x.Get_Psionic_Resistance != null).Select(x => x.Get_Psionic_Resistance(x, this)).Sum(), 0.05f, float.MaxValue);
+        }
+    }
+    
     public bool Pathfind(CombatMapHex new_hex, bool run)
     {
         if (Hex.Is_Adjancent_To(new_hex)) {
@@ -883,6 +896,7 @@ public class Unit : Trainable
         //Charge TODO: double loops
         float ability_charge_multiplier = 1.0f;
         Dictionary<Damage.Type, float> melee_attack_types = action_data == null ? Melee_Attack.Type_Weights : action_data.Damage.Type_Weights;
+        Dictionary<Damage.Nature, decimal> melee_attack_natures = action_data == null ? Melee_Attack.Nature_Proportions : action_data.Damage.Nature_Proportions;
         foreach (Ability ability in Abilities) {
             if (ability.On_Calculate_Melee_Damage_As_Attacker == null) {
                 continue;
@@ -916,6 +930,16 @@ public class Unit : Trainable
         resistance_multiplier = (target.Melee_Defence + resistance_delta) / target.Melee_Defence;
         defence *= resistance_multiplier;
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
+
+        //Magic & psionic defence
+        decimal magic_damage = melee_attack_natures.ContainsKey(Damage.Nature.Magical) ? melee_attack_natures[Damage.Nature.Magical] : 0.0m;
+        float magic_multiplier = (target.Magic_Resistance * (float)magic_damage) + (1.0f * (float)(1.0m - magic_damage));
+        defence *= magic_multiplier;
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = magic_multiplier - 1.0f, Description = "Magic Resistance" });
+        decimal psionic_damage = melee_attack_natures.ContainsKey(Damage.Nature.Psionic) ? melee_attack_natures[Damage.Nature.Psionic] : 0.0m;
+        float psionic_multiplier = (target.Psionic_Resistance * (float)psionic_damage) + (1.0f * (float)(1.0m - psionic_damage));
+        defence *= psionic_multiplier;
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = psionic_multiplier - 1.0f, Description = "Psionic Resistance" });
 
         //City defence
         if (Hex.City && CombatManager.Instance.Army_2.Id == Army.Id) {
@@ -1134,6 +1158,17 @@ public class Unit : Trainable
         resistance_multiplier = (target.Melee_Defence + resistance_delta) / target.Melee_Defence;
         defence *= resistance_multiplier;
         result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = resistance_multiplier - 1.0f, Description = "Resistances" });
+
+        //Magic & psionic defence
+        Dictionary<Damage.Nature, decimal> ranged_attack_natures = action_data == null ? Ranged_Attack.Nature_Proportions : action_data.Damage.Nature_Proportions;
+        decimal magic_damage = ranged_attack_natures.ContainsKey(Damage.Nature.Magical) ? ranged_attack_natures[Damage.Nature.Magical] : 0.0m;
+        float magic_multiplier = (target.Magic_Resistance * (float)magic_damage) + (1.0f * (float)(1.0m - magic_damage));
+        defence *= magic_multiplier;
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = magic_multiplier - 1.0f, Description = "Magic Resistance" });
+        decimal psionic_damage = ranged_attack_natures.ContainsKey(Damage.Nature.Psionic) ? ranged_attack_natures[Damage.Nature.Psionic] : 0.0m;
+        float psionic_multiplier = (target.Psionic_Resistance * (float)psionic_damage) + (1.0f * (float)(1.0m - psionic_damage));
+        defence *= psionic_multiplier;
+        result.Add_Detail(new AttackResult.Detail { Defence_Multiplier = psionic_multiplier - 1.0f, Description = "Psionic Resistance" });
 
         //City defence
         if (Hex.City && CombatManager.Instance.Army_2.Id == Army.Id) {

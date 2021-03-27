@@ -10,6 +10,18 @@ public class AbilityPrototypes {
     {
         prototypes = new Dictionary<string, Ability>();
 
+        prototypes.Add("magic resistance", new Ability("Magic Resistance", true, true, true) {
+            Get_Magic_Resistance = delegate (Ability ability, Unit unit) {
+                return ability.Potency;
+            }
+        });
+
+        prototypes.Add("psionic resistance", new Ability("Psionic Resistance", true, true, true) {
+            Get_Psionic_Resistance = delegate (Ability ability, Unit unit) {
+                return ability.Potency;
+            }
+        });
+
         prototypes.Add("anti cavalry", new Ability("Anti Cavalry (Melee)", true, true) {
             On_Calculate_Melee_Damage_As_Attacker = delegate(Ability ability, Unit attacker, Unit target, AttackResult result) {
                 return new Ability.DamageData() {
