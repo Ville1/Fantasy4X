@@ -6,6 +6,8 @@ using UnityEngine;
 public class CombatAI
 {
     private static readonly int TURNS_TO_SEARCH_WHOLE_MAP = 20;
+    private static readonly float FORCE_ADVANCE_STRENGHT_THRESHOLD = 0.95f;
+    private static readonly int FORCE_ADVANCE_MOVES_THRESHOLD = 3;
 
     public enum DeploymentRole { Slow_Melee, Slow_Ranged, Fast_Melee, Fast_Ranged }
     public enum Strategy { Basic }
@@ -24,6 +26,9 @@ public class CombatAI
     private float strategy_aggressiveness;
     private bool is_attacker;
     private bool searching_for_hidden;
+    private float own_starting_strenght;
+    private bool force_advance;
+    private int move_count;
 
     public CombatAI(I_AI ai)
     {
@@ -36,9 +41,11 @@ public class CombatAI
         enemy_army = CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_2 : CombatManager.Instance.Army_1;
         strategy = Strategy.Basic;
         is_attacker = CombatManager.Instance.Army_1.Is_Owned_By(Player);
+        move_count = 0;
 
         strategy_aggressiveness = 0.5f;//0.0f - 1.0f
         float own_strenght = army.Get_Relative_Strenght_When_On_Hex(CombatManager.Instance.Hex, true, is_attacker);
+        own_starting_strenght = own_strenght;
         float enemy_strenght = enemy_army.Get_Relative_Strenght_When_On_Hex(CombatManager.Instance.Hex, true, !is_attacker);
         strategy_aggressiveness +=
             own_strenght > enemy_strenght ?
@@ -52,6 +59,7 @@ public class CombatAI
 
     public void Start_Combat_Turn()
     {
+        force_advance = move_count >= FORCE_ADVANCE_MOVES_THRESHOLD || (army.Get_Relative_Strenght_When_On_Hex(CombatManager.Instance.Hex, true, is_attacker) <= FORCE_ADVANCE_STRENGHT_THRESHOLD * own_starting_strenght);
         Dictionary<Unit, float> distances = new Dictionary<Unit, float>();
         foreach (Unit unit in (CombatManager.Instance.Army_1.Is_Owned_By(Player) ? CombatManager.Instance.Army_1 : CombatManager.Instance.Army_2).Units) {
             if (!unit.Controllable) {
@@ -213,9 +221,10 @@ public class CombatAI
                     //No good options
                     target = null;
                 }
-            } else {
+            }
+            if(target == null) {
                 //Cant reach any enemies this turn
-                if((is_attacker ? 0.5f : 0.0f) + strategy_aggressiveness >= 0.75f) {
+                if(force_advance || (is_attacker ? 0.5f : 0.0f) + strategy_aggressiveness >= 0.75f) {
                     //Advance
                     if(enemy_army.Units.Exists(x => x.Is_Visible && x.Hex != null)) {
                         float shortest_distance = float.MaxValue;
@@ -236,7 +245,7 @@ public class CombatAI
                             target.Path = CombatManager.Instance.Map.Path(unit, closest_enemy_unit.Hex);
                         }
                     } else {
-                        //No visible enemies, seacrh for hidden ones
+                        //No visible enemies, search for hidden ones
                         CombatMapHex scout_hex = null;
                         if(CombatManager.Instance.Turn > TURNS_TO_SEARCH_WHOLE_MAP) {
                             scout_hex = CombatManager.Instance.Map.Random_Hex;
@@ -267,6 +276,7 @@ public class CombatAI
                     target = null;
                 } else {
                     target.Path.RemoveAt(0);
+                    move_count++;
                 }
             }
         }

@@ -122,6 +122,8 @@ public class Unit : Trainable
     public float Mana_Upkeep { get; private set; }
     public ArmorType Armor { get; private set; }
     public bool Requires_Coast { get { return Tags.Contains(Tag.Naval); } }
+    public float Current_Combat_Mana { get; set; }
+    public bool Has_Combat_Mana { get { return Combat_Mana_Max != 0; } }
 
     public bool Has_Moved_This_Turn { get; private set; }
     public bool Has_Attacked_This_Turn { get; private set; }
@@ -278,17 +280,38 @@ public class Unit : Trainable
     
     public float Magic_Resistance {
         get {
-            return Mathf.Clamp(1.0f + Abilities.Where(x => x.Get_Magic_Resistance != null).Select(x => x.Get_Magic_Resistance(x, this)).Sum(), 0.05f, float.MaxValue);
+            return Mathf.Max(1.0f + Abilities.Where(x => x.Get_Magic_Resistance != null).Select(x => x.Get_Magic_Resistance(x, this)).Sum(), 0.05f);
         }
     }
 
     public float Psionic_Resistance
     {
         get {
-            return Mathf.Clamp(1.0f + Abilities.Where(x => x.Get_Psionic_Resistance != null).Select(x => x.Get_Psionic_Resistance(x, this)).Sum(), 0.05f, float.MaxValue);
+            return Mathf.Max(1.0f + Abilities.Where(x => x.Get_Psionic_Resistance != null).Select(x => x.Get_Psionic_Resistance(x, this)).Sum(), 0.05f);
         }
     }
-    
+
+    public int Combat_Mana_Max
+    {
+        get {
+            return Mathf.Max(Abilities.Where(x => x.Get_Combat_Mana_Max != null).Select(x => x.Get_Combat_Mana_Max(x, this)).Sum(), 0);
+        }
+    }
+
+    public float Combat_Mana_Relative
+    {
+        get {
+            return Has_Combat_Mana ? Current_Combat_Mana / Combat_Mana_Max : 0.0f;
+        }
+    }
+
+    public float Combat_Mana_Regen
+    {
+        get {
+            return Mathf.Max(Abilities.Where(x => x.Get_Combat_Mana_Regen != null).Select(x => x.Get_Combat_Mana_Regen(x, this)).Sum(), 0.0f);
+        }
+    }
+
     public bool Pathfind(CombatMapHex new_hex, bool run)
     {
         if (Hex.Is_Adjancent_To(new_hex)) {
@@ -692,6 +715,7 @@ public class Unit : Trainable
         Current_Stamina = Max_Stamina;
         Current_Movement = Max_Movement;
         Current_Ammo = Max_Ammo;
+        Current_Combat_Mana = Combat_Mana_Max;
         Can_Attack = true;
         Has_Moved_This_Turn = false;
         Has_Attacked_This_Turn = false;
@@ -732,6 +756,8 @@ public class Unit : Trainable
             Current_Stamina = Mathf.Clamp(Current_Stamina, 0.0f, Max_Stamina);
             StatusBar.Update_Bars(this);
         }
+
+        Current_Combat_Mana = Mathf.Min(Current_Combat_Mana + Combat_Mana_Regen, Combat_Mana_Max);
 
         foreach(Ability ability in Abilities) {
             if(ability.On_Combat_Turn_End != null) {

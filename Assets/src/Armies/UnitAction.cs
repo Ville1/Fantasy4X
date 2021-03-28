@@ -68,6 +68,10 @@ public class UnitAction {
             message = "On cooldown";
             return false;
         }
+        if(Mana_Cost > unit.Current_Combat_Mana) {
+            message = "Not enough mana";
+            return false;
+        }
         if(!Get_Hexes_In_Range(this, unit).Contains(hex)) {
             message = "Out of range";
             return false;
@@ -83,6 +87,7 @@ public class UnitAction {
         bool success = Effect(unit, this, hex, is_preview, out result, out message);
         if(success && !is_preview) {
             Current_Cooldown = Cooldown;
+            unit.Current_Combat_Mana -= Mana_Cost;
         }
         return success;
     }

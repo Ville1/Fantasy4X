@@ -41,22 +41,26 @@ public partial class Factions
         Technology Contact_Fairies = new Technology(faction, "Contact Fairies", 250, new List<AI.Tag>() { AI.Tag.Military, AI.Tag.Mana, AI.Tag.Faith });
         Awakening_Forest.Link(Contact_Fairies, 3);
 
-        Technology Ecological_Crafts = new Technology(faction, "Ecological Crafts", 105, new List<AI.Tag>() { AI.Tag.Health, AI.Tag.Science, AI.Tag.Mana });
+        Technology Ecological_Crafts = new Technology(faction, "Ecological Crafts", 75, new List<AI.Tag>() { AI.Tag.Health, AI.Tag.Science, AI.Tag.Mana });
         Commune_With_Nature.Link(Ecological_Crafts, 3);
-        
-        Technology Arcane_Smithing = new Technology(faction, "Arcane Smithing", 220, new List<AI.Tag>() { AI.Tag.Production });
+
+        Technology Call_To_War = new Technology(faction, "Call to War", 40, new List<AI.Tag>() { AI.Tag.Military });
+        Commune_With_Nature.Link(Call_To_War, 2);
+
+        Technology Arcane_Smithing = new Technology(faction, "Arcane Smithing", 125, new List<AI.Tag>() { AI.Tag.Production });
         Ecological_Crafts.Link(Arcane_Smithing, 2);
+        Call_To_War.Link(Arcane_Smithing);
 
         faction.Improvements.Add(new Improvement(faction, "Grove", "grove", "grove_inactive", new Yields(0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 10, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Forest }, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Cursed, WorldMapHex.Tag.Structure }), null, null));
         faction.Improvements.Add(new Improvement(faction, "Garden", "garden", "garden_inactive", new Yields(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.1f, 0.0f, 15, 0, false, HexPrototypes.Instance.Get_Names(new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Open }, new List<WorldMapHex.Tag>() { WorldMapHex.Tag.Cursed, WorldMapHex.Tag.Arid, WorldMapHex.Tag.Structure }), null, null));
 
-        faction.Buildings.Add(new Building("Great tree", "placeholder", 200, 25, 0.0f, new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, null, null) {
+        faction.Buildings.Add(new Building("Great Tree", "placeholder", 200, 25, 0.0f, new Yields(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, null, null) {
             Recruitment_Limits = new Dictionary<string, int>() {
                 { "Woodland Sentries", 2 },
-                { "Leaf Glaives", 2 }
+                { "Woodland Defenders", 2 }
             }
         });
-        faction.Starting_Buildings.Add(faction.Buildings.First(x => x.Name == "Great tree"));
+        faction.Starting_Buildings.Add(faction.Buildings.First(x => x.Name == "Great Tree"));
 
         faction.Buildings.Add(new Building("Market", "placeholder", 90, 55, 1.0f, new Yields(0, 0, 0, 0, 1, 0, 0), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
             Percentage_Yield_Bonuses = new Yields(10, 0, 5, 0, 0, 0, 0),
@@ -69,6 +73,13 @@ public partial class Factions
         faction.Buildings.Add(new Building("Communal Garden", "placeholder", 150, 75, 1.0f, new Yields(2, 0, 0, 0, 1, 0, 0), 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, true, null, null) {
             Pop_Growth_Additive_Bonus = 0.05f,
             Food_Storage = 25
+        });
+        faction.Buildings.Add(new Building("Training Grouds", "placeholder", 85, 50, 1.0f, new Yields(0, 0, 0, 0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.05f, 0.0f, 0.0f, true, Call_To_War, null) {
+            Recruitment_Limits = new Dictionary<string, int>() {
+                { "Woodland Sentries", 1 },
+                { "Woodland Defenders", 2 },
+                { "Leaf Glaives", 2 }
+            }
         });
         faction.Buildings.Add(new Building("Arcane Forge", "placeholder", 130, 100, 2.0f, new Yields(0, 1, 1, 0, 0, -0.25f, 0), 0.0f, -0.25f, 0.0f, 0.0f, 0.0f, 0.0f, true, Arcane_Smithing,
             delegate (Building building) {
@@ -152,7 +163,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("village defence bonus", 0.05f),
                 AbilityPrototypes.Instance.Get("forest stealth", 2.0f),
                 AbilityPrototypes.Instance.Get("vegetation stealth", 1.0f),
-                AbilityPrototypes.Instance.Get("detection", 1.0f),
+                AbilityPrototypes.Instance.Get("detection", 2.0f),
                 AbilityPrototypes.Instance.Get("vegetation detection", 3.0f),
                 AbilityPrototypes.Instance.Get("skirmisher", 1.0f)
             },
@@ -185,6 +196,8 @@ public partial class Factions
                 { Damage.Type.Fire, 0.50f },
                 { Damage.Type.Earth, 1.25f }
             }, 11, 9.0f, Unit.ArmorType.Light, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("combat mana max", 50.0f),
+                AbilityPrototypes.Instance.Get("combat mana regen", 5.0f),
                 AbilityPrototypes.Instance.Get("forest combat bonus", 0.35f),
                 AbilityPrototypes.Instance.Get("city defence bonus", 0.10f),
                 AbilityPrototypes.Instance.Get("village defence bonus", 0.10f),
@@ -194,7 +207,7 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("psionic resistance", 0.5f)
             }, new List<Unit.Tag>() { Unit.Tag.Large, Unit.Tag.Wooden }) {
             Actions = new List<UnitAction>() {
-                new UnitAction("Entangling Roots", "entangling roots", 5, 10, 0, 3, false, UnitAction.TargetingType.Enemy, 0.0f, 0.01f, "debuff", SpriteManager.SpriteType.Skill,
+                new UnitAction("Entangling Roots", "entangling roots", 3, 30, 0, 3, false, UnitAction.TargetingType.Enemy, 0.0f, 0.01f, "debuff", SpriteManager.SpriteType.Skill,
                 "bind", null, delegate(Unit unit, UnitAction action, CombatMapHex hex, bool is_preview, out AttackResult[] result, out string message) {
                     result = action.Melee_Attack(unit, hex.Unit, new Damage(hex.Tags.Contains(CombatMapHex.Tag.Forest) ? 10.0f : 5.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Impact, 1.0f }, { Damage.Type.Earth, 0.35f } }), is_preview);
                     UnitStatusEffect effect = new UnitStatusEffect(action.Internal_Name, action.Name, 1, UnitStatusEffect.EffectType.Debuff, false, "debuff", SpriteManager.SpriteType.Skill);
@@ -209,7 +222,35 @@ public partial class Factions
             }
         });
 
-        faction.Units.Add(new Unit("Leaf Glaives", Unit.UnitType.Infantry, "leaf_glaive", 2.0f, 235, 250, 1.0f, 0, 0.0f, 3, Arcane_Smithing, new List<Building>() { },
+        faction.Units.Add(new Unit("Woodland Defenders", Unit.UnitType.Infantry, "woodland_defender", 2.0f, 190, 250, 1.0f, 0, 0.0f, 3, Call_To_War, new List<Building>() { },
+            2.0f, true, 7.5f, 125.0f, 125.0f,
+            new Damage(16.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.75f }, { Damage.Type.Thrust, 0.25f } }), 0.25f,
+            new Damage(11.0f, new Dictionary<Damage.Type, float>() { { Damage.Type.Thrust, 1.00f } }), 8, 20, null, null,
+            22.0f, 16.0f, new Dictionary<Damage.Type, float>() {
+                { Damage.Type.Slash, 0.65f },
+                { Damage.Type.Thrust, 0.90f },
+                { Damage.Type.Impact, 1.0f },
+                { Damage.Type.Acid, 0.90f },
+                { Damage.Type.Cold, 0.90f },
+                { Damage.Type.Fire, 0.90f },
+                { Damage.Type.Earth, 1.10f },
+                { Damage.Type.Light, 1.10f },
+                { Damage.Type.Dark, 0.90f }
+            },
+            13.0f, 10.0f, Unit.ArmorType.Unarmoured, new List<Ability>() {
+                AbilityPrototypes.Instance.Get("forest combat bonus", 0.25f),
+                AbilityPrototypes.Instance.Get("hill combat bonus", 0.05f),
+                AbilityPrototypes.Instance.Get("city defence bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("village defence bonus", 0.10f),
+                AbilityPrototypes.Instance.Get("forest stealth", 2.0f),
+                AbilityPrototypes.Instance.Get("vegetation stealth", 1.0f),
+                AbilityPrototypes.Instance.Get("detection", 1.0f),
+                AbilityPrototypes.Instance.Get("vegetation detection", 2.0f),
+                AbilityPrototypes.Instance.Get("skirmisher", 1.0f)
+            },
+            new List<Unit.Tag>() { Unit.Tag.Limited_Recruitment, Unit.Tag.Medium_Shields }));
+
+        faction.Units.Add(new Unit("Leaf Glaives", Unit.UnitType.Infantry, "leaf_glaive", 2.0f, 235, 250, 1.0f, 0, 0.0f, 3, Arcane_Smithing, new List<Building>() { faction.Buildings.First(x => x.Name == "Training Grouds") },
             2.0f, true, 7.5f, 150.0f, 150.0f,
             new Damage(19.0f, new Dictionary<Damage.Nature, decimal>() { { Damage.Nature.Physical, 0.90m }, { Damage.Nature.Magical, 0.10m } },
             new Dictionary<Damage.Type, float>() { { Damage.Type.Slash, 0.60f }, { Damage.Type.Thrust, 0.30f }, { Damage.Type.Earth, 0.10f } }), 0.20f,
@@ -235,7 +276,6 @@ public partial class Factions
                 AbilityPrototypes.Instance.Get("vegetation detection", 2.0f)
             },
             new List<Unit.Tag>() { Unit.Tag.Limited_Recruitment }));
-
 
         faction.Transports.Add(new Unit("Transport", Unit.UnitType.Ship, "ship_2", 1.0f, 300, 100, 2.0f, 0, 0.0f, 2, null, new List<Building>(),
             2.0f, false, 10.0f, 85.0f, -1.0f,

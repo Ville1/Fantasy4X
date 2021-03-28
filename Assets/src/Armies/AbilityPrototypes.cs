@@ -13,11 +13,29 @@ public class AbilityPrototypes {
         prototypes.Add("magic resistance", new Ability("Magic Resistance", true, true, true) {
             Get_Magic_Resistance = delegate (Ability ability, Unit unit) {
                 return ability.Potency;
+            },
+            Get_Relative_Strength_Multiplier_Bonus = delegate (Ability ability) {
+                return ability.Potency * 0.05f;
             }
         });
 
         prototypes.Add("psionic resistance", new Ability("Psionic Resistance", true, true, true) {
             Get_Psionic_Resistance = delegate (Ability ability, Unit unit) {
+                return ability.Potency;
+            },
+            Get_Relative_Strength_Multiplier_Bonus = delegate (Ability ability) {
+                return ability.Potency * 0.05f;
+            }
+        });
+
+        prototypes.Add("combat mana max", new Ability("Combat Mana Max", false, true) {
+            Get_Combat_Mana_Max = delegate (Ability ability, Unit unit) {
+                return (int)ability.Potency;
+            }
+        });
+
+        prototypes.Add("combat mana regen", new Ability("Combat Mana Regen", false, true) {
+            Get_Combat_Mana_Regen = delegate (Ability ability, Unit unit) {
                 return ability.Potency;
             }
         });

@@ -73,6 +73,9 @@ public class CustomBattleGUIManager : MonoBehaviour {
     private int max_units;
     private Color default_text_color;
     private List<Faction> factions;
+    private Dictionary<Unit, int> left_limited_units_max;
+    private Dictionary<Unit, int> right_limited_units_max;
+    private bool valid_unit_limits;
 
     /// <summary>
     /// Initializiation
@@ -95,6 +98,8 @@ public class CustomBattleGUIManager : MonoBehaviour {
         right_army_scroll_view = new RowScrollView<Unit>("right_army_scroll_view", Right_Army_Content, Right_Army_Row_Prototype, 20.0f);
         default_text_color = Left_Cash_Text.color;
         factions = Factions.Custom_Battle_Options;
+        left_limited_units_max = new Dictionary<Unit, int>();
+        right_limited_units_max = new Dictionary<Unit, int>();
     }
 
     /// <summary>
@@ -141,6 +146,7 @@ public class CustomBattleGUIManager : MonoBehaviour {
         left_units = new List<Unit>();
         right_units = new List<Unit>();
         max_units = DEFAULT_UNIT_MAX;
+        Update_Limits();
         Update_GUI();
     }
 
@@ -210,6 +216,7 @@ public class CustomBattleGUIManager : MonoBehaviour {
     {
         left_player.Faction = factions[Left_Faction_Dropdown.value];
         left_units.Clear();
+        Update_Limits();
         Update_GUI();
     }
 
@@ -217,7 +224,21 @@ public class CustomBattleGUIManager : MonoBehaviour {
     {
         right_player.Faction = factions[Right_Faction_Dropdown.value];
         right_units.Clear();
+        Update_Limits();
         Update_GUI();
+    }
+
+    private void Update_Limits()
+    {
+        left_limited_units_max.Clear();
+        foreach(Unit limited_unit in left_player.Faction.Units.Where(x => x is Unit && (x as Unit).Tags.Contains(Unit.Tag.Limited_Recruitment)).Select(x => x as Unit).ToList()) {
+            left_limited_units_max.Add(limited_unit, left_player.Faction.Buildings.Where(x => x.Recruitment_Limits.ContainsKey(limited_unit.Name)).Select(x => x.Recruitment_Limits[limited_unit.Name]).Sum());
+        }
+
+        right_limited_units_max.Clear();
+        foreach (Unit limited_unit in right_player.Faction.Units.Where(x => x is Unit && (x as Unit).Tags.Contains(Unit.Tag.Limited_Recruitment)).Select(x => x as Unit).ToList()) {
+            right_limited_units_max.Add(limited_unit, right_player.Faction.Buildings.Where(x => x.Recruitment_Limits.ContainsKey(limited_unit.Name)).Select(x => x.Recruitment_Limits[limited_unit.Name]).Sum());
+        }
     }
 
     public void Select_Left_AI()
@@ -234,6 +255,7 @@ public class CustomBattleGUIManager : MonoBehaviour {
 
     private void Update_GUI()
     {
+        valid_unit_limits = true;
         //Middle
         Cash_Input_Field.text = available_cash.ToString();
         Production_Input_Field.text = available_production.ToString();
@@ -312,12 +334,13 @@ public class CustomBattleGUIManager : MonoBehaviour {
         Update_Positions();
         Start_Button.interactable = left_units.Count != 0 && right_units.Count != 0 && valid_resource_use && left_units.Count <= max_units && right_units.Count <= max_units &&
             ((selected_hex.Is_Water && !left_units.Exists(x => !x.Tags.Contains(Unit.Tag.Amphibious) && !x.Tags.Contains(Unit.Tag.Naval)) && !right_units.Exists(x => !x.Tags.Contains(Unit.Tag.Amphibious) && !x.Tags.Contains(Unit.Tag.Naval))) ||
-            (!selected_hex.Is_Water && !left_units.Exists(x => x.Tags.Contains(Unit.Tag.Naval)) && !right_units.Exists(x => x.Tags.Contains(Unit.Tag.Naval))));
+            (!selected_hex.Is_Water && !left_units.Exists(x => x.Tags.Contains(Unit.Tag.Naval)) && !right_units.Exists(x => x.Tags.Contains(Unit.Tag.Naval)))) &&
+            valid_unit_limits;
     }
     
     private List<UIElementData> Create_Unit_Row(Unit unit, bool selection, bool left)
     {
-        return new List<UIElementData>() {
+        List<UIElementData> elements = new List<UIElementData>() {
             new UIElementData("Image", unit.Texture, SpriteManager.SpriteType.Unit),
             new UIElementData("NameText", unit.Name),
             new UIElementData("CostText", string.Format("{0}/{1}/{2}", unit.Cost, unit.Production_Required, unit.Mana_Cost)),
@@ -341,5 +364,16 @@ public class CustomBattleGUIManager : MonoBehaviour {
                 Update_GUI();
             })
         };
+        if (selection) {
+            if (unit.Tags.Contains(Unit.Tag.Limited_Recruitment)) {
+                int current = left ? left_units.Where(x => x.Name == unit.Name).ToList().Count : right_units.Where(x => x.Name == unit.Name).ToList().Count;
+                int max = left ? left_limited_units_max[unit] : right_limited_units_max[unit];
+                elements.Add(new UIElementData("LimitText", string.Format("{0} / {1}", current, max), current <= max ? default_text_color : Color.red));
+                valid_unit_limits = valid_unit_limits ? current <= max : false;
+            } else {
+                elements.Add(new UIElementData("LimitText", string.Empty));
+            }
+        }
+        return elements;
     }
 }

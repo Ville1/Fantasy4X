@@ -18,6 +18,8 @@ public class Ability {
     public delegate float Get_Detection_Delegate(Ability ability, Unit unit, CombatMapHex hex);
     public delegate float Get_Magic_Resistance_Delegate(Ability ability, Unit unit);
     public delegate float Get_Psionic_Resistance_Delegate(Ability ability, Unit unit);
+    public delegate int Get_Combat_Mana_Max_Delegate(Ability ability, Unit unit);
+    public delegate float Get_Combat_Mana_Regen_Delegate(Ability ability, Unit unit);
 
     public string Name { get; private set; }
     public float Potency { get; set; }
@@ -54,6 +56,8 @@ public class Ability {
     public Get_Detection_Delegate Get_Detection { get; set; }
     public Get_Magic_Resistance_Delegate Get_Magic_Resistance { get; set; }
     public Get_Psionic_Resistance_Delegate Get_Psionic_Resistance { get; set; }
+    public Get_Combat_Mana_Max_Delegate Get_Combat_Mana_Max { get; set; }
+    public Get_Combat_Mana_Regen_Delegate Get_Combat_Mana_Regen { get; set; }
     public bool Is_Hidden { get; private set; }
 
     public Ability(string name, float potency, bool potency_as_percent, bool uses_potency, bool hidden)
@@ -115,6 +119,8 @@ public class Ability {
         clone.Get_Detection = Get_Detection;
         clone.Get_Magic_Resistance = Get_Magic_Resistance;
         clone.Get_Psionic_Resistance = Get_Psionic_Resistance;
+        clone.Get_Combat_Mana_Max = Get_Combat_Mana_Max;
+        clone.Get_Combat_Mana_Regen = Get_Combat_Mana_Regen;
         return clone;
     }
 

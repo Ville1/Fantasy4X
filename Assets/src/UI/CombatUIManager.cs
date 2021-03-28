@@ -36,6 +36,11 @@ public class CombatUIManager : MonoBehaviour {
     public Image Stamina_Bar;
     public Text Stamina_Text;
 
+    public Image Mana_Icon;
+    public GameObject Mana_GameObject;
+    public Image Mana_Bar;
+    public Text Mana_Text;
+
     public GameObject Damage_Output_Preview_Panel;
     public Text Damage_Output_Preview_Damage_Text;
     public Text Damage_Output_Preview_Attack_Text;
@@ -438,6 +443,13 @@ public class CombatUIManager : MonoBehaviour {
             Stamina_Text.text = "N/A";
         }
 
+        Mana_Icon.gameObject.SetActive(Current_Unit.Has_Combat_Mana);
+        Mana_GameObject.SetActive(Current_Unit.Has_Combat_Mana);
+        if (Current_Unit.Has_Combat_Mana) {
+            Mana_Bar.rectTransform.sizeDelta = new Vector2(bar_max_lenght * (Current_Unit_Is_Visible ? Current_Unit.Combat_Mana_Relative : 1.0f), bar_height);
+            Mana_Text.text = Current_Unit.Is_Visible ? string.Format("{0} / {1} +{2}", Helper.Float_To_String(Current_Unit.Current_Combat_Mana, 1), Current_Unit.Combat_Mana_Max, Helper.Float_To_String(Current_Unit.Combat_Mana_Regen, 1)) : "? / ? +?";
+        }
+
         Next_Unit_Button.interactable = true;
         Previous_Unit_Button.interactable = true;
         Toggle_Run_Button.interactable = Current_Unit.Can_Run && !CombatManager.Instance.Deployment_Mode && !CombatManager.Instance.Other_Players_Turn && Current_Unit.Hex != null && !Current_Unit.Hex.Is_Adjancent_To_Enemy(Current_Unit.Owner);
@@ -469,6 +481,11 @@ public class CombatUIManager : MonoBehaviour {
                 Helper.Set_Text(string.Format("{0}/CooldownPanel", gameobject.name), "CooldownText", action.Current_Cooldown.ToString());
             } else {
                 GameObject.Find(string.Format("{0}/CooldownPanel", gameobject.name)).SetActive(false);
+            }
+            if(action.Mana_Cost != 0) {
+                Helper.Set_Text(string.Format("{0}/ManaCostPanel", gameobject.name), "ManaCostText", action.Mana_Cost.ToString());
+            } else {
+                GameObject.Find(string.Format("{0}/ManaCostPanel", gameobject.name)).SetActive(false);
             }
             GameObject.Find(string.Format("{0}/SelectedImage", gameobject.name)).GetComponentInChildren<Image>().color = selected_action != null && action.Internal_Name == selected_action.Internal_Name ?
                 new Color(1.0f, 1.0f, 1.0f, 1.0f) :
